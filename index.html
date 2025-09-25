@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Лада-Имидж. Учёт затрат процессов</title>
+  <meta name="description" content="Веб‑приложение Лада‑Имидж: учёт затрат процессов, PnL по ABC, оргструктура и аналитика." />
+  <meta name="theme-color" content="#ffffff"/>
+
+  <!-- Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Hints to CDNs -->
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="//unpkg.com">
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <!-- Header -->
+  <header class="main-header" role="banner">
+    <button id="sidebarToggle" class="icon-button" aria-label="Свернуть/развернуть меню">
+      <i data-lucide="panel-left-close" aria-hidden="true"></i>
+    </button>
+
+    <div class="title-container">
+      <i data-lucide="workflow" class="main-icon" aria-hidden="true"></i>
+      <div class="titles">
+        <h1 class="page-title">Лада-Имидж. Учёт затрат процессов</h1>
+        <p class="subtitle">PnL по ABC (Activity-Based Costing)</p>
+      </div>
+    </div>
+
+    <div class="user-area">
+      <button id="userMenuButton" class="avatar-button" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu">
+        <img src="https://i.pravatar.cc/40?img=3" alt="Профиль пользователя" loading="lazy" decoding="async"/>
+        <i data-lucide="chevron-down" class="chevron" aria-hidden="true"></i>
+      </button>
+      <div id="userMenu" class="user-menu" role="menu" aria-hidden="true">
+        <button class="user-menu__item" role="menuitem">
+          <i data-lucide="user" aria-hidden="true"></i><span>Профиль</span>
+        </button>
+        <button class="user-menu__item" role="menuitem" id="themeToggle">
+          <i data-lucide="sun" aria-hidden="true"></i><span>Тема</span>
+        </button>
+        <button class="user-menu__item" role="menuitem">
+          <i data-lucide="log-out" aria-hidden="true"></i><span>Выход</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Навигация">
+      <nav class="nav">
+        <a class="nav-item active" href="#" title="Главная" aria-current="page">
+          <i data-lucide="castle" aria-hidden="true"></i>
+          <span>Главная</span>
+        </a>
+        <a class="nav-item" href="#" title="PnL по ABC">
+          <i data-lucide="carrot" aria-hidden="true"></i>
+          <span>PnL по ABC</span>
+        </a>
+        <a class="nav-item" href="#" title="PCF-процессы">
+          <i data-lucide="ship-wheel" aria-hidden="true"></i>
+          <span>PCF-процессы</span>
+        </a>
+        <a class="nav-item" href="#" title="Оргструктура">
+          <i data-lucide="drama" aria-hidden="true"></i>
+          <span>Оргструктура</span>
+        </a>
+        <a class="nav-item" href="#" title="Аналитика">
+          <i data-lucide="citrus" aria-hidden="true"></i>
+          <span>Аналитика</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <main id="app-container" class="content" role="main">
+      <!-- KPI Row -->
+      <section class="widgets-grid kpi-row">
+        <a class="card kpi-card" href="#">
+          <div class="card-header">
+            <h3 class="card-title">Выручка</h3>
+            <p class="card-subtitle">Revenue</p>
+          </div>
+          <div class="kpi-value">12,4 млн ₽</div>
+          <div class="card-actions">
+            <button class="btn btn-link">Подробнее / View report</button>
+          </div>
+        </a>
+
+        <a class="card kpi-card" href="#">
+          <div class="card-header">
+            <h3 class="card-title">Прямые затраты</h3>
+            <p class="card-subtitle">Direct Costs</p>
+          </div>
+          <div class="kpi-value">7,9 млн ₽</div>
+          <div class="card-actions">
+            <button class="btn btn-link">Подробнее / View report</button>
+          </div>
+        </a>
+
+        <a class="card kpi-card" href="#">
+          <div class="card-header">
+            <h3 class="card-title">Косвенные затраты (ABC)</h3>
+            <p class="card-subtitle">Indirect Costs (ABC)</p>
+          </div>
+          <div class="kpi-value">2,2 млн ₽</div>
+          <div class="card-actions">
+            <button class="btn btn-link">Подробнее / View report</button>
+          </div>
+        </a>
+
+        <a class="card kpi-card" href="#">
+          <div class="card-header">
+            <h3 class="card-title">Чистая прибыль</h3>
+            <p class="card-subtitle">Net Profit</p>
+          </div>
+          <div class="kpi-value positive">2,3 млн ₽</div>
+          <div class="card-actions">
+            <button class="btn btn-link">Подробнее / View report</button>
+          </div>
+        </a>
+      </section>
+
+      <!-- Charts Row -->
+      <section class="widgets-grid">
+        <a class="card" href="#">
+          <div class="card-header">
+            <h3 class="card-title">Жизненный цикл приложений</h3>
+            <p class="card-subtitle">Application Lifecycle</p>
+          </div>
+          <div class="card-chart">
+            <canvas id="donutChart" aria-label="Жизненный цикл приложений"></canvas>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary">
+              <i data-lucide="search" aria-hidden="true"></i> <span>Исследовать / Explore</span>
+            </button>
+          </div>
+        </a>
+
+        <a class="card" href="#">
+          <div class="card-header">
+            <h3 class="card-title">Затраты по подразделениям</h3>
+            <p class="card-subtitle">Costs by Departments</p>
+          </div>
+          <div class="card-chart">
+            <canvas id="barChart" aria-label="Затраты по подразделениям"></canvas>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary">
+              <i data-lucide="bar-chart-3" aria-hidden="true"></i> <span>Открыть отчёт / View report</span>
+            </button>
+          </div>
+        </a>
+
+        <a class="card" href="#">
+          <div class="card-header">
+            <h3 class="card-title">Динамика PnL</h3>
+            <p class="card-subtitle">PnL Trend</p>
+          </div>
+          <div class="card-chart">
+            <canvas id="lineChart" aria-label="Динамика PnL"></canvas>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary">
+              <i data-lucide="line-chart" aria-hidden="true"></i> <span>Открыть отчёт / View report</span>
+            </button>
+          </div>
+        </a>
+      </section>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="main-footer" role="contentinfo">
+    <div class="footer-left">© <span id="year"></span> Лада-Имидж</div>
+    <div class="footer-right">
+      <i data-lucide="workflow" aria-hidden="true"></i>
+      <span>ДКАБП.tech</span>
+    </div>
+  </footer>
+
+  <!-- Runtime-конфиг -->
+  <script>
+    window.ENV = {
+      SUPABASE_URL: "https://eqpdepmgriuivevvrulc.supabase.co",
+      SUPABASE_ANON_KEY: "sb_publishable_jXWjFZYC1JvEL7n8tgygJw_QZ9kBcaT"
+    };
+  </script>
+
+  <!-- Vendor scripts (defer: не блокируют рендер, порядок сохраняется) -->
+  <script src="https://unpkg.com/lucide@latest" defer crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.1/dist/umd/supabase.min.js" defer crossorigin="anonymous"></script>
+
+  <!-- App -->
+  <script src="app.js" defer></script>
+
+  <noscript>Для работы приложения требуется включить JavaScript.</noscript>
+</body>
+</html>
