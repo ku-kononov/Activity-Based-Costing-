@@ -31,14 +31,14 @@
     <div class="title-container">
       <i data-lucide="workflow" class="main-icon" aria-hidden="true"></i>
       <div class="titles">
-        <h1 class="page-title">Лада-Имидж. Учёт затрат процессов</h1>
-        <p class="subtitle">PnL по ABC (Activity-Based Costing)</p>
+        <h1 class="page-title">Лада-Имидж. Бизнес-архитектура</h1>
+        <p class="subtitle">Люди / Процессы / Данные</p>
       </div>
     </div>
 
     <div class="user-area">
       <button id="userMenuButton" class="avatar-button" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu">
-        <img src="https://i.pravatar.cc/40?img=3" alt="Профиль пользователя" loading="lazy" decoding="async"/>
+        <i data-lucide="scan-face" class="avatar-icon" aria-hidden="true"></i>
         <i data-lucide="chevron-down" class="chevron" aria-hidden="true"></i>
       </button>
       <div id="userMenu" class="user-menu" role="menu" aria-hidden="true">
@@ -63,122 +63,27 @@
           <i data-lucide="castle" aria-hidden="true"></i>
           <span>Главная</span>
         </a>
-        <a class="nav-item" href="#" title="PnL по ABC">
-          <i data-lucide="carrot" aria-hidden="true"></i>
-          <span>PnL по ABC</span>
+        <a class="nav-item" href="#" title="Затраты процессов">
+          <i data-lucide="chart-pie" aria-hidden="true"></i>
+          <span>Затраты процессов</span>
         </a>
-        <a class="nav-item" href="#" title="PCF-процессы">
-          <i data-lucide="ship-wheel" aria-hidden="true"></i>
-          <span>PCF-процессы</span>
+        <a class="nav-item" href="#" title="Бизнес-функции">
+          <i data-lucide="waypoints" aria-hidden="true"></i>
+          <span>Бизнес-функции</span>
         </a>
         <a class="nav-item" href="#" title="Оргструктура">
           <i data-lucide="drama" aria-hidden="true"></i>
           <span>Оргструктура</span>
         </a>
         <a class="nav-item" href="#" title="Аналитика">
-          <i data-lucide="citrus" aria-hidden="true"></i>
+          <i data-lucide="chart-spline" aria-hidden="true"></i>
           <span>Аналитика</span>
         </a>
       </nav>
     </aside>
 
-    <!-- Content -->
-    <main id="app-container" class="content" role="main">
-      <!-- KPI Row -->
-      <section class="widgets-grid kpi-row">
-        <a class="card kpi-card" href="#">
-          <div class="card-header">
-            <h3 class="card-title">Выручка</h3>
-            <p class="card-subtitle">Revenue</p>
-          </div>
-          <div class="kpi-value">12,4 млн ₽</div>
-          <div class="card-actions">
-            <button class="btn btn-link">Подробнее / View report</button>
-          </div>
-        </a>
-
-        <a class="card kpi-card" href="#">
-          <div class="card-header">
-            <h3 class="card-title">Прямые затраты</h3>
-            <p class="card-subtitle">Direct Costs</p>
-          </div>
-          <div class="kpi-value">7,9 млн ₽</div>
-          <div class="card-actions">
-            <button class="btn btn-link">Подробнее / View report</button>
-          </div>
-        </a>
-
-        <a class="card kpi-card" href="#">
-          <div class="card-header">
-            <h3 class="card-title">Косвенные затраты (ABC)</h3>
-            <p class="card-subtitle">Indirect Costs (ABC)</p>
-          </div>
-          <div class="kpi-value">2,2 млн ₽</div>
-          <div class="card-actions">
-            <button class="btn btn-link">Подробнее / View report</button>
-          </div>
-        </a>
-
-        <a class="card kpi-card" href="#">
-          <div class="card-header">
-            <h3 class="card-title">Чистая прибыль</h3>
-            <p class="card-subtitle">Net Profit</p>
-          </div>
-          <div class="kpi-value positive">2,3 млн ₽</div>
-          <div class="card-actions">
-            <button class="btn btn-link">Подробнее / View report</button>
-          </div>
-        </a>
-      </section>
-
-      <!-- Charts Row -->
-      <section class="widgets-grid">
-        <a class="card" href="#">
-          <div class="card-header">
-            <h3 class="card-title">Жизненный цикл приложений</h3>
-            <p class="card-subtitle">Application Lifecycle</p>
-          </div>
-          <div class="card-chart">
-            <canvas id="donutChart" aria-label="Жизненный цикл приложений"></canvas>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-primary">
-              <i data-lucide="search" aria-hidden="true"></i> <span>Исследовать / Explore</span>
-            </button>
-          </div>
-        </a>
-
-        <a class="card" href="#">
-          <div class="card-header">
-            <h3 class="card-title">Затраты по подразделениям</h3>
-            <p class="card-subtitle">Costs by Departments</p>
-          </div>
-          <div class="card-chart">
-            <canvas id="barChart" aria-label="Затраты по подразделениям"></canvas>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-primary">
-              <i data-lucide="bar-chart-3" aria-hidden="true"></i> <span>Открыть отчёт / View report</span>
-            </button>
-          </div>
-        </a>
-
-        <a class="card" href="#">
-          <div class="card-header">
-            <h3 class="card-title">Динамика PnL</h3>
-            <p class="card-subtitle">PnL Trend</p>
-          </div>
-          <div class="card-chart">
-            <canvas id="lineChart" aria-label="Динамика PnL"></canvas>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-primary">
-              <i data-lucide="line-chart" aria-hidden="true"></i> <span>Открыть отчёт / View report</span>
-            </button>
-          </div>
-        </a>
-      </section>
-    </main>
+    <!-- Content: рендерится роутером -->
+    <main id="app-container" class="content" role="main"></main>
   </div>
 
   <!-- Footer -->
@@ -199,12 +104,12 @@
   </script>
 
   <!-- Vendor scripts (defer: не блокируют рендер, порядок сохраняется) -->
-  <script src="https://unpkg.com/lucide@latest" defer crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.1/dist/umd/supabase.min.js" defer crossorigin="anonymous"></script>
 
-  <!-- App -->
-  <script src="app.js" defer></script>
+  <!-- App (ES Modules) -->
+  <script type="module" src="js/main.js" defer></script>
 
   <noscript>Для работы приложения требуется включить JavaScript.</noscript>
 </body>

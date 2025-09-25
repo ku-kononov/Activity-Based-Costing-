@@ -23,17 +23,19 @@ body{
   position:sticky; top:0; z-index:1000;
   display:flex; align-items:center; gap:var(--sp-16);
   background:var(--surface); border-bottom:1px solid var(--border);
-  box-shadow:0 1px 0 rgba(0,0,0,.02); padding:10px var(--sp-16);
+  box-shadow:0 1px 0 #00000000; padding:10px var(--sp-16);
 }
 .icon-button{
   background:transparent; border:1px solid var(--border); width:38px; height:38px;
-  border-radius:var(--r-8); display:grid; place-items:center; cursor:pointer; color:var(--text);
+  border-radius:var(--r-8); display:grid; place-items:center; cursor:pointer; color:var(--muted);
 }
-.icon-button:hover{background:#f3f4f6}
+.icon-button i, .icon-button svg{width:20px; height:20px}
+.icon-button:hover{background:rgb(243, 244, 246)}
 .title-container{display:flex; align-items:center; gap:12px; min-width:0}
 .main-icon{width:28px; height:28px; color:var(--accent)}
+.title-container i[data-lucide], .title-container svg.lucide{width:28px; height:28px}
 .titles{display:flex; flex-direction:column; min-width:0}
-.page-title{margin:0; font-size:18px; font-weight:700; color:var(--text)}
+.page-title{margin:0; font-size:18px; font-weight:700; color:var(--accent)}
 .subtitle{margin:0; font-size:13px; color:var(--muted)}
 .user-area{margin-left:auto; position:relative}
 .avatar-button{
@@ -43,6 +45,7 @@ body{
 }
 .avatar-button img{width:28px; height:28px; border-radius:50%}
 .avatar-button .chevron{width:18px; height:18px; color:var(--muted)}
+.avatar-button .chevron svg{width:18px; height:18px}
 .user-menu{
   position:absolute; right:0; top:calc(100% + 8px);
   background:var(--surface); border:1px solid var(--border); border-radius:var(--r-10);
@@ -67,10 +70,10 @@ body.sidebar-collapsed .sidebar{width:72px}
   display:flex; align-items:center; gap:12px; padding:10px 12px;
   border-radius:10px; color:#495057; text-decoration:none;
 }
-.nav-item i{width:20px; height:20px}
+.nav-item i, .nav-item svg{width:20px; height:20px}
 .nav-item:hover{background:#f3f4f6}
 .nav-item.active{background:var(--accent); color:#fff}
-.nav-item.active i{color:#fff}
+.nav-item.active i, .nav-item.active svg{color:#fff}
 body.sidebar-collapsed .nav-item span{display:none}
 body.sidebar-collapsed .nav-item{justify-content:center}
 
@@ -100,7 +103,7 @@ body.sidebar-collapsed .nav-item{justify-content:center}
 
 /* Buttons */
 .btn{display:inline-flex; align-items:center; gap:var(--sp-8); font-weight:600; border-radius:var(--r-8); cursor:pointer}
-.btn i{width:18px; height:18px}
+.btn i, .btn svg{width:18px; height:18px}
 .btn-primary{background:var(--accent); color:#fff; border:none; padding:8px 12px}
 .btn-primary:hover{filter:brightness(.95)}
 .btn-link{background:transparent; border:none; color:var(--accent); padding:6px 8px}
@@ -111,7 +114,7 @@ body.sidebar-collapsed .nav-item{justify-content:center}
   height:45px; display:flex; align-items:center; justify-content:space-between;
   padding:0 var(--sp-16); background:var(--footer-bg); color:#fff; font-family:"Helvetica Neue", cursive;
 }
-.main-footer i{width:18px; height:18px}
+.main-footer i, .main-footer svg{width:18px; height:18px}
 .footer-left,.footer-right{display:flex; align-items:center; gap:var(--sp-8)}
 
 /* -------- Org page -------- */
@@ -121,6 +124,9 @@ body.sidebar-collapsed .nav-item{justify-content:center}
 }
 .org-page .card-header{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-8)}
 .org-page .card-title{color:var(--blue)} /* синий заголовок страницы */
+.org-page .org-title{display:flex; align-items:center; gap:8px; color:var(--blue)}
+.org-page .org-title i, .org-page .org-title svg{width:20px; height:20px}
+.org-page .card-subtitle{margin-left:28px}
 .org-actions{display:flex; align-items:center; gap:var(--sp-12)}
 .view-toggle.segmented{
   display:inline-flex; border:1px solid var(--border); border-radius:var(--r-10); overflow:hidden; background:#fff;
@@ -144,6 +150,7 @@ body.sidebar-collapsed .nav-item{justify-content:center}
 .org-item:hover{transform:translateY(-1px); box-shadow:0 4px 10px rgba(16,24,40,.08)}
 .org-item .row{display:flex; align-items:center; gap:var(--sp-8); min-height:20px}
 .org-item .name{margin:0; font-weight:700; color:#2b2f33; font-size:13px; display:inline-flex; align-items:center}
+.org-item .name i, .org-item .name svg{width:21px; height:21px; margin-right:8px}
 .org-item .emp-pill{
   position:absolute; right:10px; bottom:6px; font-size:12px; color:#2b2f33;
   background:#f8f9fa; border:1px solid var(--border); border-radius:var(--r-pill); padding:2px 7px;

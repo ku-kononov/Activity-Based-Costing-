@@ -1,0 +1,54 @@
+.data-card { background: var(--surface); border:1px solid var(--border); border-radius:var(--r-12); box-shadow: var(--shadow); padding:var(--sp-12); }
+.org-page .card-header { display:flex; align-items:center; justify-content: space-between; gap:var(--sp-8); }
+.org-page .card-title { color: var(--blue); }
+.org-actions { display:flex; align-items:center; gap:var(--sp-12); }
+.view-toggle.segmented { display:inline-flex; border:1px solid var(--border); border-radius:var(--r-10); overflow:hidden; background:#fff; }
+.view-toggle .seg-btn { padding:8px 12px; border:none; background:#fff; cursor:pointer; color:#495057; font-weight:600; }
+.view-toggle .seg-btn + .seg-btn { border-left: 1px solid var(--border); }
+.view-toggle .seg-btn.active { background: var(--accent); color:#fff; }
+.org-search { border:1px solid var(--border); border-radius:var(--r-10); padding:8px 12px; min-width:280px; background:#fff; }
+.org-table-toolbar{display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-8); margin-bottom:10px}
+.org-table-toolbar .btn{padding:6px 10px; border:1px solid var(--border); background:#fff; color:#2b2f33}
+.org-table-toolbar .btn:hover{background:#f6f7f9}
+.org-table-toolbar .select{border:1px solid var(--border); border-radius:var(--r-8); padding:6px 10px; background:#fff}
+.org-table-wrap{background:#fff; border:1px solid var(--border); border-radius:var(--r-12); box-shadow:var(--shadow); overflow:auto}
+.org-table{width:100%; border-collapse:collapse; min-width:720px}
+.org-table th,.org-table td{padding:10px 12px; border-bottom:1px solid var(--divider); text-align:left; font-size:14px; color:#2b2f33}
+.org-table thead th{position:sticky; top:0; z-index:1; background:var(--blue); color:#fff; font-weight:700}
+.org-table tbody tr:hover{background:#F2F2F2}
+.org-table tbody tr:hover td{color:inherit}
+.tree-cell{display:flex; align-items:center; gap:var(--sp-12)}
+.tree-indent{display:inline-block; width:calc(var(--depth,0) * 16px); height:1px; flex-shrink:0;}
+.tree-caret{
+  width:16px; height:16px; display:grid; place-items:center; flex:0 0 16px;
+  border:1px solid var(--blue); border-radius:var(--r-6); background:#fff; color:var(--blue); cursor:pointer;
+}
+.tree-caret[disabled]{opacity:.45; cursor:default; background:#f8f9fa; border-color:var(--border); color:var(--muted)}
+.tree-caret svg{width:14px; height:14px}
+.org-table tbody tr:hover .tree-caret{border-color:var(--blue); color:var(--blue); background:#fff}
+
+/* PCF Catalog Styles */
+.process-group-block { background: var(--group-color); border-color: var(--group-color); color: white; }
+.process-group-block .card-header { gap: 16px; align-items: flex-start; }
+.process-group-icon {
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.process-group-icon i { width: 24px; height: 24px; }
+.process-group-block .card-title { color: white; margin-bottom: 4px; }
+.process-group-caption {
+  color: rgba(255,255,255,0.9);
+  margin-left: 40px;
+  font-size: 0.9em;
+  max-width: 480px;
+}
+.process-group-block .pcf-item {
+  background: rgba(255,255,255,0.1) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  color: white !important;
+}
+.process-group-block .pcf-item:hover { background: rgba(255,255,255,0.2) !important; }

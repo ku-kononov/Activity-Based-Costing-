@@ -1,0 +1,16 @@
+.sidebar{
+  width:260px; background:var(--surface); border-right:1px solid var(--border);
+  padding:var(--sp-12) var(--sp-8); transition:width .2s ease;
+}
+body.sidebar-collapsed .sidebar{width:72px}
+.nav{display:flex; flex-direction:column; gap:var(--sp-6)}
+.nav-item{
+  display:flex; align-items:center; gap:var(--sp-12); padding:var(--sp-10) var(--sp-12);
+  border-radius:var(--r-10); color:#495057; text-decoration:none;
+}
+.nav-item i{width:20px; height:20px; flex-shrink:0;}
+.nav-item:hover{background:#f3f4f6}
+.nav-item.active{background:var(--accent); color:#fff}
+.nav-item.active i{color:#fff}
+body.sidebar-collapsed .nav-item span{display:none}
+body.sidebar-collapsed .nav-item{justify-content:center}
