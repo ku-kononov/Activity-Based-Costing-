@@ -11,181 +11,302 @@
   --sp-4:4px; --sp-6:6px; --sp-8:8px; --sp-10:10px; --sp-12:12px; --sp-16:16px;
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
+*{ box-sizing:border-box }
+html,body{ height:100% }
 body{
-  margin:0; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
-  color:var(--text); background:var(--bg);
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
+  color:var(--text);
+  background:var(--bg)
 }
 
-/* Header */
+/* --- Общие компоненты (без изменений) --- */
 .main-header{
   position:sticky; top:0; z-index:1000;
   display:flex; align-items:center; gap:var(--sp-16);
   background:var(--surface); border-bottom:1px solid var(--border);
-  box-shadow:0 1px 0 #00000000; padding:10px var(--sp-16);
+  padding:10px var(--sp-16)
 }
-.icon-button{
-  background:transparent; border:1px solid var(--border); width:38px; height:38px;
-  border-radius:var(--r-8); display:grid; place-items:center; cursor:pointer; color:var(--muted);
-}
-.icon-button i, .icon-button svg{width:20px; height:20px}
-.icon-button:hover{background:rgb(243, 244, 246)}
-.title-container{display:flex; align-items:center; gap:12px; min-width:0}
-.main-icon{width:28px; height:28px; color:var(--accent)}
-.title-container i[data-lucide], .title-container svg.lucide{width:28px; height:28px}
-.titles{display:flex; flex-direction:column; min-width:0}
-.page-title{margin:0; font-size:18px; font-weight:700; color:var(--accent)}
-.subtitle{margin:0; font-size:13px; color:var(--muted)}
-.user-area{margin-left:auto; position:relative}
-.avatar-button{
-  display:flex; align-items:center; gap:var(--sp-8);
-  background:var(--surface); border:1px solid var(--border);
-  padding:var(--sp-4) var(--sp-8); border-radius:var(--r-pill); cursor:pointer;
-}
-.avatar-button img{width:28px; height:28px; border-radius:50%}
-.avatar-button .chevron{width:18px; height:18px; color:var(--muted)}
-.avatar-button .chevron svg{width:18px; height:18px}
-.user-menu{
-  position:absolute; right:0; top:calc(100% + 8px);
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-10);
-  box-shadow:var(--shadow); min-width:200px; padding:var(--sp-6); display:none;
-}
-.user-menu.open{display:block}
-.user-menu__item{
-  width:100%; display:flex; align-items:center; gap:var(--sp-8);
-  padding:var(--sp-8) var(--sp-10); border:none; background:transparent; cursor:pointer; border-radius:var(--r-8);
-}
-.user-menu__item:hover{background:#f6f7f9}
+.icon-button{ background:transparent; border:1px solid var(--border); width:38px; height:38px; border-radius:var(--r-8); display:grid; place-items:center; cursor:pointer; color:var(--muted) }
+.icon-button:hover{ background:#f3f4f6 }
+.title-container{ display:flex; align-items:center; gap:12px; min-width:0 }
+.main-icon{ width:28px; height:28px; color:var(--accent) }
+.layout{ display:flex; min-height:calc(100vh - 64px - 56px) }
+.sidebar{ width:260px; background:var(--surface); border-right:1px solid var(--border); padding:12px var(--sp-8) }
+.nav{ display:flex; flex-direction:column; gap:6px }
+.nav-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:#495057; text-decoration:none }
+.nav-item:hover{ background:#f3f4f6 }
+.nav-item.active{ background:var(--accent); color:#fff }
+.nav-item.active i, .nav-item.active svg{ color:#fff }
+body.sidebar-collapsed .sidebar{ width:72px }
+body.sidebar-collapsed .nav-item span{ display:none }
+body.sidebar-collapsed .nav-item{ justify-content:center }
+.content{ flex:1; padding:var(--sp-16) }
+.widgets-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-16) }
+.card{ display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-12); box-shadow:var(--shadow); padding:14px; color:inherit }
+.card:hover{ transform:translateY(-1px); box-shadow:0 4px 10px rgba(16,24,40,.08) }
+.main-footer{ height:45px; display:flex; align-items:center; justify-content:space-between; padding:0 var(--sp-16); background:#4D5964; color:#fff }
 
-/* Layout / Sidebar */
-.layout{display:flex; min-height:calc(100vh - 64px - 56px)}
-.sidebar{
-  width:260px; background:var(--surface); border-right:1px solid var(--border);
-  padding:12px var(--sp-8); transition:width .2s ease;
-}
-body.sidebar-collapsed .sidebar{width:72px}
-.nav{display:flex; flex-direction:column; gap:6px}
-.nav-item{
-  display:flex; align-items:center; gap:12px; padding:10px 12px;
-  border-radius:10px; color:#495057; text-decoration:none;
-}
-.nav-item i, .nav-item svg{width:20px; height:20px}
-.nav-item:hover{background:#f3f4f6}
-.nav-item.active{background:var(--accent); color:#fff}
-.nav-item.active i, .nav-item.active svg{color:#fff}
-body.sidebar-collapsed .nav-item span{display:none}
-body.sidebar-collapsed .nav-item{justify-content:center}
+/* --- PCF Catalog bits (без изменений, для совместимости) --- */
+.pcf-page .widgets-grid { grid-template-columns: 1fr; gap: 20px; }
+.pcf-group-card{ cursor:default; transform:none; box-shadow:var(--shadow); border-top:4px solid var(--group-color); padding:16px }
+.pcf-group-header{ display:flex; align-items:flex-start; gap:12px; margin-bottom:16px }
+.pcf-group-icon{ width:26px; height:26px; color:var(--group-color); flex-shrink:0; margin-top:2px }
+.pcf-items-container{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px }
+.pcf-item{ display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; min-height:64px; padding:10px 12px; border-radius:var(--r-10); border:1px solid transparent; cursor:pointer; transition:filter .2s ease, transform .2s ease }
+.pcf-item:hover{ filter:brightness(1.06); transform:translateY(-1px) }
+.pcf-item[data-group="core"]{ background:var(--blue); color:#fff }
+.pcf-item[data-group="enablement"]{ background:var(--success); color:#fff }
+.pcf-item[data-group="management"]{ background:var(--warning); color:#fff }
+.pcf-empty{ color:var(--muted); font-style:italic; padding:16px; text-align:center }
 
-/* Content & Grid */
-.content{flex:1; padding:var(--sp-16)}
-.widgets-grid{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-16);
+/* ======================== ORG PAGE (Modern) ======================== */
+/* 1. Заголовок */
+.org-page .card-header.org-header{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.org-title-left{ display:flex; align-items:center; gap:12px; }
+.org-header-icon{ color:var(--blue); width:28px; height:28px; }
+.org-title-texts{ display:flex; flex-direction:column; }
+.org-header-title{ color:var(--blue); font-size:20px; margin:0; }
+.org-header-subtitle{ margin:2px 0 0; font-size:13px; color:var(--muted); }
+.org-actions-top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.org-search-wrap{ position:relative; display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:var(--r-10); background:#fff; padding:6px 10px; }
+.org-search-wrap i, .org-search-wrap svg{ width:18px; height:18px; color:var(--muted) }
+.org-search{ border:none; outline:none; min-width:240px; background:transparent; color:inherit }
+.view-toggle.segmented{ display:inline-flex; border:1px solid var(--border); border-radius:var(--r-10); overflow:hidden; background:#fff }
+.view-toggle .seg-btn{ display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border:none; background:#fff; cursor:pointer; color:#495057; font-weight:600 }
+.view-toggle .seg-btn + .seg-btn{ border-left:1px solid var(--border) }
+.view-toggle .seg-btn.active{ background:var(--accent); color:#fff }
+
+/* 2. LIST */
+.org-list-modern{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.org-node{
+  --dir-color:#94a3b8;
+  margin-left: calc(var(--depth, 0) * 20px);
+  background:#fff; border:1px solid var(--border); border-left:4px solid var(--dir-color);
+  border-radius:var(--r-12); box-shadow:var(--shadow); padding:10px 12px;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.org-node:hover{ transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16,24,40,.08) }
+.org-node-head{ display:flex; align-items:center; gap:10px; cursor:pointer; }
+
+/* Иконки в org-узле должны совпадать с цветом текста */
+.org-node-head{ color: var(--dir-color); } /* распространяем цвет на текст и иконки */
+.org-node-icon{ width:20px; height:20px; color:inherit; }
+.org-node-icon svg{ fill: currentColor; stroke: currentColor; } /* на случай inline SVG без currentColor */
+
+.org-caret{
+  width:24px; height:24px; display:grid; place-items:center;
+  background:transparent; color:var(--dir-color);
+  cursor:pointer; border:none; border-radius: var(--r-6);
+}
+.org-caret:not([disabled]):hover{ background:rgba(0,0,0,0.05); }
+.org-caret[disabled]{ opacity:.4; cursor:default; }
+.org-node-title{ font-weight:700; color:var(--dir-color); }
+.org-node[data-depth="2"] .org-node-title{ font-weight:500; } /* 3-й уровень */
+.org-node[data-depth="3"] .org-node-title{ font-weight:400; font-style:italic; } /* 4-й уровень */
+.org-code-chip{ margin-left:auto; padding:3px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--r-pill); background:#f8f9fa; color:#2b2f33 }
+.emp-pill{ margin-left:10px; padding:3px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--r-pill); background:#fff; color:#2b2f33 }
+
+/* 3. TABLE */
+.org-table-toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:8px 0 10px }
+.org-table-toolbar .btn{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--border); background:#fff; color:#2b2f33; border-radius:var(--r-8) }
+.org-table-toolbar .btn:hover{ background:#f6f7f9 }
+.org-table-toolbar .toolbar-spacer{ flex:1 1 auto }
+.org-table-wrap{ background:#fff; border:1px solid var(--border); border-radius:var(--r-12); box-shadow:var(--shadow); overflow:auto }
+.org-table{ width:100%; border-collapse:collapse; min-width:720px }
+.org-table th,.org-table td{ padding:10px 12px; border-bottom:1px solid var(--divider); text-align:left; font-size:14px; color:#2b2f33 }
+.org-table thead th{ position:sticky; top:0; z-index:1; background:var(--blue); color:#fff; font-weight:700 }
+.org-table tbody tr[data-has-children="true"]{ cursor:pointer; }
+.org-table tbody tr[data-has-children="true"]:hover{ background:#F8FAFC; }
+.tree-cell{ display:flex; align-items:center; gap:12px }
+.tree-indent{ display:inline-block; width:calc(var(--depth,0) * 24px); height:1px }
+.org-code-badge{ display:inline-flex; padding:3px 8px; border:1px solid var(--border); background:#f8f9fa; border-radius:var(--r-pill); font-size:12px; color:#2b2f33 }
+/* ================== PCF Catalog: выравнивание, цвета, компактность ================== */
+
+/* Заголовок страницы: поднять иконку до уровня заголовка, титул синий, подзаголовок ближе */
+.pcf-page .card-header .title-container{
+  align-items: flex-start !important; /* перебиваем inline align-items:center */
+  gap: 12px !important;               /* перебиваем inline gap */
+}
+.pcf-page .card-header .main-icon{
+  color: var(--blue) !important;      /* на случай, если цвет задан inline */
+  width: 28px; height: 28px;
+  margin-top: 1px;                    /* лёгкая оптическая правка */
+}
+.pcf-page .card-header .card-title{
+  color: var(--blue) !important;
+  margin: 0;
+  line-height: 1.2;
+}
+.pcf-page .card-header .card-subtitle{
+  margin: 2px 0 0;                    /* ближе к заголовку */
+  font-size: 13px;
+  color: var(--muted);
+}
+/* Сетка ближе к заголовку — перебиваем inline margin-top */
+.pcf-page #pcf-grid-container{
+  margin-top: 12px !important;
 }
 
-/* Cards */
-.card{
-  display:flex; flex-direction:column; background:var(--surface);
-  border:1px solid var(--border); border-radius:var(--r-12); box-shadow:var(--shadow);
-  padding:14px; text-decoration:none; color:inherit; transition:transform .12s ease, box-shadow .12s ease; cursor:pointer;
+/* Блоки: заголовки в цвет блока, выровнять по иконке, подзаголовок ближе */
+.pcf-page .pcf-group-card .pcf-group-header{
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;                /* компактнее */
 }
-.card:hover{transform:translateY(-1px); box-shadow:0 4px 10px rgba(16,24,40,.08)}
-.card-header{margin-bottom:10px}
-.card-title{margin:0; font-size:16px; font-weight:700; color:#2b2f33}
-.card-subtitle{margin:2px 0 0; font-size:12px; color:var(--muted)}
-.card-chart{width:100%; height:240px; display:flex; align-items:center; justify-content:center}
-.card-actions{margin-top:auto; display:flex; justify-content:flex-end}
+.pcf-page .pcf-group-card .pcf-group-icon{
+  color: var(--group-color);
+  width: 26px; height: 26px;
+  margin-top: 1px;
+}
+.pcf-page .pcf-group-card .pcf-group-titles .card-title{
+  margin: 0;
+  line-height: 1.2;
+  color: var(--group-color);
+}
+.pcf-page .pcf-group-card .pcf-group-subtitle{
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
 
-/* KPI */
-.kpi-row{margin-bottom:8px}
-.kpi-card .kpi-value{font-size:24px; font-weight:700; color:#2b2f33; margin-top:6px}
-.kpi-value.positive{color:var(--success)}
+/* Иконки следуют цвету текста (на случай inline SVG) */
+.pcf-page .pcf-group-icon svg,
+.pcf-page .main-icon svg,
+.pcf-page .pcf-detail-title-icon svg{
+  fill: currentColor;
+  stroke: currentColor;
+}
+/* Сузить синий цвет только для верхнего заголовка страницы */
+.pcf-page .pcf-catalog-header .card-title {
+  color: var(--blue) !important;
+}
 
-/* Buttons */
-.btn{display:inline-flex; align-items:center; gap:var(--sp-8); font-weight:600; border-radius:var(--r-8); cursor:pointer}
-.btn i, .btn svg{width:18px; height:18px}
-.btn-primary{background:var(--accent); color:#fff; border:none; padding:8px 12px}
-.btn-primary:hover{filter:brightness(.95)}
-.btn-link{background:transparent; border:none; color:var(--accent); padding:6px 8px}
-.btn-link:hover{text-decoration:underline}
+/* Заголовки блоков строго в цвет блока (жёлтый/синий/зелёный) */
+.pcf-page .pcf-group-card .pcf-group-header .pcf-group-titles .pcf-group-title {
+  color: var(--group-color) !important;
+}
+/* ======================== Header Customization ======================== */
 
-/* Footer */
-.main-footer{
-  height:45px; display:flex; align-items:center; justify-content:space-between;
-  padding:0 var(--sp-16); background:var(--footer-bg); color:#fff; font-family:"Helvetica Neue", cursive;
+/* 1. Основной контейнер шапки */
+.main-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12); /* Немного уменьшим отступы для компактности */
 }
-.main-footer i, .main-footer svg{width:18px; height:18px}
-.footer-left,.footer-right{display:flex; align-items:center; gap:var(--sp-8)}
 
-/* -------- Org page -------- */
-.data-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-12);
-  box-shadow:var(--shadow); padding:var(--sp-12);
+/* 2. Кнопка скрытия/показа сайдбара — убираем рамку и фон */
+#sidebarToggle {
+  border: none;
+  background: transparent;
 }
-.org-page .card-header{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-8)}
-.org-page .card-title{color:var(--blue)} /* синий заголовок страницы */
-.org-page .org-title{display:flex; align-items:center; gap:8px; color:var(--blue)}
-.org-page .org-title i, .org-page .org-title svg{width:20px; height:20px}
-.org-page .card-subtitle{margin-left:28px}
-.org-actions{display:flex; align-items:center; gap:var(--sp-12)}
-.view-toggle.segmented{
-  display:inline-flex; border:1px solid var(--border); border-radius:var(--r-10); overflow:hidden; background:#fff;
+#sidebarToggle:hover {
+  background: #f3f4f6; /* Возвращаем лёгкий фон для обратной связи */
+  color: var(--text);   /* Делаем иконку чуть темнее при наведении */
 }
-.view-toggle .seg-btn{
-  padding:8px 12px; border:none; background:#fff; cursor:pointer; color:#495057; font-weight:600;
-}
-.view-toggle .seg-btn + .seg-btn{border-left:1px solid var(--border)}
-.view-toggle .seg-btn.active{background:var(--accent); color:#fff}
-.org-search{border:1px solid var(--border); border-radius:var(--r-10); padding:8px 12px; min-width:280px; background:#fff}
 
-/* ---------- Org list (cards) ---------- */
-.org-list{display:flex; flex-direction:column; gap:10px}
-.org-item{
-  --wBase:90; --w:var(--wBase); --scale:.8; --indent:0px;
-  width:calc(var(--w) * var(--scale) * 1%); margin-left:calc((var(--wBase) - (var(--w) * var(--scale))) * 1%); padding-left:var(--indent);
-  position:relative; background:#F2F2F2; border:2.25px solid var(--border);
-  border-radius:var(--r-12); box-shadow:var(--shadow); padding:7px 10px 21px;
-  transition:transform .12s ease, box-shadow .12s ease, border-color .2s ease, width .2s ease, margin-left .2s ease; cursor:pointer;
+/* 3. Заголовок — делаем его "резиновым", чтобы прижать user-area вправо */
+.main-header .title-container {
+  flex: 1 1 auto; /* Растягиваем блок с заголовком */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
-.org-item:hover{transform:translateY(-1px); box-shadow:0 4px 10px rgba(16,24,40,.08)}
-.org-item .row{display:flex; align-items:center; gap:var(--sp-8); min-height:20px}
-.org-item .name{margin:0; font-weight:700; color:#2b2f33; font-size:13px; display:inline-flex; align-items:center}
-.org-item .name i, .org-item .name svg{width:21px; height:21px; margin-right:8px}
-.org-item .emp-pill{
-  position:absolute; right:10px; bottom:6px; font-size:12px; color:#2b2f33;
-  background:#f8f9fa; border:1px solid var(--border); border-radius:var(--r-pill); padding:2px 7px;
+.main-header .page-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent); /* <<< ЗАГОЛОВОК СТАЛ ЗЕЛЁНЫМ */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.org-item.depth-0{--w:90; --indent:0}
-.org-item.depth-1{--w:90; --indent:16px}
-.org-item.depth-2{--w:72; --indent:24px}
-.org-item.depth-3{--w:57.6; --indent:36px}
-.org-item.depth-4{--w:46.08; --indent:48px}
+.main-header .subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.main-header .titles {
+  display: flex;
+  flex-direction: column;
+}
 
-/* ---------- Org table ---------- */
-.org-table-toolbar{display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-8); margin-bottom:10px}
-.org-table-toolbar .btn{padding:6px 10px; border:1px solid var(--border); background:#fff; color:#2b2f33}
-.org-table-toolbar .btn:hover{background:#f6f7f9}
-.org-table-toolbar .select,.org-table-toolbar .input{
-  border:1px solid var(--border); border-radius:var(--r-8); padding:6px 10px; background:#fff
+/* 4. Блок пользователя — прижат вправо благодаря п.3 */
+.user-area {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* Дополнительная гарантия прижатия вправо */
 }
-.org-table-wrap{background:#fff; border:1px solid var(--border); border-radius:var(--r-12); box-shadow:var(--shadow); overflow:auto}
-.org-table{width:100%; border-collapse:collapse; min-width:720px}
-.org-table th,.org-table td{
-  padding:10px 12px; border-bottom:1px solid var(--divider); text-align:left; font-size:14px; color:#2b2f33
-}
-.org-table thead th{position:sticky; top:0; z-index:1; background:var(--blue); color:#fff; font-weight:700}
 
-/* Hover по строке: #F2F2F2; текст остаётся тёмным */
-.org-table tbody tr:hover{background:#F2F2F2}
-.org-table tbody tr:hover td{color:inherit}
-
-/* Ячейка дерева + caret */
-.tree-cell{display:flex; align-items:center; gap:12px}
-.tree-indent{display:inline-block; width:calc(var(--depth,0) * 16px); height:1px}
-.tree-caret{
-  width:16px; height:16px; display:grid; place-items:center; flex:0 0 16px;
-  border:1px solid var(--blue); border-radius:var(--r-6); background:#fff; color:var(--blue); cursor:pointer;
+.avatar-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 4px 10px 4px 6px;
+  cursor: pointer;
 }
-.tree-caret[disabled]{opacity:.45; cursor:default; background:#f8f9fa; border-color:var(--border); color:var(--muted)}
-.tree-caret svg{width:14px; height:14px}
-.org-table tbody tr:hover .tree-caret{border-color:var(--blue); color:var(--blue); background:#fff}
+.avatar-button:hover {
+  background-color: #f3f4f6;
+}
+.avatar-button .avatar-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+}
+.avatar-button .chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+.avatar-button[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+.user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-10);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  min-width: 180px;
+  padding: 6px;
+  z-index: 1010;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+.user-menu[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  border-radius: var(--r-6);
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+}
+.user-menu__item:hover {
+  background: #f3f4f6;
+}
+.user-menu__item i {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
