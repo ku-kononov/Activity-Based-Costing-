@@ -54,7 +54,7 @@ export const debounce = (fn, ms = 200) => { let t; return (...a) => { clearTimeo
 /** Централизованная карта соответствия названий подразделений и иконок Lucide. */
 const ICON_MAP = new Map([
   [normalizeKey('Генеральная дирекция'), 'ship'],
-  [normalizeKey('Секретаритариат'), 'clapperboard'],
+  [normalizeKey('Секретариат'), 'clapperboard'],
   [normalizeKey('Проектный офис'), 'tent'],
   [normalizeKey('Дирекция по продажам и послепродажному обслуживанию'), 'gift'],
   [normalizeKey('Управление продуктового маркетинга иностранных брендов'), 'globe-2'],

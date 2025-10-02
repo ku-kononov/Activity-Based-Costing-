@@ -2,39 +2,17 @@
 import { fetchPCFRows } from '../api.js';
 import { refreshIcons } from '../utils.js';
 
-/* ================== Утилиты нормализации и сравнения ================== */
-
-const pick = (obj, keys) => {
-  for (const k of keys) {
-    const v = obj?.[k];
-    if (v !== undefined && v !== null && String(v).trim() !== '') return v;
-  }
-  return undefined;
-};
-
-const isEmpty = (v) => v == null || String(v).trim() === '';
-
-/**
- * Приводит код вида "PCF-1.2", "1.2", "1" к нормализованному виду:
- * - Убирает префикс "PCF", дефисы и пробелы
- * - Оставляет только цифры и точки
- * - Если только major без точки — приводит к "N.0"
- * - Сохраняет многоуровневые коды (например, "1.2.3")
- */
+/* ================== Утилиты ================== */
 function normalizeCode(codeRaw) {
   const s = String(codeRaw || '').trim();
   if (!s) return '';
-  let t = s.replace(/^PCF[-\s]*/i, ''); // "PCF-1.0" -> "1.0"
-  t = t.replace(/[^\d.]/g, '');        // убрать всё, кроме цифр и точек
+  let t = s.replace(/^PCF[-\s]*/i, '');
+  t = t.replace(/[^\d.]/g, '');
   if (!t) return '';
-  // убираем лишние точки по краям и избыточные
   t = t.replace(/^\.+|\.+$/g, '').replace(/\.+/g, '.');
-  // если только major, добавим ".0"
   if (/^\d+$/.test(t)) return `${parseInt(t, 10)}.0`;
   return t;
 }
-
-/** Возвращает major часть (целое число) из любого вида кода */
 function getMajorAny(raw) {
   const n = normalizeCode(raw);
   if (!n) return NaN;
@@ -42,16 +20,8 @@ function getMajorAny(raw) {
   const m = parseInt(major, 10);
   return Number.isNaN(m) ? NaN : m;
 }
-
-/** true, если нормализованный код — именно уровень 2 (например, "1.1") */
-function isLevel2(nCode) {
-  return /^\d+\.\d+$/.test(nCode);
-}
-
-/** Сравнение нормализованных кодов вида "1.2.3" корректно по уровням */
-function cmpNormCodes(aRaw, bRaw) {
-  const a = normalizeCode(aRaw);
-  const b = normalizeCode(bRaw);
+function isLevel2(nCode) { return /^\d+\.\d+$/.test(nCode); }
+function cmpNormCodes(a, b) {
   const A = a.split('.').map(x => parseInt(x, 10) || 0);
   const B = b.split('.').map(x => parseInt(x, 10) || 0);
   const len = Math.max(A.length, B.length);
@@ -62,55 +32,26 @@ function cmpNormCodes(aRaw, bRaw) {
   return 0;
 }
 
-/** Приводит любой код к каноническому виду топ-уровня: "N.0" */
-function canonicalTop(raw) {
-  const n = normalizeCode(raw);
-  if (!n) return '';
-  const major = n.split('.')[0] || '';
-  const m = parseInt(major, 10);
-  if (Number.isNaN(m)) return '';
-  return `${m}.0`;
-}
-
-/* ================== Построение данных для каталога ================== */
-
-function normalizeRow(r) {
+/* ================== Данные ================== */
+function normalizeRow(rawRow) {
   return {
-    code: normalizeCode(pick(r, ['PCF code', 'code'])),
-    name: String(pick(r, ['Process Name', 'name']) || '').trim(),
-    parent: normalizeCode(pick(r, ['Parent Process', 'parent'])),
-    raw: r,
+    code: normalizeCode(rawRow.code),
+    name: String(rawRow.name || '').trim(),
+    parent_id: String(rawRow.parent_id || ''),
   };
 }
-
-function splitGroupsTopLevel(rows) {
-  const all = rows.map(normalizeRow);
-
-  // Верхний уровень — где Parent пуст или равен ""
-  const top = all.filter(x => isEmpty(pick(x.raw, ['Parent Process', 'parent'])));
-
-  const byMajor = (majors) =>
-    top.filter(p => majors.includes(getMajorAny(p.code)))
-       .sort((a, b) => cmpNormCodes(a.code, b.code));
-
-  return {
-    core:       byMajor([2,3,4,5,6]),
-    enablement: byMajor([7,8,9,10,11,12]),
-    management: byMajor([1,13]),
-    all
-  };
+function getTopLevelProcesses(allNormalizedRows) {
+  return allNormalizedRows.filter(row => /^\d+\.0$/.test(row.code));
 }
 
-/* ================== Рендер HTML-кусочков ================== */
-
+/* ================== Рендер ================== */
 function blockHTML(title, color, items, iconName, subtitle, groupKey) {
   const itemsHTML = items.length
     ? items.map(it => `
         <button class="pcf-item" data-code="${it.code}" data-name="${it.name}" data-group="${groupKey}">
           <span class="pcf-code">${it.code}</span>
           <span class="pcf-name">${it.name}</span>
-        </button>
-      `).join('')
+        </button>`).join('')
     : '<div class="pcf-empty">Нет данных для этой группы</div>';
 
   return `
@@ -123,26 +64,34 @@ function blockHTML(title, color, items, iconName, subtitle, groupKey) {
         </div>
       </div>
       <div class="pcf-items-container">${itemsHTML}</div>
-    </div>
-  `;
+    </div>`;
 }
 
-function detailHeaderHTML(iconName, color, title) {
-  return `
-    <div class="pcf-detail-header" style="--group-color:${color}">
-      <button class="icon-button pcf-back-button" aria-label="Назад к каталогу">
-        <i data-lucide="chevron-left"></i>
-      </button>
-      <i data-lucide="${iconName}" class="pcf-detail-title-icon"></i>
-      <h3 class="pcf-detail-title">${title}</h3>
-    </div>
-  `;
+function setHeaderTitle(container, text) {
+  const titleEl = container.querySelector('.pcf-catalog-header .card-title');
+  if (titleEl) titleEl.textContent = text;
 }
 
-/* ================== Рендер представлений ================== */
+function renderCatalog(container, allNormalizedRows) {
+  // Заголовок уровня 1
+  setHeaderTitle(container, 'Каталог бизнес-процессов');
 
-function renderCatalog(container, groups) {
+  // Убираем кнопку "Назад"
+  const actions = container.querySelector('#pcf-header-actions');
+  if (actions) actions.innerHTML = '';
+
   const grid = container.querySelector('#pcf-grid-container');
+  const topLevel = getTopLevelProcesses(allNormalizedRows);
+
+  const byMajor = (majors) => topLevel
+    .filter(p => majors.includes(getMajorAny(p.code)))
+    .sort((a, b) => cmpNormCodes(a.code, b.code));
+
+  const groups = {
+    core: byMajor([2,3,4,5,6]),
+    enablement: byMajor([7,8,9,10,11,12]),
+    management: byMajor([1,13]),
+  };
 
   const managementHTML = blockHTML(
     'Управление', 'var(--warning)', groups.management, 'tower-control',
@@ -160,105 +109,102 @@ function renderCatalog(container, groups) {
   grid.innerHTML = managementHTML + coreHTML + enablementHTML;
   refreshIcons();
 
-  // Переход в детальный вид
   grid.querySelectorAll('.pcf-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      const code = btn.dataset.code;   // нормализованный "N.0"
-      const name = btn.dataset.name;
-      const major = getMajorAny(code);
-      const groupKey =
-        [2,3,4,5,6].includes(major) ? 'core' :
-        [7,8,9,10,11,12].includes(major) ? 'enablement' : 'management';
-      renderLevel2(container, groups.all, { code, name, groupKey });
+      renderLevel2(container, allNormalizedRows, { code: btn.dataset.code, name: btn.dataset.name });
     });
   });
 }
 
-function renderLevel2(container, allRows, top) {
-  const grid = container.querySelector('#pcf-grid-container');
+function renderLevel2(container, allNormalizedRows, top) {
+  window.scrollTo(0, 0);
 
-  // Фильтрация детей: Parent Process должен указывать на этот top (учитываем "PCF-1.0" ~ "1.0")
-  const parentCanon = canonicalTop(top.code); // "N.0"
-  let children = allRows
-    .map(normalizeRow)
-    .filter(r => canonicalTop(r.parent) === parentCanon && isLevel2(r.code))
+  const parentMajor = getMajorAny(top.code);
+  const groupKey = [2,3,4,5,6].includes(parentMajor) ? 'core'
+                 : [7,8,9,10,11,12].includes(parentMajor) ? 'enablement'
+                 : 'management';
+
+  const meta = {
+    core:       { color: 'var(--blue)' },
+    enablement: { color: 'var(--success)' },
+    management: { color: 'var(--warning)' },
+  }[groupKey];
+
+  // Заголовок уровня 2
+  setHeaderTitle(container, 'Каталог бизнес-функций');
+
+  // Кнопка "Назад в каталог" справа (в цвете группы)
+  const headerActions = container.querySelector('#pcf-header-actions');
+  headerActions.innerHTML = `
+    <button class="btn-back-to-catalog" style="--group-color:${meta.color}; background:${meta.color}; border-color:${meta.color};">
+      <i data-lucide="arrow-left"></i>
+      <span>Назад в каталог</span>
+    </button>`;
+  headerActions.querySelector('.btn-back-to-catalog').addEventListener('click', () => {
+    renderCatalog(container, allNormalizedRows);
+  });
+
+  // Вертикальный список L2: только N.M (исключая N.0)
+  const grid = container.querySelector('#pcf-grid-container');
+  const children = allNormalizedRows
+    .filter(row => getMajorAny(row.code) === parentMajor && isLevel2(row.code) && row.code !== top.code)
     .sort((a, b) => cmpNormCodes(a.code, b.code));
 
-  // Если по колонке Parent ничего не нашлось — подстрахуемся по major и уровню 2
-  if (children.length === 0) {
-    const maj = getMajorAny(top.code);
-    children = allRows
-      .map(normalizeRow)
-      .filter(r => getMajorAny(r.code) === maj && isLevel2(r.code))
-      .sort((a, b) => cmpNormCodes(a.code, b.code));
-  }
-
-  const meta = (k => {
-    switch (k) {
-      case 'core':       return { color: 'var(--blue)',    icon: 'gauge' };
-      case 'enablement': return { color: 'var(--success)', icon: 'fuel' };
-      default:           return { color: 'var(--warning)', icon: 'tower-control' };
-    }
-  })(top.groupKey);
-
-  const header = detailHeaderHTML(meta.icon, meta.color, `${top.code} ${top.name}`);
   const itemsHTML = children.length
     ? children.map(ch => `
-        <div class="pcf-detail-item" style="--group-color:${meta.color}">
-          <span class="pcf-detail-code">${ch.code}</span>
-          <span class="pcf-detail-name">${ch.name}</span>
-        </div>
-      `).join('')
-    : '<div class="pcf-empty">Процессы второго уровня отсутствуют.</div>';
+        <div class="pcf-l2-list-item">
+          <span class="pcf-l2-item-code">${ch.code}</span>
+          <span class="pcf-l2-item-name">${ch.name}</span>
+        </div>`).join('')
+    : '<div class="pcf-empty">Процессы второго уровня для этой группы отсутствуют.</div>';
 
+  // Блок L2: «код + имя» топ-процесса в одну строку, цвет группы, без иконки
   grid.innerHTML = `
-    <div class="pcf-detail-view">
-      ${header}
-      <div class="pcf-detail-list">${itemsHTML}</div>
-    </div>
-  `;
-  refreshIcons();
+    <div class="card pcf-l2-container" style="--group-color:${meta.color};">
+      <div class="pcf-l2-block-header">
+        <div class="pcf-l2-topline">
+          <span class="pcf-l2-top-code">${top.code}</span>
+          <span class="pcf-l2-top-name">${top.name}</span>
+        </div>
+      </div>
+      <div class="pcf-l2-items-list">
+        ${itemsHTML}
+      </div>
+    </div>`;
 
-  grid.querySelector('.pcf-back-button').addEventListener('click', async () => {
-    // Возврат к каталогу
-    const groups = splitGroupsTopLevel(allRows);
-    renderCatalog(container, groups);
-  });
+  refreshIcons();
 }
 
-/* ================== Точка входа страницы ================== */
-
+/* ================== Точка входа ================== */
 export async function renderPCFPage(container) {
-  // Статический каркас страницы — без инлайна, всё подхватывается из CSS
   container.innerHTML = `
     <section class="data-card pcf-page">
       <div class="card-header pcf-catalog-header">
         <div class="title-container pcf-title">
           <i data-lucide="waypoints" class="main-icon pcf-header-icon"></i>
           <div class="pcf-title-texts">
-            <h3 class="card-title">Каталог бизнес-функций</h3>
+            <h3 class="card-title">Каталог бизнес-процессов</h3>
             <p class="card-subtitle">Группы процессов PCF-классификация (Process Classification Framework)</p>
           </div>
         </div>
+        <div id="pcf-header-actions" class="pcf-header-actions"></div>
       </div>
       <div id="pcf-grid-container" class="widgets-grid pcf-grid">
         <p>Загрузка процессов...</p>
       </div>
-    </section>
-  `;
+    </section>`;
   refreshIcons();
 
   try {
-    const rows = await fetchPCFRows();
-    const groups = splitGroupsTopLevel(rows);
-    renderCatalog(container, groups);
+    const rawProcesses = await fetchPCFRows();
+    const normalizedProcesses = rawProcesses.map(normalizeRow);
+    renderCatalog(container, normalizedProcesses);
   } catch (error) {
     console.error('Ошибка при рендеринге PCF:', error);
     container.querySelector('#pcf-grid-container').innerHTML = `
       <div class="card" style="border-color: var(--danger); grid-column: 1 / -1;">
         <div class="card-header"><h3 class="card-title">Ошибка загрузки данных</h3></div>
         <div style="padding: 8px;">${error.message || String(error)}</div>
-      </div>
-    `;
+      </div>`;
   }
 }

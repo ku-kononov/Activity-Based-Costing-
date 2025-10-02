@@ -3,39 +3,81 @@ import { fetchOrgRows } from '../api.js';
 import { debounce, norm, refreshIcons, iconSlugFor } from '../utils.js';
 
 /* ----------------------- Нормализация и дерево ----------------------- */
+// Жёстко под ваши колонки:
+// - Department ID
+// - Parent Department ID
+// - Department Name
+// - Department Code
+// - number of employees
 function normalizeRows(rows) {
+  if (!Array.isArray(rows) || !rows.length) return [];
+
+  let auto = 0;
+  const seen = new Set();
+
   return rows.map(r => {
-    const pick = (...keys) => keys.reduce((v, k) => (v == null ? r[k] : v), undefined);
-    const id = pick('Department ID', 'DepartmentID', 'department_id', 'id');
-    const p  = pick('Parent Department ID', 'ParentDepartmentID', 'parent_department_id', 'parent_id', 'parentId');
-    return {
-      id: id != null ? String(id) : undefined,
-      parentId: p != null ? String(p) : null,
-      name: pick('Department Name', 'department_name', 'name') || '',
-      code: pick('Department Code', 'department_code', 'code') || '',
-      headcount: pick('number of employees', 'number_of_employees', 'employees', 'headcount', 'employee_count') ?? null,
-      children: []
-    };
-  }).filter(x => x.id && x.name);
+    const rawId = r['Department ID'];
+    const rawPid = r['Parent Department ID'];
+    const name = String(r['Department Name'] ?? '').trim();
+    const code = String(r['Department Code'] ?? '').trim();
+    const hcRaw = r['number of employees'];
+
+    if (!name) return null;
+
+    let id = String(rawId ?? '').trim();
+    if (!id) id = `row-${auto++}`;
+    if (seen.has(id)) id = `${id}-${auto++}`;
+    seen.add(id);
+
+    const parentId = String(rawPid ?? '').trim() || null;
+    const headcount = hcRaw != null && hcRaw !== '' ? parseInt(String(hcRaw).replace(/[^\d]/g, ''), 10) : null;
+
+    return { id, parentId, name, code, headcount, children: [] };
+  }).filter(Boolean);
 }
 
 function buildTree(items) {
-  const map = new Map(items.map(it => [it.id, { ...it, children: [] }]));
-  const roots = [];
-  map.forEach(n => (n.parentId && n.parentId !== n.id && map.has(n.parentId))
-    ? map.get(n.parentId).children.push(n)
-    : roots.push(n)
-  );
+  if (!items || !items.length) return null;
+
+  // Картотека узлов
+  const byId = new Map(items.map(it => [it.id, { ...it, children: [] }]));
+
+  // Связываем дети -> родитель (только если родитель существует и не self)
+  const childIds = new Set();
+  byId.forEach(n => {
+    const pid = n.parentId && n.parentId !== n.id && byId.has(n.parentId) ? n.parentId : null;
+    if (pid) {
+      byId.get(pid).children.push(n);
+      childIds.add(n.id);
+    }
+  });
+
+  // Корни = те, кто ни разу не помечен как ребёнок
+  let roots = Array.from(byId.values()).filter(n => !childIds.has(n.id));
+
+  // Если корней нет (циклические ссылки) — разрываем цикл у первого попавшегося
+  if (roots.length === 0) {
+    const first = byId.values().next().value;
+    if (first) {
+      // Удаляем у него ссылку на родителя и считаем корнем
+      first.parentId = null;
+      roots = [first];
+    }
+  }
+
+  // Предпочтём корень с "Генеральн"
   let root = roots.find(n => /генеральн/i.test(n.name)) || null;
+
   if (!root && roots.length === 1) {
     root = roots[0];
     if (!/генеральн/i.test(root.name)) {
-      root = { id: 'CEO_VIRTUAL', name: 'Генеральный директор', code: 'CEO', headcount: null, parentId: null, children: [roots[0]] };
+      root = { id: 'CEO_VIRTUAL', name: 'Генеральная дирекция', code: 'CEO', headcount: null, parentId: null, children: [roots[0]] };
     }
   } else if (!root && roots.length > 1) {
-    root = { id: 'CEO_VIRTUAL', name: 'Генеральный директор', code: 'CEO', headcount: null, parentId: null, children: roots };
+    root = { id: 'CEO_VIRTUAL', name: 'Генеральная дирекция', code: 'CEO', headcount: null, parentId: null, children: roots };
   }
-  return root;
+
+  return root || null;
 }
 
 const DIR_COLORS = ['#14b8a6', '#60a5fa', '#34d399', '#f59e0b', '#f472b6', '#a78bfa', '#06b6d4', '#22c55e', '#ef4444'];
@@ -46,10 +88,10 @@ function colorizeByDirectorate(root) {
     const color = DIR_COLORS[i % DIR_COLORS.length];
     (function paint(n) { n.color = color; (n.children || []).forEach(paint); })(dir);
   });
-  
+
   (function overrideColors(n) {
     const nameNorm = norm(n.name);
-    if (nameNorm.includes('секретариат') || nameNorm.includes('проектн') && nameNorm.includes('офис')) {
+    if (nameNorm.includes('секретариат') || (nameNorm.includes('проектн') && nameNorm.includes('офис'))) {
       n.color = rootColor;
     }
     (n.children || []).forEach(overrideColors);
@@ -216,7 +258,17 @@ function renderOrgTable(container, root) {
     return true;
   };
 
-  const collectVisible = (q) => all.filter(n => visible(n) && matches(n, q)).map(n => ({ id: n.id, name: n.depth === 0 ? 'Генеральная дирекция' : n.name, code: n.code || '—', headcount: n.headcount ?? '—', depth: n.depth, hasChildren: (n.children || []).length > 0, color: n.color }));
+  const collectVisible = (q) => all
+    .filter(n => visible(n) && matches(n, q))
+    .map(n => ({
+      id: n.id,
+      name: n.depth === 0 ? 'Генеральная дирекция' : n.name,
+      code: n.code || '—',
+      headcount: n.headcount ?? '—',
+      depth: n.depth,
+      hasChildren: (n.children || []).length > 0,
+      color: n.color
+    }));
 
   const doRender = () => {
     const q = norm(searchEl?.value || '');
@@ -271,12 +323,20 @@ export async function renderOrgPage(container) {
   refreshIcons();
 
   try {
-    const rows = normalizeRows(await fetchOrgRows());
+    const raw = await fetchOrgRows();
+    if (!raw || raw.length === 0) {
+      throw new Error('Таблица public."BOLT_orgchat" вернула 0 строк. Проверьте RLS-политику SELECT и наличие данных.');
+    }
+    const rows = normalizeRows(raw);
     const root = buildTree(rows);
-    if (!root) throw new Error('Данные оргструктуры пусты.');
+    if (!root) throw new Error('Данные оргструктуры пусты или не удалось построить иерархию. Проверьте Parent Department ID.');
     colorizeByDirectorate(root);
     renderOrgList(container, root);
   } catch (e) {
-    container.innerHTML = `<div class="data-card" style="border-color:#DC3545;"><div class="card-header"><h3 class="card-title">Ошибка</h3></div><div style="padding:8px;">${e.message || e}</div></div>`;
+    container.innerHTML = `
+      <div class="data-card" style="border-color:#DC3545;">
+        <div class="card-header"><h3 class="card-title">Ошибка</h3></div>
+        <div style="padding:8px; white-space:pre-wrap;">${e.message || String(e)}</div>
+      </div>`;
   }
 }
