@@ -310,3 +310,305 @@ body.sidebar-collapsed .nav-item{ justify-content:center }
   height: 18px;
   color: var(--muted);
 }
+/* ======================== Header Redesign (Modern) ======================== */
+
+/* 1. Общий контейнер шапки */
+.main-header {
+  padding: 12px var(--sp-16); /* Немного увеличим вертикальные отступы */
+  border-bottom: 2px solid var(--accent); /* Нижняя граница в цвет акцента и чуть толще */
+}
+
+/* 2. Контейнер с иконкой и заголовком */
+.main-header .title-container {
+  display: flex;
+  align-items: center; /* <<< КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: выравнивание по центру */
+  gap: 16px;           /* Увеличим отступ между иконкой и текстом */
+  flex: 1 1 auto;      /* Растягиваем, чтобы прижать блок пользователя вправо */
+  min-width: 0;
+}
+
+/* 3. Иконка */
+.main-header .main-icon {
+  width: 32px;  /* Увеличиваем иконку */
+  height: 32px;
+  color: var(--accent); /* Цвет акцента */
+}
+
+/* 4. Заголовок */
+.main-header .page-title {
+  margin: 0;
+  font-size: 22px; /* <<< Увеличиваем шрифт заголовка */
+  font-weight: 700;
+  color: var(--accent);
+  /* Защита от слишком длинного текста на маленьких экранах */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 5. Подзаголовок (скрываем на всякий случай, если он где-то остался) */
+.main-header .subtitle {
+  display: none;
+}
+/* ======================== Homepage (LeanIX Inspired) ======================== */
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* Расстояние между блоками "Архитектура" и "Анализ" */
+}
+
+.home-block {
+  width: 100%;
+}
+
+.home-block-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 16px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.module-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-12);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  cursor: pointer;
+  border-left: 4px solid var(--module-color);
+}
+
+.module-card:hover, .module-card:focus {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(16,24,40,.08);
+  outline: none;
+}
+.module-card:focus {
+  box-shadow: 0 0 0 2px var(--module-color);
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.module-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--module-color);
+}
+
+.module-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.module-body {
+  flex: 1;
+  padding: 16px 20px;
+}
+
+.module-metrics {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.module-metrics li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 15px;
+}
+.metric-label {
+  color: var(--muted);
+}
+.metric-value {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.module-placeholder {
+  color: var(--muted);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 50px;
+}
+.module-placeholder.error {
+  color: var(--danger);
+  font-style: normal;
+}
+/* ======================== Homepage (LeanIX Inspired) - V3 Update ======================== */
+
+/* 4. Стили для заголовков блоков с иконками */
+.home-block-title {
+  display: flex; /* Включаем flexbox для выравнивания */
+  align-items: center; /* Выравниваем иконку и текст по центру */
+  gap: 12px; /* Отступ между иконкой и текстом */
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 20px 0; /* Убираем отступ слева */
+  text-transform: none;
+  letter-spacing: 0;
+}
+.home-block-icon {
+  width: 24px;
+  height: 24px;
+  /* Цвет иконки наследуется от родителя (.home-block-title) */
+}
+
+/* 6. Увеличение шрифтов на 20% (остается без изменений) */
+.module-card {
+  font-size: 1.2em;
+}
+
+/* 1. Названия модулей "Компания", "Процессы", "Затраты" */
+.module-title {
+  font-size: 1.2em;
+  color: var(--module-color); /* <<< ИЗМЕНЕНО: Цвет теперь берется из переменной */
+}
+
+.module-header {
+  padding: 20px 24px;
+}
+.module-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.module-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex-grow: 1;
+  padding: 20px 24px;
+}
+
+.module-metrics li {
+  font-size: 1em;
+  gap: 16px;
+}
+
+.metric-value {
+  font-size: 1.2em;
+}
+.metric-label {
+  color: var(--muted);
+}
+
+/* 2. Цвета для метрик и лейблов в модуле "Процессы" */
+.module-metrics li.management .metric-label {
+  color: var(--warning);
+}
+.module-metrics li.core .metric-label {
+  color: var(--blue);
+}
+.module-metrics li.enablement .metric-label {
+  color: var(--success);
+}
+/* Значения можно оставить стандартного цвета для контраста, либо тоже окрасить: */
+.module-metrics li.management .metric-value {
+  color: var(--warning);
+}
+.module-metrics li.core .metric-value {
+  color: var(--blue);
+}
+.module-metrics li.enablement .metric-value {
+  color: var(--success);
+}
+/* ======================== Homepage (LeanIX Inspired) - V4 Final Update ======================== */
+
+/* 1. Стили для заголовков блоков с иконками */
+.home-block-title {
+  display: flex;
+  align-items: center;
+  gap: 14px; /* Немного увеличим отступ */
+  font-size: 24px; /* <<< Увеличиваем шрифт (было 20px) */
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 24px 0; /* Увеличиваем нижний отступ */
+  text-transform: none;
+  letter-spacing: 0;
+}
+.home-block-icon {
+  width: 28px; /* <<< Увеличиваем иконку (было 24px) */
+  height: 28px;
+}
+
+/* Базовый шрифт для карточек (остается 1.2em) */
+.module-card {
+  font-size: 1.2em;
+}
+
+/* Названия модулей */
+.module-title {
+  font-size: 1.2em;
+  color: var(--module-color);
+}
+
+.module-header {
+  padding: 20px 24px;
+}
+.module-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.module-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex-grow: 1;
+  padding: 20px 24px;
+}
+
+.module-metrics li {
+  font-size: 1em;
+  gap: 16px;
+}
+
+.metric-value {
+  font-size: 1.2em;
+}
+
+/* 2. Цвет для метрик "Подразделения" и "Сотрудники" */
+/* Задаем этот цвет всем метрикам по умолчанию */
+.metric-label, .metric-value {
+  color: #4D5964;
+}
+
+/* Цвета для метрик в модуле "Процессы" (переопределяют цвет по умолчанию) */
+.module-metrics li.management .metric-label,
+.module-metrics li.management .metric-value {
+  color: var(--warning);
+}
+.module-metrics li.core .metric-label,
+.module-metrics li.core .metric-value {
+  color: var(--blue);
+}
+.module-metrics li.enablement .metric-label,
+.module-metrics li.enablement .metric-value {
+  color: var(--success);
+}

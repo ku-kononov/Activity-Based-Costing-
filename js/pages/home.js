@@ -1,73 +1,149 @@
 // js/pages/home.js
+import { fetchOrgStats } from '../api.js';
 import { refreshIcons } from '../utils.js';
 
-const kpiData = [
-  { title: 'Выручка', subtitle: 'Revenue', value: '12,4 млн ₽' },
-  { title: 'Прямые затраты', subtitle: 'Direct Costs', value: '7,9 млн ₽' },
-  { title: 'Косвенные затраты (ABC)', subtitle: 'Indirect Costs (ABC)', value: '2,2 млн ₽' },
-  { title: 'Чистая прибыль', subtitle: 'Net Profit', value: '2,3 млн ₽', isPositive: true }
-];
+// Структура данных для модулей
+const modulesData = {
+  architecture: [
+    {
+      title: 'Компания',
+      icon: 'building-2',
+      color: 'var(--accent)',
+      link: () => navigate('org'),
+      metrics: [
+        { label: 'Подразделения', value: '...' },
+        { label: 'Сотрудники', value: '...' }
+      ]
+    },
+    {
+      title: 'Процессы',
+      icon: 'waypoints',
+      color: 'var(--accent)',
+      link: () => navigate('pcf'),
+      metrics: [
+        { label: 'Управление', value: '2', className: 'management' },
+        { label: 'Основные', value: '5', className: 'core' },
+        { label: 'Обеспечение', value: '6', className: 'enablement' }
+      ]
+    },
+    {
+      title: 'Затраты процессов',
+      icon: 'chart-pie',
+      color: 'var(--accent)',
+      link: () => alert('Страница "Затраты процессов" в разработке.'),
+      metrics: []
+    }
+  ],
+  analytics: [
+    {
+      title: 'Данные',
+      icon: 'database',
+      color: '#6C757D',
+      link: () => alert('Раздел "Аналитика" в разработке.'),
+      metrics: []
+    },
+    {
+      title: 'Анализ',
+      icon: 'search',
+      color: '#6C757D',
+      link: () => alert('Раздел "Аналитика" в разработке.'),
+      metrics: []
+    },
+    {
+      title: 'Прогноз',
+      icon: 'trending-up',
+      color: '#6C757D',
+      link: () => alert('Раздел "Аналитика" в разработке.'),
+      metrics: []
+    }
+  ]
+};
 
-const charts = [
-  { id:'donutChart', title:'Жизненный цикл приложений', subtitle:'Application Lifecycle', type:'doughnut', 
-    labels:['В эксплуатации','Внедрение','Вывод из эксплуатации'], data:[58,27,15] },
-  { id:'barChart', title:'Затраты по подразделениям', subtitle:'Costs by Departments', type:'bar', 
-    labels:['Продажи','IT','Логистика','Финансы'], data:[1800,2400,2100,1600] },
-  { id:'lineChart', title:'Динамика PnL', subtitle:'PnL Trend', type:'line', 
-    labels:['Янв','Фев','Мар','Апр','Май','Июн'], data:[200,350,300,420,380,460] }
-];
+// Функция для генерации HTML одного модуля
+function createModuleHTML(module) {
+  const metricsHTML = module.metrics.length > 0
+    ? `<ul class="module-metrics">
+        ${module.metrics.map(metric => `
+          <li class="${metric.className || ''}">
+            <span class="metric-label">${metric.label}</span>
+            <span class="metric-value" id="metric-${module.title.toLowerCase().replace(/\s/g, '-')}-${metric.label.toLowerCase().replace(/\s/g, '-')}">${metric.value}</span>
+          </li>
+        `).join('')}
+      </ul>`
+    : '<div class="module-placeholder">Скоро здесь появятся данные</div>';
 
-function kpiHTML({ title, subtitle, value, isPositive }) {
   return `
-    <a class="card kpi-card" href="#">
-      <div class="card-header">
-        <h3 class="card-title">${title}</h3>
-        <p class="card-subtitle">${subtitle}</p>
+    <div class="module-card" style="--module-color: ${module.color};" role="button" tabindex="0">
+      <div class="module-header">
+        <i data-lucide="${module.icon}" class="module-icon"></i>
+        <h3 class="module-title">${module.title}</h3>
       </div>
-      <div class="kpi-value ${isPositive ? 'positive' : ''}">${value}</div>
-      <div class="card-actions"><button class="btn btn-link">Подробнее / View report</button></div>
-    </a>`;
+      <div class="module-body">
+        ${metricsHTML}
+      </div>
+    </div>
+  `;
 }
 
-function chartHTML({ id, title, subtitle }) {
-  const icon = id.includes('donut') ? 'search' : (id.includes('bar') ? 'bar-chart-3' : 'line-chart');
+// Функция для генерации HTML-блока (секции) (ИЗМЕНЕНО)
+function createBlockHTML(title, modules, icon) {
+  // 4. Добавляем иконку в заголовок блока
+  const iconHTML = icon ? `<i data-lucide="${icon}" class="home-block-icon"></i>` : '';
   return `
-    <a class="card" href="#">
-      <div class="card-header">
-        <h3 class="card-title">${title}</h3>
-        <p class="card-subtitle">${subtitle}</p>
+    <section class="home-block">
+      <h2 class="home-block-title">
+        ${iconHTML}
+        <span>${title}</span>
+      </h2>
+      <div class="home-grid">
+        ${modules.map(createModuleHTML).join('')}
       </div>
-      <div class="card-chart"><canvas id="${id}" aria-label="${title}"></canvas></div>
-      <div class="card-actions"><button class="btn btn-primary"><i data-lucide="${icon}"></i> <span>Исследовать</span></button></div>
-    </a>`;
+    </section>
+  `;
 }
 
-function initCharts(container) {
-  if (!window.Chart) return;
-  charts.forEach(c => {
-    const ctx = container.querySelector(`#${c.id}`); if (!ctx) return;
-    const cfg = c.type === 'doughnut' ? {
-      type:'doughnut', data:{ labels:c.labels, datasets:[{ data:c.data, backgroundColor:['#4A89F3','#00B39E','#FF6B6B'], borderWidth:0 }]},
-      options:{ plugins:{ legend:{ position:'bottom' }}, cutout:'60%', maintainAspectRatio:false }
-    } : c.type === 'bar' ? {
-      type:'bar', data:{ labels:c.labels, datasets:[{ label:'Затраты (₽)', data:c.data, backgroundColor:'#007BFF' }]},
-      options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ grid:{ color:'#E9ECEF' } } }, maintainAspectRatio:false }
-    } : {
-      type:'line', data:{ labels:c.labels, datasets:[{ label:'PnL (₽)', data:c.data, borderColor:'#28A745', backgroundColor:'rgba(40,167,69,0.1)', tension:0.3, fill:true }]},
-      options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ grid:{ color:'#E9ECEF' } } }, maintainAspectRatio:false }
-    };
-    // предотвращаем повторную инициализацию
-    if (Chart.getChart(ctx)) Chart.getChart(ctx).destroy();
-    new Chart(ctx, cfg);
-  });
-}
-
-export function renderHomePage(container) {
-  const kpis = kpiData.map(kpiHTML).join('');
-  const chartBlocks = charts.map(chartHTML).join('');
+// Главная функция рендеринга
+export async function renderHomePage(container) {
+  // 1. Рендерим структуру с новыми заголовками и иконками
   container.innerHTML = `
-    <section class="widgets-grid kpi-row">${kpis}</section>
-    <section class="widgets-grid">${chartBlocks}</section>`;
-  initCharts(container);
+    <div class="home-page">
+      ${createBlockHTML('Архитектура', modulesData.architecture, 'target')}
+      ${createBlockHTML('Аналитика', modulesData.analytics, 'line-chart')}
+    </div>
+  `;
+
+  // 2. Навешиваем обработчики кликов
+  container.querySelectorAll('.module-card').forEach((card, index) => {
+    const isArch = index < modulesData.architecture.length;
+    const moduleIndex = isArch ? index : index - modulesData.architecture.length;
+    const module = isArch ? modulesData.architecture[moduleIndex] : modulesData.analytics[moduleIndex];
+    
+    if (module.link) {
+      card.addEventListener('click', module.link);
+      card.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && module.link());
+    }
+  });
+
+  // 3. Асинхронно загружаем динамические данные
+  try {
+    const stats = await fetchOrgStats();
+    const departmentsValueEl = container.querySelector('#metric-компания-подразделения');
+    const employeesValueEl = container.querySelector('#metric-компания-сотрудники');
+
+    if (departmentsValueEl) {
+      departmentsValueEl.textContent = stats.total_departments > 0 ? new Intl.NumberFormat('ru-RU').format(stats.total_departments) : '0';
+    }
+    if (employeesValueEl) {
+      employeesValueEl.textContent = stats.total_employees > 0 ? new Intl.NumberFormat('ru-RU').format(stats.total_employees) : '0';
+    }
+  } catch (error) {
+    console.error("Не удалось загрузить статистику для главной страницы:", error);
+    const companyModuleBody = container.querySelector('#metric-компания-подразделения')?.closest('.module-body');
+    if(companyModuleBody) {
+      companyModuleBody.innerHTML = '<div class="module-placeholder error">Ошибка загрузки данных</div>';
+    }
+  }
+
+  // 4. Отрисовываем иконки
   refreshIcons();
 }

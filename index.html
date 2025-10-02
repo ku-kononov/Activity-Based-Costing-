@@ -12,28 +12,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
 
-  <!-- Hints to CDNs -->
-  <link rel="preconnect" href="https://unpkg.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="dns-prefetch" href="//unpkg.com">
-  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-
   <!-- Styles -->
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Header (ИЗМЕНЕНО) -->
   <header class="main-header" role="banner">
     <button id="sidebarToggle" class="icon-button" aria-label="Свернуть/развернуть меню">
       <i data-lucide="panel-left-close" aria-hidden="true"></i>
     </button>
 
+    <!-- Структура заголовка упрощена для лучшего выравнивания -->
     <div class="title-container">
       <i data-lucide="workflow" class="main-icon" aria-hidden="true"></i>
-      <div class="titles">
-        <h1 class="page-title">Лада-Имидж. Бизнес-архитектура</h1>
-        <p class="subtitle">Люди / Процессы / Данные</p>
-      </div>
+      <h1 class="page-title">Лада-Имидж. Бизнес-архитектура</h1>
+      <!-- Подпись <p class="subtitle"> удалена -->
     </div>
 
     <div class="user-area">
@@ -100,7 +93,7 @@
     };
   </script>
 
-  <!-- Vendor scripts (defer: не блокируют рендер, порядок сохраняется) -->
+  <!-- Vendor scripts -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.1/dist/umd/supabase.min.js" defer crossorigin="anonymous"></script>

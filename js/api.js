@@ -6,130 +6,102 @@ const supa = (() => {
   if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
     return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
-  console.warn('Supabase не сконфигурирован: проверьте window.ENV и загрузку SDK.');
+  console.warn('Supabase не сконфигурирован: проверьте window.ENV в index.html и загрузку SDK.');
   return null;
 })();
 export const supabase = supa;
 
-/* =========== Вспомогалки (для PCF) =========== */
-const pick = (obj, keys) => {
-  for (const k of keys) {
-    const v = obj?.[k];
-    if (v !== undefined && v !== null && String(v).trim() !== '') return v;
-  }
-  return undefined;
-};
-function normalizeCode(codeRaw) {
-  const s = String(codeRaw || '').trim();
-  if (!s) return '';
-  let t = s.replace(/^PCF[-\s]*/i, '');
-  t = t.replace(/[^\d.]/g, '');
-  if (!t) return '';
-  t = t.replace(/^\.+|\.+$/g, '').replace(/\.+/g, '.');
-  if (/^\d+$/.test(t)) return `${parseInt(t, 10)}.0`;
-  return t;
-}
-function getMajorAny(raw) {
-  const n = normalizeCode(raw);
-  if (!n) return NaN;
-  const [major] = n.split('.');
-  const m = parseInt(major, 10);
-  return Number.isNaN(m) ? NaN : m;
-}
-function isLevel2(nCode) { return /^\d+\.\d+$/.test(nCode); }
-
-/* =========== Кэш =========== */
+/* Кэши (только для "сырых" данных) */
 let orgDataCache = null;
-let pcfAllCache = null;
+let pcfDataCache = null;
 
-/* =========== ORG: public."BOLT_orgchat" (как было) =========== */
+/* ========== ORG: public."BOLT_orgchat" ========== */
 export async function fetchOrgRows() {
   if (orgDataCache) return orgDataCache;
   if (!supa) throw new Error('Supabase не инициализирован.');
 
-  const cols = `"Department ID","Parent Department ID","Department Name","Department Code","number of employees"`;
-  const tries = [
-    () => supa.from('BOLT_orgchat').select(cols).limit(50000),
-    () => supa.from('"BOLT_orgchat"').select(cols).limit(50000),
-    () => supa.schema('public').from('BOLT_orgchat').select(cols).limit(50000),
-    () => supa.schema('public').from('"BOLT_orgchat"').select(cols).limit(50000),
-  ];
-
-  let lastErr = null;
-  for (const fn of tries) {
-    try {
-      const res = await fn();
-      if (!res.error && Array.isArray(res.data)) {
-        orgDataCache = res.data || [];
-        return orgDataCache;
-      }
-      lastErr = res.error || null;
-    } catch (e) {
-      lastErr = e;
-    }
+  const cols = '"Department ID","Parent Department ID","Department Name","Department Code","number of employees"';
+  const { data, error } = await supa.from('BOLT_orgchat').select(cols).limit(50000);
+  if (error || !data) {
+    throw new Error(`Не удалось прочитать public."BOLT_orgchat": ${error?.message || 'RLS/пусто'}`);
   }
-  throw new Error(`Не удалось прочитать public."BOLT_orgchat" или таблица пуста. Причина: ${lastErr?.message || 'возможно, RLS запрещает SELECT'}`);
+  orgDataCache = data;
+  return orgDataCache;
 }
 
-/* =========== PCF: public."BOLT_pcf" (исправлено) =========== */
-export async function fetchPCFRows() {
-  if (pcfAllCache) return pcfAllCache;
+/* ========== ORG STATS: корень + первый уровень (root по умолчанию 'ORG-001') ========== */
+export async function fetchOrgStats() {
   if (!supa) throw new Error('Supabase не инициализирован.');
 
-  const cols = `"Process ID","Parent Process ID","PCF Code","Process Name"`;
-  const tries = [
-    () => supa.from('BOLT_pcf').select(cols).limit(50000),
-    () => supa.from('"BOLT_pcf"').select(cols).limit(50000),
-    () => supa.from('BOLT.PCF').select(cols).limit(50000),
-    () => supa.from('PCF').select(cols).limit(50000),
-    () => supa.from('pcf').select(cols).limit(50000),
-  ];
+  // 1) RPC: используем дефолтный root из функции (НЕ передаём параметр, чтобы не переопределять 'ORG-001')
+  try {
+    const { data, error } = await supa.rpc('count_employees_lvl1'); // без { root: ... }
+    if (!error && Array.isArray(data) && data.length) {
+      return {
+        total_departments: Number(data[0].total_departments || 0),
+        total_employees: Number(data[0].total_employees || 0),
+      };
+    }
+  } catch (e) {
+    console.warn('RPC count_employees_lvl1 недоступен, fallback на клиенте:', e?.message || e);
+  }
 
-  let data = null, lastErr = null;
-  for (const t of tries) {
-    try {
-      const res = await t();
-      if (!res.error && Array.isArray(res.data)) { data = res.data; break; }
-      lastErr = res.error || null;
-    } catch (e) {
-      lastErr = e;
+  // 2) Fallback: считаем на клиенте
+  const { data: rows, error: selErr, count } = await supa
+    .from('BOLT_orgchat')
+    .select('"Department ID","Department Code","Parent Department ID","number of employees"', { count: 'exact' })
+    .limit(50000);
+
+  if (selErr || !rows) {
+    console.error('Ошибка получения статистики по оргструктуре (fallback):', selErr);
+    return { total_departments: 0, total_employees: 0 };
+  }
+
+  const ROOT = 'ORG-001'; // корневой ID с дефисом
+  const trimS = v => String(v ?? '').trim();
+
+  // Находим реальный корневой ID по ID или по коду
+  const rootRow = rows.find(r => trimS(r['Department ID']) === ROOT || trimS(r['Department Code']) === ROOT);
+  const rootId = rootRow ? trimS(rootRow['Department ID']) : ROOT;
+
+  // Парсер численности: удаляем всё, кроме цифр
+  const toInt = v => {
+    if (typeof v === 'number') return v;
+    const s = String(v ?? '').replace(/[^\d]/g, '');
+    const n = parseInt(s, 10);
+    return Number.isNaN(n) ? 0 : n;
+  };
+
+  // Суммируем: корень + только первый уровень подчинения
+  let total_employees = 0;
+  for (const r of rows) {
+    const depId = trimS(r['Department ID']);
+    const parentId = trimS(r['Parent Department ID']);
+    if (depId === rootId || parentId === rootId) {
+      total_employees += toInt(r['number of employees']);
     }
   }
-  if (!data) {
-    throw new Error(`Не удалось прочитать public."BOLT_pcf": ${lastErr?.message || lastErr}`);
-  }
 
-  // Унифицируем: code из "PCF Code" или "Process ID"; name из "Process Name"; parent_id из "Parent Process ID"
-  const mapped = (data || []).map(r => {
-    const id = String(r['Process ID'] ?? '').trim();
-    const codeRaw = String((r['PCF Code'] ?? id ?? '')).trim();
-    const name = String(r['Process Name'] ?? '').trim();
-    const parent = String(r['Parent Process ID'] ?? '').trim();
-    return { id, code: codeRaw, name, parent_id: parent };
-  }).filter(row => row.code || row.id);
-
-  pcfAllCache = mapped;
-  return pcfAllCache;
+  return {
+    total_departments: typeof count === 'number' ? count : rows.length,
+    total_employees,
+  };
 }
 
-/* =========== Вспомогательная выборка L2 (если нужно в других местах) =========== */
-export async function fetchPCFLevel2ByMajor(major) {
-  const m = parseInt(major, 10);
-  if (Number.isNaN(m)) throw new Error(`Некорректный major: ${major}`);
+/* ========== PCF: public."BOLT_pcf" ========== */
+export async function fetchPCFRows() {
+  if (pcfDataCache) return pcfDataCache;
+  if (!supa) throw new Error('Supabase не инициализирован.');
 
-  const all = await fetchPCFRows();
-  const topCode = `${m}.0`;
+  const { data, error } = await supa
+    .from('BOLT_pcf')
+    .select('code:"PCF Code", name:"Process Name", parent_id:"Parent Process ID"')
+    .limit(50000);
 
-  return all
-    .map(r => ({ ...r, codeN: normalizeCode(r.code) }))
-    .filter(r => getMajorAny(r.codeN) === m && isLevel2(r.codeN) && r.codeN !== topCode)
-    .sort((a, b) => {
-      const A = a.codeN.split('.').map(n => parseInt(n, 10) || 0);
-      const B = b.codeN.split('.').map(n => parseInt(n, 10) || 0);
-      for (let i = 0; i < Math.max(A.length, B.length); i++) {
-        const d = (A[i] || 0) - (B[i] || 0);
-        if (d) return d;
-      }
-      return 0;
-    });
+  if (error || !data) {
+    throw new Error(`Не удалось прочитать public."BOLT_pcf": ${error?.message || 'RLS/пусто'}`);
+  }
+
+  pcfDataCache = data;
+  return pcfDataCache;
 }
