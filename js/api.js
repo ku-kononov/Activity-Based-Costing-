@@ -11,7 +11,7 @@ const supa = (() => {
 })();
 export const supabase = supa;
 
-/* =========== Утилиты (PCF оставляем как есть) =========== */
+/* =========== Вспомогалки (для PCF) =========== */
 const pick = (obj, keys) => {
   for (const k of keys) {
     const v = obj?.[k];
@@ -19,7 +19,6 @@ const pick = (obj, keys) => {
   }
   return undefined;
 };
-
 function normalizeCode(codeRaw) {
   const s = String(codeRaw || '').trim();
   if (!s) return '';
@@ -39,17 +38,16 @@ function getMajorAny(raw) {
 }
 function isLevel2(nCode) { return /^\d+\.\d+$/.test(nCode); }
 
-/* =========== Кэши =========== */
+/* =========== Кэш =========== */
 let orgDataCache = null;
 let pcfAllCache = null;
 
-/* =========== ORG: public."BOLT_orgchat" =========== */
+/* =========== ORG: public."BOLT_orgchat" (как было) =========== */
 export async function fetchOrgRows() {
   if (orgDataCache) return orgDataCache;
   if (!supa) throw new Error('Supabase не инициализирован.');
 
   const cols = `"Department ID","Parent Department ID","Department Name","Department Code","number of employees"`;
-
   const tries = [
     () => supa.from('BOLT_orgchat').select(cols).limit(50000),
     () => supa.from('"BOLT_orgchat"').select(cols).limit(50000),
@@ -70,51 +68,51 @@ export async function fetchOrgRows() {
       lastErr = e;
     }
   }
-
-  // Если RLS запрещает SELECT — Supabase вернёт 200 и пустой массив (это тоже «ошибка» для нас)
   throw new Error(`Не удалось прочитать public."BOLT_orgchat" или таблица пуста. Причина: ${lastErr?.message || 'возможно, RLS запрещает SELECT'}`);
 }
 
-/* =========== PCF (как было) =========== */
+/* =========== PCF: public."BOLT_pcf" (исправлено) =========== */
 export async function fetchPCFRows() {
   if (pcfAllCache) return pcfAllCache;
   if (!supa) throw new Error('Supabase не инициализирован.');
 
-  let res = await supa.from('BOLT_pcf').select('*').limit(50000);
-  if (res.error) {
-    console.error('PCF: не удалось прочитать public.BOLT_pcf:', res.error?.message || res.error);
-    pcfAllCache = [
-      { code: '1.0',  name: 'Разработка целей и стратегии', parent_id: 'NO' },
-      { code: '2.0',  name: 'Разработка и управление товарами и услугами', parent_id: 'NO' },
-      { code: '3.0',  name: 'Продвижение на рынке и продажа товаров и услуг', parent_id: 'NO' },
-      { code: '4.0',  name: 'Поставка товаров', parent_id: 'NO' },
-      { code: '5.0',  name: 'Предоставление услуг(сервис)', parent_id: 'NO' },
-      { code: '6.0',  name: 'Управление обслуживанием клиентов', parent_id: 'NO' },
-      { code: '7.0',  name: 'Подготовка и управление трудовыми ресурсами', parent_id: 'NO' },
-      { code: '8.0',  name: 'Управление информационными технологиями (it)', parent_id: 'NO' },
-      { code: '9.0',  name: 'Управление финансовыми ресурсами', parent_id: 'NO' },
-      { code: '10.0', name: 'Приобретение, формирование и управление активами', parent_id: 'NO' },
-      { code: '11.0', name: 'Управление рисками предприятия, соответствием требованиям, устранением последствий', parent_id: 'NO' },
-      { code: '12.0', name: 'Управление внешними взаимоотношениями', parent_id: 'NO' },
-      { code: '13.0', name: 'Разработка и управление бизнес-возможностями', parent_id: 'NO' },
-      { code: '3.1', name: 'Понимание рынков, покупателей и возможностей', parent_id: '' },
-      { code: '3.2', name: 'Разработка маркетинговой стратегии', parent_id: '' },
-      { code: '3.3', name: 'Разработка и управление маркетинговыми планами', parent_id: '' },
-      { code: '3.4', name: 'Разработка стратегии продаж', parent_id: '' },
-      { code: '3.5', name: 'Разработка и управление планами продаж (администрирование продаж)', parent_id: '' },
-    ];
-    return pcfAllCache;
+  const cols = `"Process ID","Parent Process ID","PCF Code","Process Name"`;
+  const tries = [
+    () => supa.from('BOLT_pcf').select(cols).limit(50000),
+    () => supa.from('"BOLT_pcf"').select(cols).limit(50000),
+    () => supa.from('BOLT.PCF').select(cols).limit(50000),
+    () => supa.from('PCF').select(cols).limit(50000),
+    () => supa.from('pcf').select(cols).limit(50000),
+  ];
+
+  let data = null, lastErr = null;
+  for (const t of tries) {
+    try {
+      const res = await t();
+      if (!res.error && Array.isArray(res.data)) { data = res.data; break; }
+      lastErr = res.error || null;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  if (!data) {
+    throw new Error(`Не удалось прочитать public."BOLT_pcf": ${lastErr?.message || lastErr}`);
   }
 
-  const rows = res.data || [];
-  pcfAllCache = rows.map(r => ({
-    code: String(pick(r, ['PCF Code', 'PCF code', 'pcf_code', 'code']) ?? ''),
-    name: String(pick(r, ['Process Name', 'process_name', 'name']) ?? ''),
-    parent_id: String(pick(r, ['Parent Process ID', 'parent_process_id', 'parent_id']) ?? ''),
-  }));
+  // Унифицируем: code из "PCF Code" или "Process ID"; name из "Process Name"; parent_id из "Parent Process ID"
+  const mapped = (data || []).map(r => {
+    const id = String(r['Process ID'] ?? '').trim();
+    const codeRaw = String((r['PCF Code'] ?? id ?? '')).trim();
+    const name = String(r['Process Name'] ?? '').trim();
+    const parent = String(r['Parent Process ID'] ?? '').trim();
+    return { id, code: codeRaw, name, parent_id: parent };
+  }).filter(row => row.code || row.id);
+
+  pcfAllCache = mapped;
   return pcfAllCache;
 }
 
+/* =========== Вспомогательная выборка L2 (если нужно в других местах) =========== */
 export async function fetchPCFLevel2ByMajor(major) {
   const m = parseInt(major, 10);
   if (Number.isNaN(m)) throw new Error(`Некорректный major: ${major}`);
