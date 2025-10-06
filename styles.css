@@ -612,3 +612,87 @@ body.sidebar-collapsed .nav-item{ justify-content:center }
 .module-metrics li.enablement .metric-value {
   color: var(--success);
 }
+/* ===== Appearance: темы и финальные правки ===== */
+
+/* Тёмная тема: новые токены */
+:root[data-theme="dark"] {
+  --bg:#0F1216;
+  --surface:#171A1F;
+  --text:#E7EAF0;
+  --muted:#9AA3AF;
+  --border:#2A2F37;
+  --divider:#2F3642;
+  --accent:#4D5964;   /* акцент теперь для ФОНА, а не для текста */
+  --success:#34D399;
+  --warning:#FBBF24;
+  --danger:#F87171;
+  --blue:#60A5FA;
+  --footer-bg:#F5671E; /* footer в тёмной теме */
+}
+
+/* Базовые подстройки под тёмную тему */
+:root[data-theme="dark"] body { background: var(--bg); color: var(--text); }
+:root[data-theme="dark"] .card { background: var(--surface); border-color: var(--border); }
+:root[data-theme="dark"] .icon-button { border-color: var(--border); color: var(--muted); }
+:root[data-theme="dark"] .icon-button:hover { background: rgba(255,255,255,0.06); }
+:root[data-theme="dark"] .user-menu { background: var(--surface); border-color: var(--border); }
+
+/* Левый сайдбар: белые иконки и надписи */
+:root[data-theme="dark"] .sidebar { background: var(--surface); border-right-color: var(--border); }
+:root[data-theme="dark"] .sidebar .nav-item,
+:root[data-theme="dark"] .sidebar .nav-item span,
+:root[data-theme="dark"] .sidebar .nav-item i { color: #fff; }
+:root[data-theme="dark"] .sidebar .nav-item:hover { background: rgba(255,255,255,0.08); }
+/* Акцент как фон */
+:root[data-theme="dark"] .sidebar .nav-item.active { background: var(--accent); color: #fff; }
+:root[data-theme="dark"] .sidebar .nav-item.active i { color: #fff; }
+
+/* Подвал в тёмной теме */
+:root[data-theme="dark"] .main-footer { background: var(--footer-bg) !important; color: #fff; }
+
+/* Каталог бизнес‑функций: L2 в тёмной теме — чёрный шрифт на белом фоне (уже ОК) */
+:root[data-theme="dark"] .pcf-l2-container,
+:root[data-theme="dark"] .pcf-l2-table {
+  background: #fff;
+  color: #000;
+  border-color: #E9ECEF;
+}
+:root[data-theme="dark"] .pcf-l2-header { background: #fff; }
+:root[data-theme="dark"] .pcf-l2-code,
+:root[data-theme="dark"] .pcf-l2-name,
+:root[data-theme="dark"] .pcf-l2-table tbody td { color: #000; }
+
+/* В темной теме не красим текст в #4D5964 — возвращаем привычный цвет текста */
+:root[data-theme="dark"] .main-header .page-title { color: var(--text) !important; }
+:root[data-theme="dark"] .module-title { color: var(--text) !important; }
+
+/* Переключатель темы (только иконка), маленький круглый */
+.sidebar { position: relative; }
+.appearance-toggle {
+  position: absolute;
+  left: 12px; right: 12px; bottom: 12px;
+  width: 36px; height: 36px;                /* маленький круглый размер */
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.appearance-toggle:hover { transform: translateY(-1px); }
+/* Иконка */
+.appearance-toggle i { width: 18px; height: 18px; color: var(--accent); }
+
+/* В тёмной теме кнопка с фоном #4D5964 (акцент), иконка — белая */
+:root[data-theme="dark"] .appearance-toggle {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+:root[data-theme="dark"] .appearance-toggle i { color: #fff; }
+
+/* Когда сайдбар свёрнут — кнопку прижмем и оставим круглой */
+body.sidebar-collapsed .appearance-toggle {
+  left: 8px; right: 8px; bottom: 8px;
+}

@@ -74,6 +74,31 @@ function ensurePcfStyles() {
   .pcf-page .pcf-group-card { border-top: 4px solid var(--group-color); }
   .pcf-page .pcf-group-icon { color: var(--group-color); width: 26px; height: 26px; margin-top: 1px; }
   .pcf-page .pcf-group-title { color: var(--group-color) !important; }
+  
+  /* Стили для топ-процессов уровня 1 */
+  .pcf-page .pcf-group-card .pcf-code {
+    font-size: 13px;  /* итого -18.75% от исходного 16px */
+    font-weight: 400;  /* обычное начертание */
+    line-height: 1.3;
+    letter-spacing: 0.05px;
+    margin: 2px 0 0;
+  }
+  .pcf-page .pcf-group-card .pcf-name {
+    font-size: 14px;  /* итого -22% от исходного 18px */
+    font-weight: 300;  /* легкое начертание */
+    line-height: 1.4;
+    margin: 4px 0 0;
+  }
+  /* Выравнивание содержимого карточек */
+  .pcf-page .pcf-group-card .pcf-item {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 10px 14px;
+    min-height: 52px;
+  }
 
   /* Сетка */
   .pcf-page .widgets-grid { grid-template-columns: 1fr; gap: 14px; }
