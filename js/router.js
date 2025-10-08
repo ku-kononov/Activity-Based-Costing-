@@ -6,7 +6,7 @@ import { qs, refreshIcons } from './utils.js';
 
 const appEl = qs('#app-container');
 
-// Карта маршрутов для JS-модулей
+// Карта маршрутов для JS-модулей (без analytics — подключим динамически)
 const jsRoutes = {
   'home': renderHomePage,
   'org': renderOrgPage,
@@ -19,10 +19,13 @@ const htmlRoutes = ['profile'];
 function setActiveNav(route) {
   qs('.nav')?.querySelectorAll('.nav-item').forEach(a => {
     const text = a.textContent || '';
-    const isActive = (route === 'home' && /Главная/i.test(text)) ||
-                     (route === 'org' && /Оргструктура/i.test(text)) ||
-                     (route === 'pcf' && /Бизнес-функции/i.test(text));
+    const isActive =
+      (route === 'home'      && /Главная/i.test(text)) ||
+      (route === 'org'       && /Оргструктура/i.test(text)) ||
+      (route === 'pcf'       && /Бизнес-функции/i.test(text)) ||
+      (route === 'analytics' && /Аналитика/i.test(text));  // добавили подсветку "Аналитика"
     a.classList.toggle('active', isActive);
+    a.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
 }
 
@@ -50,22 +53,35 @@ async function navigate(routeName) {
   
   const baseRoute = (routeName || 'home').split('/')[0];
   window.location.hash = `#!/${routeName}`;
-  appEl.innerHTML = '<div class="card"><p>Загрузка...</p></div>';
+  appEl.innerHTML = '<div class="card"><div class="card-header"><h3 class="card-title">Загрузка…</h3></div><div style="padding:8px;">Пожалуйста, подождите.</div></div>';
   
   try {
+    // Отдельно обрабатываем "Аналитика" через динамический импорт (не ломает остальное при ошибке)
+    if (baseRoute === 'analytics') {
+      setActiveNav('analytics');
+      const mod = await import('./pages/analytics.js');
+      await mod.renderAnalyticsPage(appEl);
+      refreshIcons();
+      return;
+    }
+
     if (jsRoutes[baseRoute]) {
       setActiveNav(baseRoute);
       await jsRoutes[baseRoute](appEl);
+      refreshIcons();
     } else if (htmlRoutes.includes(baseRoute)) {
       setActiveNav(''); // Снимаем активность с основного меню для профиля
       await loadHtmlPage(baseRoute);
+      refreshIcons();
     } else {
       setActiveNav('home');
       await renderHomePage(appEl);
+      refreshIcons();
     }
   } catch (e) {
     console.error(`Ошибка навигации на /${routeName}:`, e);
-    appEl.innerHTML = `<div class="card" style="border-color:var(--danger);"><h3 style="color:var(--danger);">Ошибка</h3><p>${e.message}</p><pre style="white-space:pre-wrap;font-size:12px;opacity:0.7;">${e.stack}</pre></div>`;
+    appEl.innerHTML = `<div class="card" style="border-color:var(--danger);"><h3 style="color:var(--danger);">Ошибка</h3><p>${e.message}</p><pre style="white-space:pre-wrap;font-size:12px;opacity:0.7;">${e.stack || ''}</pre></div>`;
+    refreshIcons();
   }
 }
 
@@ -79,6 +95,7 @@ export function initRouter() {
     const text = link.textContent || '';
     if (/Оргструктура/i.test(text)) return navigate('org');
     if (/Бизнес-функции/i.test(text)) return navigate('pcf');
+    if (/Аналитика/i.test(text)) return navigate('analytics');  // добавили переход на аналитику
     navigate('home');
   });
 
