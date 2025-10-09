@@ -16,17 +16,14 @@
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-  <!-- Header (ИЗМЕНЕНО) -->
   <header class="main-header" role="banner">
     <button id="sidebarToggle" class="icon-button" aria-label="Свернуть/развернуть меню">
       <i data-lucide="panel-left-close" aria-hidden="true"></i>
     </button>
 
-    <!-- Структура заголовка упрощена для лучшего выравнивания -->
     <div class="title-container">
       <i data-lucide="workflow" class="main-icon" aria-hidden="true"></i>
       <h1 class="page-title">Лада-Имидж. Бизнес-архитектура</h1>
-      <!-- Подпись <p class="subtitle"> удалена -->
     </div>
 
     <div class="user-area">
@@ -35,7 +32,7 @@
         <i data-lucide="chevron-down" class="chevron" aria-hidden="true"></i>
       </button>
       <div id="userMenu" class="user-menu" role="menu" aria-hidden="true">
-        <button class="user-menu__item" role="menuitem" onclick="navigate('/profile')">
+        <button class="user-menu__item" role="menuitem" onclick="navigate('profile')">
           <i data-lucide="user" aria-hidden="true"></i><span>Профиль</span>
         </button>
         <button class="user-menu__item" role="menuitem">
@@ -46,14 +43,14 @@
   </header>
 
   <div class="layout">
-    <!-- Sidebar -->
     <aside class="sidebar" aria-label="Навигация">
-      <nav class="nav">
+      <!-- 1. ДОБАВЛЕН ID ДЛЯ НАДЕЖНОЙ РАБОТЫ РОУТЕРА -->
+      <nav id="main-nav" class="nav">
         <a class="nav-item active" href="#" title="Главная" aria-current="page">
           <i data-lucide="castle" aria-hidden="true"></i>
           <span>Главная</span>
         </a>
-        <a class="nav-item" href="#" title="Затраты процессов">
+        <a class="nav-item" href="#" title="Затраты процессов" style="opacity:0.5; pointer-events:none;">
           <i data-lucide="chart-pie" aria-hidden="true"></i>
           <span>Затраты процессов</span>
         </a>
@@ -70,13 +67,18 @@
           <span>Аналитика</span>
         </a>
       </nav>
+
+      <!-- 2. ДОБАВЛЕНА СТАТИЧЕСКАЯ КНОПКА ПЕРЕКЛЮЧЕНИЯ ТЕМЫ -->
+      <div class="sidebar-footer">
+        <button id="themeToggle" class="appearance-toggle" title="Сменить тему">
+          <i data-lucide="sun" aria-hidden="true"></i>
+        </button>
+      </div>
     </aside>
 
-    <!-- Content: рендерится роутером -->
     <main id="app-container" class="content" role="main"></main>
   </div>
 
-  <!-- Footer -->
   <footer class="main-footer" role="contentinfo">
     <div class="footer-left">© <span id="year"></span> Лада-Имидж</div>
     <div class="footer-right">
@@ -85,7 +87,6 @@
     </div>
   </footer>
 
-  <!-- Runtime-конфиг -->
   <script>
     window.ENV = {
       SUPABASE_URL: "https://eqpdepmgriuivevvrulc.supabase.co",
@@ -93,12 +94,10 @@
     };
   </script>
 
-  <!-- Vendor scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.1/dist/umd/supabase.min.js" defer crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.1/dist/umd/supabase.min.js" defer></script>
 
-  <!-- App (ES Modules) -->
   <script type="module" src="js/main.js" defer></script>
 
   <noscript>Для работы приложения требуется включить JavaScript.</noscript>

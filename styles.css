@@ -696,15 +696,11 @@ body.sidebar-collapsed .nav-item{ justify-content:center }
 body.sidebar-collapsed .appearance-toggle {
   left: 8px; right: 8px; bottom: 8px;
 }
-/* ======================== ANALYTICS PAGE (ISOLATED & FINAL - Polished) ======================== */
+/* ======================== ANALYTICS PAGE (CFO Dashboard - Final Polished) ======================== */
 
-.analytics-page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+.analytics-page { display: flex; flex-direction: column; gap: 24px; }
 
-/* --- 1. Header & Filters --- */
+/* --- Header & Filters --- */
 .analytics-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; }
 .analytics-header__title-block { display: flex; align-items: center; gap: 16px; }
 .analytics-header__icon { width: 32px; height: 32px; color: var(--blue); }
@@ -718,43 +714,55 @@ body.sidebar-collapsed .appearance-toggle {
 .analytics-segmented-control button { padding: 4px 14px; border: none; background-color: transparent; border-radius: var(--r-6); color: var(--muted); font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .analytics-segmented-control button.active { background-color: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 
-/* --- 2. Grids --- */
+/* --- Grids --- */
 .analytics-grid { display: grid; gap: 20px; }
 .analytics-grid--kpi { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.analytics-grid--2-1 { grid-template-columns: 2fr 1fr; }
+.analytics-grid--2-col { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
 .analytics-grid--3-col { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-@media (max-width: 900px) { .analytics-grid--2-1 { grid-template-columns: 1fr; } }
+/* 3. НОВАЯ СЕТКА 1x1 */
+.analytics-grid--1-1 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+@media (min-width: 900px) {
+  .analytics-grid--1-1 { grid-template-columns: 1fr 1fr; }
+}
 
-/* --- 3. KPI Cards --- */
-.analytics-kpi { background-color: var(--surface); border-radius: var(--r-12); padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.analytics-kpi__title { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-.analytics-kpi__value { font-size: 28px; font-weight: 700; color: var(--blue); margin-bottom: 8px; } /* <<< ИСПРАВЛЕНИЕ 2 */
+/* --- KPI & Chart Cards --- */
+.analytics-kpi, .analytics-chart { background-color: var(--surface); border-radius: var(--r-12); padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; }
+.analytics-kpi__header { display: flex; align-items: flex-start; gap: 12px; }
+.analytics-kpi__icon { width: 24px; height: 24px; color: var(--blue); flex-shrink: 0; margin-top: 2px; }
+.analytics-kpi__title-block { flex-grow: 1; }
+.analytics-kpi__title { font-size: 14px; font-weight: 600; color: var(--muted); }
+.analytics-kpi__subtitle { font-size: 11px; color: var(--muted); text-transform: uppercase; margin: 2px 0 0; }
+.info-icon { width: 14px; height: 14px; cursor: help; opacity: 0.6; transition: opacity 0.2s; flex-shrink: 0; }
+.info-icon:hover { opacity: 1; }
+.analytics-kpi__value { font-size: 28px; font-weight: 700; color: var(--blue); margin-top: auto; padding-top: 8px; }
 .analytics-kpi__unit { font-size: 18px; color: var(--muted); margin-left: 4px; }
 .analytics-kpi__trend { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
 .analytics-kpi__trend i { width: 14px; height: 14px; }
 .analytics-kpi__trend.is-positive { color: var(--success); }
 .analytics-kpi__trend.is-negative { color: var(--danger); }
 
-/* --- 4. Chart Cards --- */
-.analytics-chart { background-color: var(--surface); border-radius: var(--r-12); padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; border: 1px solid var(--border); }
-.analytics-chart__header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.analytics-chart__header i, .analytics-chart__header svg { width: 18px; height: 18px; color: var(--blue); }
+.analytics-chart__header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.analytics-chart__header i, .analytics-chart__header svg { width: 20px; height: 20px; color: var(--blue); flex-shrink: 0; margin-top: 2px; }
+.analytics-chart__title-block { flex-grow: 1; }
 .analytics-chart__title { margin: 0; font-size: 16px; font-weight: 600; color: var(--blue); }
+.analytics-chart__subtitle { margin: 2px 0 0; font-size: 12px; color: var(--muted); text-transform: uppercase; }
 .analytics-chart__body { flex-grow: 1; position: relative; min-height: 280px; }
-.analytics-chart.is-placeholder { align-items: center; justify-content: center; color: var(--blue); font-weight: 600; border-style: dashed; }
+.analytics-chart.is-placeholder { align-items: center; justify-content: center; font-weight: 600; border-style: dashed; color: var(--blue); }
 
-/* --- 5. Dark Theme Overrides --- */
+/* --- Dark Theme --- */
+:root[data-theme="dark"] .analytics-header__title { color: var(--text); }
 :root[data-theme="dark"] .analytics-filter select,
 :root[data-theme="dark"] .analytics-segmented-control { background-color: var(--surface); border-color: var(--border); }
 :root[data-theme="dark"] .analytics-segmented-control button.active { background-color: var(--bg); }
 :root[data-theme="dark"] .analytics-kpi, 
 :root[data-theme="dark"] .analytics-chart { background-color: var(--surface); border-color: var(--border); }
 :root[data-theme="dark"] .analytics-chart.is-placeholder { background-color: transparent; }
-:root[data-theme="dark"] .analytics-kpi__title,
-:root[data-theme="dark"] .analytics-kpi__unit,
-:root[data-theme="dark"] .analytics-filter label { color: var(--muted); }
-/* В темной теме возвращаем синий цвет для KPI и заголовков чартов */
 :root[data-theme="dark"] .analytics-kpi__value,
-:root[data-theme="dark"] .analytics-chart__title,
-:root[data-theme="dark"] .analytics-chart__header i,
-:root[data-theme="dark"] .analytics-chart.is-placeholder { color: var(--blue); }
+:root[data-theme="dark"] .analytics-kpi__title,
+:root[data-theme="dark"] .analytics-chart__title { color: var(--text); }
+:root[data-theme="dark"] .analytics-kpi__icon,
+:root[data-theme="dark"] .analytics-chart__header i, 
+:root[data-theme="dark"] .analytics-chart__header svg,
+:root[data-theme="dark"] .analytics-chart.is-placeholder,
+:root[data-theme="dark"] .analytics-header__icon,
+:root[data-theme="dark"] .analytics-header__title { color: var(--blue); }

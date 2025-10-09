@@ -2,11 +2,13 @@
 import { renderHomePage } from './pages/home.js';
 import { renderOrgPage } from './pages/org-structure.js';
 import { renderPCFPage } from './pages/pcf-catalog.js';
+// <<< 1. ДОБАВЛЯЕМ ИМПОРТ ДЛЯ АНАЛИТИКИ (ДИНАМИЧЕСКИЙ, БЕЗОПАСНЫЙ)
+// import { renderAnalyticsPage } from './pages/analytics.js'; 
 import { qs, refreshIcons } from './utils.js';
 
 const appEl = qs('#app-container');
 
-// Карта маршрутов для JS-модулей (без analytics — подключим динамически)
+// Карта маршрутов для JS-модулей
 const jsRoutes = {
   'home': renderHomePage,
   'org': renderOrgPage,
@@ -23,7 +25,7 @@ function setActiveNav(route) {
       (route === 'home'      && /Главная/i.test(text)) ||
       (route === 'org'       && /Оргструктура/i.test(text)) ||
       (route === 'pcf'       && /Бизнес-функции/i.test(text)) ||
-      (route === 'analytics' && /Аналитика/i.test(text));  // добавили подсветку "Аналитика"
+      (route === 'analytics' && /Аналитика/i.test(text));  // <<< 2. ДОБАВЛЕНА ПОДСВЕТКА
     a.classList.toggle('active', isActive);
     a.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
@@ -52,11 +54,12 @@ async function navigate(routeName) {
   if (!appEl) return;
   
   const baseRoute = (routeName || 'home').split('/')[0];
-  window.location.hash = `#!/${routeName}`;
+  // Эта строка НЕ вызывает hashchange, если хэш уже такой же.
+  window.location.hash = `#!/${routeName}`; 
   appEl.innerHTML = '<div class="card"><div class="card-header"><h3 class="card-title">Загрузка…</h3></div><div style="padding:8px;">Пожалуйста, подождите.</div></div>';
   
   try {
-    // Отдельно обрабатываем "Аналитика" через динамический импорт (не ломает остальное при ошибке)
+    // <<< 3. ДОБАВЛЕНА БЕЗОПАСНАЯ ОБРАБОТКА АНАЛИТИКИ
     if (baseRoute === 'analytics') {
       setActiveNav('analytics');
       const mod = await import('./pages/analytics.js');
@@ -70,7 +73,7 @@ async function navigate(routeName) {
       await jsRoutes[baseRoute](appEl);
       refreshIcons();
     } else if (htmlRoutes.includes(baseRoute)) {
-      setActiveNav(''); // Снимаем активность с основного меню для профиля
+      setActiveNav('');
       await loadHtmlPage(baseRoute);
       refreshIcons();
     } else {
@@ -88,14 +91,17 @@ async function navigate(routeName) {
 window.navigate = (routeName) => navigate(routeName.replace(/^\//, ''));
 
 export function initRouter() {
-  qs('.nav')?.addEventListener('click', (e) => {
+  // Для надежности ищем меню по ID
+  const navMenu = qs('#main-nav') || qs('.nav');
+
+  navMenu?.addEventListener('click', (e) => {
     const link = e.target.closest('.nav-item');
     if (!link) return;
     e.preventDefault();
     const text = link.textContent || '';
     if (/Оргструктура/i.test(text)) return navigate('org');
     if (/Бизнес-функции/i.test(text)) return navigate('pcf');
-    if (/Аналитика/i.test(text)) return navigate('analytics');  // добавили переход на аналитику
+    if (/Аналитика/i.test(text)) return navigate('analytics');  // <<< 4. ДОБАВЛЕН ПЕРЕХОД
     navigate('home');
   });
 
