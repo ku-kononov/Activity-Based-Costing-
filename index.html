@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ру">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -44,36 +44,69 @@
 
   <div class="layout">
     <aside class="sidebar" aria-label="Навигация">
-      <!-- 1. ДОБАВЛЕН ID ДЛЯ НАДЕЖНОЙ РАБОТЫ РОУТЕРА -->
-      <nav id="main-nav" class="nav">
-        <a class="nav-item active" href="#" title="Главная" aria-current="page">
+      <nav id="main-nav" class="nav" role="navigation">
+        <!-- Главная -->
+        <a class="nav-item nav-link active" href="#!/home" data-route="home" title="Главная" aria-current="page">
           <i data-lucide="castle" aria-hidden="true"></i>
           <span>Главная</span>
         </a>
-        <a class="nav-item" href="#" title="Затраты процессов" style="opacity:0.5; pointer-events:none;">
-          <i data-lucide="chart-pie" aria-hidden="true"></i>
-          <span>Затраты процессов</span>
-        </a>
-        <a class="nav-item" href="#" title="Бизнес-функции">
-          <i data-lucide="waypoints" aria-hidden="true"></i>
-          <span>Бизнес-функции</span>
-        </a>
-        <a class="nav-item" href="#" title="Оргструктура">
-          <i data-lucide="drama" aria-hidden="true"></i>
-          <span>Оргструктура</span>
-        </a>
-        <a class="nav-item" href="#" title="Аналитика">
+
+        <!-- Бизнес-архитектура -->
+        <div class="nav-group" data-group="ba">
+          <button class="nav-item nav-link nav-group-toggle" type="button" aria-expanded="false" aria-controls="submenu-ba">
+            <i data-lucide="orbit" aria-hidden="true"></i>
+            <span>Бизнес-архитектура</span>
+            <i class="chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+          </button>
+          <div id="submenu-ba" class="nav-submenu" hidden>
+            <a class="nav-item nav-subitem nav-link" href="#!/pcf" data-route="pcf" title="Каталог бизнес-процессов">
+              <i data-lucide="waypoints" aria-hidden="true"></i>
+              <span>Бизнес-функции</span>
+            </a>
+            <a class="nav-item nav-subitem nav-link" href="#!/org" data-route="org" title="Организационная структура">
+              <i data-lucide="drama" aria-hidden="true"></i>
+              <span>Оргструктура</span>
+            </a>
+            <a class="nav-item nav-subitem nav-link" href="#!/costs" data-route="costs" title="Затраты процессов">
+              <i data-lucide="chart-pie" aria-hidden="true"></i>
+              <span>Затраты процессов</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Портал данных IBP -->
+        <div class="nav-group" data-group="ibp">
+          <button class="nav-item nav-link nav-group-toggle" type="button" aria-expanded="false" aria-controls="submenu-ibp">
+            <i data-lucide="database" aria-hidden="true"></i>
+            <span>Портал данных IBP</span>
+            <i class="chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+          </button>
+          <div id="submenu-ibp" class="nav-submenu" hidden>
+            <a class="nav-item nav-subitem nav-link" href="#!/ibp/financial" data-route="ibp/financial" title="Финансовые планы">
+              <i data-lucide="wallet" aria-hidden="true"></i>
+              <span>Финансовые планы</span>
+            </a>
+            <a class="nav-item nav-subitem nav-link" href="#!/ibp/operational" data-route="ibp/operational" title="Операционные планы">
+              <i data-lucide="clipboard-list" aria-hidden="true"></i>
+              <span>Операционные планы</span>
+            </a>
+            <a class="nav-item nav-subitem nav-link" href="#!/ibp/plan-vs-fact" data-route="ibp/plan-vs-fact" title="Анализ плана и факта">
+              <i data-lucide="trending-up" aria-hidden="true"></i>
+              <span>Анализ плана и факта</span>
+            </a>
+            <a class="nav-item nav-subitem nav-link" href="#!/ibp/management-data" data-route="ibp/management-data" title="Управленческие данные">
+              <i data-lucide="file-cog" aria-hidden="true"></i>
+              <span>Управленческие данные</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Аналитика -->
+        <a class="nav-item nav-link" href="#!/analytics" data-route="analytics" title="Аналитика">
           <i data-lucide="chart-spline" aria-hidden="true"></i>
           <span>Аналитика</span>
         </a>
       </nav>
-
-      <!-- 2. ДОБАВЛЕНА СТАТИЧЕСКАЯ КНОПКА ПЕРЕКЛЮЧЕНИЯ ТЕМЫ -->
-      <div class="sidebar-footer">
-        <button id="themeToggle" class="appearance-toggle" title="Сменить тему">
-          <i data-lucide="sun" aria-hidden="true"></i>
-        </button>
-      </div>
     </aside>
 
     <main id="app-container" class="content" role="main"></main>
@@ -97,7 +130,6 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.1/dist/umd/supabase.min.js" defer></script>
-
   <script type="module" src="js/main.js" defer></script>
 
   <noscript>Для работы приложения требуется включить JavaScript.</noscript>

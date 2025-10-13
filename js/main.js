@@ -13,7 +13,7 @@ function injectAppearanceToggle() {
   btn.type = 'button';
   btn.setAttribute('aria-label', 'Переключить тему');
   btn.title = 'Переключить тему';
-  btn.innerHTML = `<i data-lucide="sun"></i>`; // только иконка, без текста
+  btn.innerHTML = `<i data-lucide="sun"></i>`;
 
   btn.addEventListener('click', () => {
     const theme = toggleAppearance();
@@ -28,6 +28,28 @@ function injectAppearanceToggle() {
   const icon = btn.querySelector('i[data-lucide]');
   if (icon) icon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
   refreshIcons();
+}
+
+function initNavAccordion() {
+  const nav = qs('#main-nav');
+  if (!nav) return;
+
+  nav.addEventListener('click', (e) => {
+    const toggle = e.target.closest('.nav-group-toggle');
+    if (!toggle) return;
+
+    // Разрешаем клик по стрелке и по всей строке заголовка группы
+    e.preventDefault();
+    const controls = toggle.getAttribute('aria-controls');
+    const submenu = controls ? qs(`#${controls}`) : toggle.nextElementSibling;
+    const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+    toggle.setAttribute('aria-expanded', String(!isExpanded));
+    if (submenu) submenu.hidden = isExpanded;
+    toggle.parentElement?.classList.toggle('is-open', !isExpanded);
+
+    refreshIcons();
+  });
 }
 
 function initGlobalUI() {
@@ -60,10 +82,11 @@ function initGlobalUI() {
   }
 
   injectAppearanceToggle();
+  initNavAccordion();
 }
 
 function initApp() {
-  initAppearance();    // применяем тему рано, без "мигания"
+  initAppearance();
   initGlobalUI();
   initRouter();
   initIconsOnce();

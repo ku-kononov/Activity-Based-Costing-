@@ -9,6 +9,9 @@
   --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 1px rgba(16,24,40,.04);
   --r-6:6px; --r-8:8px; --r-10:10px; --r-12:12px; --r-pill:999px;
   --sp-4:4px; --sp-6:6px; --sp-8:8px; --sp-10:10px; --sp-12:12px; --sp-16:16px;
+
+  /* Sidebar typography */
+  --nav-font-size:14px;
 }
 
 *{ box-sizing:border-box }
@@ -20,7 +23,7 @@ body{
   background:var(--bg)
 }
 
-/* --- Общие компоненты (без изменений) --- */
+/* --- Общие компоненты (без крупных изменений) --- */
 .main-header{
   position:sticky; top:0; z-index:1000;
   display:flex; align-items:center; gap:var(--sp-16);
@@ -32,22 +35,51 @@ body{
 .title-container{ display:flex; align-items:center; gap:12px; min-width:0 }
 .main-icon{ width:28px; height:28px; color:var(--accent) }
 .layout{ display:flex; min-height:calc(100vh - 64px - 56px) }
+
+/* ===== Sidebar (modern clean) ===== */
 .sidebar{ width:260px; background:var(--surface); border-right:1px solid var(--border); padding:12px var(--sp-8) }
-.nav{ display:flex; flex-direction:column; gap:6px }
-.nav-item{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:#495057; text-decoration:none }
+.nav{ display:flex; flex-direction:column; gap:6px; }
+.nav-item{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:10px;
+  color:#2b2f33; text-decoration:none;
+  font-size:var(--nav-font-size); line-height:1.2; font-weight:600;
+}
+.nav-item i, .nav-item svg{ width:18px; height:18px; color:#6b7280; }
 .nav-item:hover{ background:#f3f4f6 }
 .nav-item.active{ background:var(--accent); color:#fff }
 .nav-item.active i, .nav-item.active svg{ color:#fff }
+
+.nav-group{ display:flex; flex-direction:column; gap:6px; }
+.nav-group .nav-group-toggle{
+  cursor:pointer; border:none; background:transparent; /* без рамок и подложек */
+  width:100%; text-align:left;
+}
+.nav-group .nav-group-toggle .chevron{
+  margin-left:auto; width:18px; height:18px; color:#9AA3AF; transition:transform .2s ease;
+}
+.nav-group.is-open .nav-group-toggle .chevron{ transform:rotate(180deg); }
+
+.nav-submenu{ display:flex; flex-direction:column; gap:4px; padding-left:28px; }
+.nav-subitem{ padding:8px 10px; border-radius:8px; }
+
+/* Чистый вид групп без «рамок» и спец-подсветок */
+.nav-group.is-open > .nav-group-toggle{ background:transparent; }
+
+/* Коллапс сайдбара */
 body.sidebar-collapsed .sidebar{ width:72px }
 body.sidebar-collapsed .nav-item span{ display:none }
 body.sidebar-collapsed .nav-item{ justify-content:center }
+body.sidebar-collapsed .nav-submenu{ padding-left:0; }
+body.sidebar-collapsed .nav-group .nav-group-toggle .chevron{ display:none; }
+
 .content{ flex:1; padding:var(--sp-16) }
 .widgets-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-16) }
 .card{ display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-12); box-shadow:var(--shadow); padding:14px; color:inherit }
 .card:hover{ transform:translateY(-1px); box-shadow:0 4px 10px rgba(16,24,40,.08) }
 .main-footer{ height:45px; display:flex; align-items:center; justify-content:space-between; padding:0 var(--sp-16); background:#4D5964; color:#fff }
 
-/* --- PCF Catalog bits (без изменений, для совместимости) --- */
+/* --- PCF Catalog bits (для совместимости, без правок) --- */
 .pcf-page .widgets-grid { grid-template-columns: 1fr; gap: 20px; }
 .pcf-group-card{ cursor:default; transform:none; box-shadow:var(--shadow); border-top:4px solid var(--group-color); padding:16px }
 .pcf-group-header{ display:flex; align-items:flex-start; gap:12px; margin-bottom:16px }
@@ -61,7 +93,6 @@ body.sidebar-collapsed .nav-item{ justify-content:center }
 .pcf-empty{ color:var(--muted); font-style:italic; padding:16px; text-align:center }
 
 /* ======================== ORG PAGE (Modern) ======================== */
-/* 1. Заголовок */
 .org-page .card-header.org-header{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .org-title-left{ display:flex; align-items:center; gap:12px; }
 .org-header-icon{ color:var(--blue); width:28px; height:28px; }
@@ -89,10 +120,10 @@ body.sidebar-collapsed .nav-item{ justify-content:center }
 .org-node:hover{ transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16,24,40,.08) }
 .org-node-head{ display:flex; align-items:center; gap:10px; cursor:pointer; }
 
-/* Иконки в org-узле должны совпадать с цветом текста */
-.org-node-head{ color: var(--dir-color); } /* распространяем цвет на текст и иконки */
+/* Иконки в org-узле совпадают с цветом текста */
+.org-node-head{ color: var(--dir-color); }
 .org-node-icon{ width:20px; height:20px; color:inherit; }
-.org-node-icon svg{ fill: currentColor; stroke: currentColor; } /* на случай inline SVG без currentColor */
+.org-node-icon svg{ fill: currentColor; stroke: currentColor; }
 
 .org-caret{
   width:24px; height:24px; display:grid; place-items:center;
@@ -102,8 +133,8 @@ body.sidebar-collapsed .nav-item{ justify-content:center }
 .org-caret:not([disabled]):hover{ background:rgba(0,0,0,0.05); }
 .org-caret[disabled]{ opacity:.4; cursor:default; }
 .org-node-title{ font-weight:700; color:var(--dir-color); }
-.org-node[data-depth="2"] .org-node-title{ font-weight:500; } /* 3-й уровень */
-.org-node[data-depth="3"] .org-node-title{ font-weight:400; font-style:italic; } /* 4-й уровень */
+.org-node[data-depth="2"] .org-node-title{ font-weight:500; }
+.org-node[data-depth="3"] .org-node-title{ font-weight:400; font-style:italic; }
 .org-code-chip{ margin-left:auto; padding:3px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--r-pill); background:#f8f9fa; color:#2b2f33 }
 .emp-pill{ margin-left:10px; padding:3px 8px; font-size:12px; border:1px solid var(--border); border-radius:var(--r-pill); background:#fff; color:#2b2f33 }
 
@@ -121,648 +152,131 @@ body.sidebar-collapsed .nav-item{ justify-content:center }
 .tree-cell{ display:flex; align-items:center; gap:12px }
 .tree-indent{ display:inline-block; width:calc(var(--depth,0) * 24px); height:1px }
 .org-code-badge{ display:inline-flex; padding:3px 8px; border:1px solid var(--border); background:#f8f9fa; border-radius:var(--r-pill); font-size:12px; color:#2b2f33 }
-/* ================== PCF Catalog: выравнивание, цвета, компактность ================== */
 
-/* Заголовок страницы: поднять иконку до уровня заголовка, титул синий, подзаголовок ближе */
-.pcf-page .card-header .title-container{
-  align-items: flex-start !important; /* перебиваем inline align-items:center */
-  gap: 12px !important;               /* перебиваем inline gap */
-}
-.pcf-page .card-header .main-icon{
-  color: var(--blue) !important;      /* на случай, если цвет задан inline */
-  width: 28px; height: 28px;
-  margin-top: 1px;                    /* лёгкая оптическая правка */
-}
-.pcf-page .card-header .card-title{
-  color: var(--blue) !important;
-  margin: 0;
-  line-height: 1.2;
-}
-.pcf-page .card-header .card-subtitle{
-  margin: 2px 0 0;                    /* ближе к заголовку */
-  font-size: 13px;
-  color: var(--muted);
-}
-/* Сетка ближе к заголовку — перебиваем inline margin-top */
-.pcf-page #pcf-grid-container{
-  margin-top: 12px !important;
-}
+/* ================== PCF Catalog tweaks ================== */
+.pcf-page .card-header .title-container{ align-items:flex-start !important; gap:12px !important; }
+.pcf-page .card-header .main-icon{ color:var(--blue) !important; width:28px; height:28px; margin-top:1px; }
+.pcf-page .card-header .card-title{ color:var(--blue) !important; margin:0; line-height:1.2; }
+.pcf-page .card-header .card-subtitle{ margin:2px 0 0; font-size:13px; color:var(--muted); }
+.pcf-page #pcf-grid-container{ margin-top:12px !important; }
+.pcf-page .pcf-group-card .pcf-group-header{ align-items:flex-start; gap:12px; margin-bottom:12px; }
+.pcf-page .pcf-group-card .pcf-group-icon{ color:var(--group-color); width:26px; height:26px; margin-top:1px; }
+.pcf-page .pcf-group-card .pcf-group-titles .card-title{ margin:0; line-height:1.2; color:var(--group-color); }
+.pcf-page .pcf-group-card .pcf-group-subtitle{ margin:2px 0 0; font-size:13px; color:var(--muted); }
+.pcf-page .pcf-group-icon svg, .pcf-page .main-icon svg, .pcf-page .pcf-detail-title-icon svg{ fill:currentColor; stroke:currentColor; }
+.pcf-page .pcf-catalog-header .card-title{ color:var(--blue) !important; }
+.pcf-page .pcf-group-card .pcf-group-header .pcf-group-titles .pcf-group-title{ color:var(--group-color) !important; }
 
-/* Блоки: заголовки в цвет блока, выровнять по иконке, подзаголовок ближе */
-.pcf-page .pcf-group-card .pcf-group-header{
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;                /* компактнее */
-}
-.pcf-page .pcf-group-card .pcf-group-icon{
-  color: var(--group-color);
-  width: 26px; height: 26px;
-  margin-top: 1px;
-}
-.pcf-page .pcf-group-card .pcf-group-titles .card-title{
-  margin: 0;
-  line-height: 1.2;
-  color: var(--group-color);
-}
-.pcf-page .pcf-group-card .pcf-group-subtitle{
-  margin: 2px 0 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-/* Иконки следуют цвету текста (на случай inline SVG) */
-.pcf-page .pcf-group-icon svg,
-.pcf-page .main-icon svg,
-.pcf-page .pcf-detail-title-icon svg{
-  fill: currentColor;
-  stroke: currentColor;
-}
-/* Сузить синий цвет только для верхнего заголовка страницы */
-.pcf-page .pcf-catalog-header .card-title {
-  color: var(--blue) !important;
-}
-
-/* Заголовки блоков строго в цвет блока (жёлтый/синий/зелёный) */
-.pcf-page .pcf-group-card .pcf-group-header .pcf-group-titles .pcf-group-title {
-  color: var(--group-color) !important;
-}
 /* ======================== Header Customization ======================== */
+.main-header{ display:flex; align-items:center; gap:var(--sp-12); }
+#sidebarToggle{ border:none; background:transparent; }
+#sidebarToggle:hover{ background:#f3f4f6; color:var(--text); }
+.main-header .title-container{ flex:1 1 auto; display:flex; align-items:center; gap:12px; min-width:0; }
+.main-header .page-title{ margin:0; font-size:18px; font-weight:700; color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.main-header .subtitle{ margin:0; font-size:13px; color:var(--muted); }
+.main-header .titles{ display:flex; flex-direction:column; }
+.user-area{ display:flex; align-items:center; margin-left:auto; }
+.avatar-button{ display:flex; align-items:center; gap:8px; background:transparent; border:1px solid var(--border); border-radius:var(--r-pill); padding:4px 10px 4px 6px; cursor:pointer; }
+.avatar-button:hover{ background:#f3f4f6; }
+.avatar-button .avatar-icon{ width:24px; height:24px; color:var(--accent); }
+.avatar-button .chevron{ width:16px; height:16px; color:var(--muted); transition:transform .2s ease; }
+.avatar-button[aria-expanded="true"] .chevron{ transform:rotate(180deg); }
+.user-menu{ position:absolute; top:calc(100% + 8px); right:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-10); box-shadow:0 4px 12px rgba(0,0,0,0.1); min-width:180px; padding:6px; z-index:1010; opacity:0; visibility:hidden; transform:translateY(-10px); transition:opacity .2s, transform .2s, visibility .2s; }
+.user-menu[aria-hidden="false"]{ opacity:1; visibility:visible; transform:translateY(0); }
+.user-menu__item{ display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; border:none; background:transparent; text-align:left; border-radius:var(--r-6); cursor:pointer; color:var(--text); font-size:14px; }
+.user-menu__item:hover{ background:#f3f4f6; }
+.user-menu__item i{ width:18px; height:18px; color:var(--muted); }
 
-/* 1. Основной контейнер шапки */
-.main-header {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-12); /* Немного уменьшим отступы для компактности */
-}
+/* Modern header polish */
+.main-header{ padding:12px var(--sp-16); border-bottom:2px solid var(--accent); }
+.main-header .title-container{ display:flex; align-items:center; gap:16px; flex:1 1 auto; min-width:0; }
+.main-header .main-icon{ width:32px; height:32px; color:var(--accent); }
+.main-header .page-title{ font-size:22px; }
 
-/* 2. Кнопка скрытия/показа сайдбара — убираем рамку и фон */
-#sidebarToggle {
-  border: none;
-  background: transparent;
-}
-#sidebarToggle:hover {
-  background: #f3f4f6; /* Возвращаем лёгкий фон для обратной связи */
-  color: var(--text);   /* Делаем иконку чуть темнее при наведении */
-}
+/* ======================== Homepage (LeanIX Inspired) and Analytics ======================== */
+/* (оставляем как есть из предыдущей версии) */
+.home-page { display:flex; flex-direction:column; gap:32px; }
+.home-block { width:100%; }
+.home-block-title { display:flex; align-items:center; gap:14px; font-size:24px; font-weight:700; color:var(--accent); margin:0 0 24px 0; }
+.home-block-icon { width:28px; height:28px; }
 
-/* 3. Заголовок — делаем его "резиновым", чтобы прижать user-area вправо */
-.main-header .title-container {
-  flex: 1 1 auto; /* Растягиваем блок с заголовком */
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-.main-header .page-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--accent); /* <<< ЗАГОЛОВОК СТАЛ ЗЕЛЁНЫМ */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.main-header .subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-.main-header .titles {
-  display: flex;
-  flex-direction: column;
-}
+.module-card { font-size:1.2em; display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-12); box-shadow:var(--shadow); transition: transform .2s, box-shadow .2s; cursor:pointer; border-left:4px solid var(--module-color); }
+.module-card:hover, .module-card:focus { transform:translateY(-4px); box-shadow:0 8px 16px rgba(16,24,40,.08); outline:none; }
+.module-card:focus { box-shadow:0 0 0 2px var(--module-color); }
+.module-header { display:flex; align-items:center; gap:12px; padding:20px 24px; border-bottom:1px solid var(--border); }
+.module-icon { width:32px; height:32px; color:var(--module-color); }
+.module-title { font-size:1.2em; color:var(--module-color); font-weight:700; margin:0; }
+.module-body { flex:1; padding:20px 24px; }
+.module-metrics { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
+.module-metrics li { font-size:1em; gap:16px; display:flex; justify-content:space-between; align-items:baseline; }
+.metric-label, .metric-value { color:#4D5964; }
+.module-metrics li.management .metric-label, .module-metrics li.management .metric-value { color: var(--warning); }
+.module-metrics li.core .metric-label, .module-metrics li.core .metric-value { color: var(--blue); }
+.module-metrics li.enablement .metric-label, .module-metrics li.enablement .metric-value { color: var(--success); }
 
-/* 4. Блок пользователя — прижат вправо благодаря п.3 */
-.user-area {
-  display: flex;
-  align-items: center;
-  margin-left: auto; /* Дополнительная гарантия прижатия вправо */
-}
+.analytics-page { display:flex; flex-direction:column; gap:24px; }
+.analytics-header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:20px; }
+.analytics-header__title-block { display:flex; align-items:center; gap:16px; }
+.analytics-header__icon { width:32px; height:32px; color:var(--blue); }
+.analytics-header__title { margin:0; font-size:24px; font-weight:700; color:var(--blue); }
+.analytics-header__subtitle { margin:2px 0 0; font-size:14px; color:var(--muted); }
+.analytics-header__filters { display:flex; flex-wrap:wrap; align-items:center; gap:16px; }
+.analytics-segmented-control { display:flex; background-color:var(--bg); border-radius:var(--r-8); padding:4px; border:1px solid var(--border); }
+.analytics-segmented-control button { padding:4px 14px; border:none; background:transparent; border-radius:var(--r-6); color:var(--muted); font-weight:600; cursor:pointer; transition:all .2s; }
+.analytics-segmented-control button.active { background-color:var(--surface); color:var(--text); box-shadow:var(--shadow); }
+.analytics-grid { display:grid; gap:20px; }
+.analytics-grid--kpi { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.analytics-grid--2-col { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+.analytics-grid--3-col { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.analytics-grid--1-1 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+@media (min-width:900px){ .analytics-grid--1-1{ grid-template-columns:1fr 1fr; } }
+.analytics-kpi, .analytics-chart { background-color:var(--surface); border-radius:var(--r-12); padding:16px; box-shadow:var(--shadow); border:1px solid var(--border); display:flex; flex-direction:column; }
+.analytics-chart__header{ display:flex; align-items:flex-start; gap:12px; margin-bottom:16px; }
+.analytics-chart__header i, .analytics-chart__header svg { width:20px; height:20px; color:var(--blue); margin-top:2px; }
+.analytics-chart__title{ margin:0; font-size:16px; font-weight:600; color:var(--blue); }
+.analytics-chart__subtitle{ margin:2px 0 0; font-size:12px; color:var(--muted); text-transform:uppercase; }
+.analytics-chart.is-placeholder{ align-items:center; justify-content:center; font-weight:600; border-style:dashed; color:var(--blue); }
 
-.avatar-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--r-pill);
-  padding: 4px 10px 4px 6px;
-  cursor: pointer;
-}
-.avatar-button:hover {
-  background-color: #f3f4f6;
-}
-.avatar-button .avatar-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--accent);
-}
-.avatar-button .chevron {
-  width: 16px;
-  height: 16px;
-  color: var(--muted);
-  transition: transform 0.2s ease;
-}
-.avatar-button[aria-expanded="true"] .chevron {
-  transform: rotate(180deg);
-}
-
-.user-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-10);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  min-width: 180px;
-  padding: 6px;
-  z-index: 1010;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-}
-.user-menu[aria-hidden="false"] {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-.user-menu__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border: none;
-  background: transparent;
-  text-align: left;
-  border-radius: var(--r-6);
-  cursor: pointer;
-  color: var(--text);
-  font-size: 14px;
-}
-.user-menu__item:hover {
-  background: #f3f4f6;
-}
-.user-menu__item i {
-  width: 18px;
-  height: 18px;
-  color: var(--muted);
-}
-/* ======================== Header Redesign (Modern) ======================== */
-
-/* 1. Общий контейнер шапки */
-.main-header {
-  padding: 12px var(--sp-16); /* Немного увеличим вертикальные отступы */
-  border-bottom: 2px solid var(--accent); /* Нижняя граница в цвет акцента и чуть толще */
-}
-
-/* 2. Контейнер с иконкой и заголовком */
-.main-header .title-container {
-  display: flex;
-  align-items: center; /* <<< КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: выравнивание по центру */
-  gap: 16px;           /* Увеличим отступ между иконкой и текстом */
-  flex: 1 1 auto;      /* Растягиваем, чтобы прижать блок пользователя вправо */
-  min-width: 0;
-}
-
-/* 3. Иконка */
-.main-header .main-icon {
-  width: 32px;  /* Увеличиваем иконку */
-  height: 32px;
-  color: var(--accent); /* Цвет акцента */
-}
-
-/* 4. Заголовок */
-.main-header .page-title {
-  margin: 0;
-  font-size: 22px; /* <<< Увеличиваем шрифт заголовка */
-  font-weight: 700;
-  color: var(--accent);
-  /* Защита от слишком длинного текста на маленьких экранах */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 5. Подзаголовок (скрываем на всякий случай, если он где-то остался) */
-.main-header .subtitle {
-  display: none;
-}
-/* ======================== Homepage (LeanIX Inspired) ======================== */
-.home-page {
-  display: flex;
-  flex-direction: column;
-  gap: 32px; /* Расстояние между блоками "Архитектура" и "Анализ" */
-}
-
-.home-block {
-  width: 100%;
-}
-
-.home-block-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--muted);
-  margin: 0 0 16px 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.home-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.module-card {
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-12);
-  box-shadow: var(--shadow);
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-  cursor: pointer;
-  border-left: 4px solid var(--module-color);
-}
-
-.module-card:hover, .module-card:focus {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(16,24,40,.08);
-  outline: none;
-}
-.module-card:focus {
-  box-shadow: 0 0 0 2px var(--module-color);
-}
-
-.module-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.module-icon {
-  width: 28px;
-  height: 28px;
-  color: var(--module-color);
-}
-
-.module-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0;
-}
-
-.module-body {
-  flex: 1;
-  padding: 16px 20px;
-}
-
-.module-metrics {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.module-metrics li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: 15px;
-}
-.metric-label {
-  color: var(--muted);
-}
-.metric-value {
-  font-weight: 600;
-  font-size: 18px;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-.module-placeholder {
-  color: var(--muted);
-  font-style: italic;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 50px;
-}
-.module-placeholder.error {
-  color: var(--danger);
-  font-style: normal;
-}
-/* ======================== Homepage (LeanIX Inspired) - V3 Update ======================== */
-
-/* 4. Стили для заголовков блоков с иконками */
-.home-block-title {
-  display: flex; /* Включаем flexbox для выравнивания */
-  align-items: center; /* Выравниваем иконку и текст по центру */
-  gap: 12px; /* Отступ между иконкой и текстом */
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--accent);
-  margin: 0 0 20px 0; /* Убираем отступ слева */
-  text-transform: none;
-  letter-spacing: 0;
-}
-.home-block-icon {
-  width: 24px;
-  height: 24px;
-  /* Цвет иконки наследуется от родителя (.home-block-title) */
-}
-
-/* 6. Увеличение шрифтов на 20% (остается без изменений) */
-.module-card {
-  font-size: 1.2em;
-}
-
-/* 1. Названия модулей "Компания", "Процессы", "Затраты" */
-.module-title {
-  font-size: 1.2em;
-  color: var(--module-color); /* <<< ИЗМЕНЕНО: Цвет теперь берется из переменной */
-}
-
-.module-header {
-  padding: 20px 24px;
-}
-.module-icon {
-  width: 32px;
-  height: 32px;
-}
-
-.module-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  flex-grow: 1;
-  padding: 20px 24px;
-}
-
-.module-metrics li {
-  font-size: 1em;
-  gap: 16px;
-}
-
-.metric-value {
-  font-size: 1.2em;
-}
-.metric-label {
-  color: var(--muted);
-}
-
-/* 2. Цвета для метрик и лейблов в модуле "Процессы" */
-.module-metrics li.management .metric-label {
-  color: var(--warning);
-}
-.module-metrics li.core .metric-label {
-  color: var(--blue);
-}
-.module-metrics li.enablement .metric-label {
-  color: var(--success);
-}
-/* Значения можно оставить стандартного цвета для контраста, либо тоже окрасить: */
-.module-metrics li.management .metric-value {
-  color: var(--warning);
-}
-.module-metrics li.core .metric-value {
-  color: var(--blue);
-}
-.module-metrics li.enablement .metric-value {
-  color: var(--success);
-}
-/* ======================== Homepage (LeanIX Inspired) - V4 Final Update ======================== */
-
-/* 1. Стили для заголовков блоков с иконками */
-.home-block-title {
-  display: flex;
-  align-items: center;
-  gap: 14px; /* Немного увеличим отступ */
-  font-size: 24px; /* <<< Увеличиваем шрифт (было 20px) */
-  font-weight: 700;
-  color: var(--accent);
-  margin: 0 0 24px 0; /* Увеличиваем нижний отступ */
-  text-transform: none;
-  letter-spacing: 0;
-}
-.home-block-icon {
-  width: 28px; /* <<< Увеличиваем иконку (было 24px) */
-  height: 28px;
-}
-
-/* Базовый шрифт для карточек (остается 1.2em) */
-.module-card {
-  font-size: 1.2em;
-}
-
-/* Названия модулей */
-.module-title {
-  font-size: 1.2em;
-  color: var(--module-color);
-}
-
-.module-header {
-  padding: 20px 24px;
-}
-.module-icon {
-  width: 32px;
-  height: 32px;
-}
-
-.module-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  flex-grow: 1;
-  padding: 20px 24px;
-}
-
-.module-metrics li {
-  font-size: 1em;
-  gap: 16px;
-}
-
-.metric-value {
-  font-size: 1.2em;
-}
-
-/* 2. Цвет для метрик "Подразделения" и "Сотрудники" */
-/* Задаем этот цвет всем метрикам по умолчанию */
-.metric-label, .metric-value {
-  color: #4D5964;
-}
-
-/* Цвета для метрик в модуле "Процессы" (переопределяют цвет по умолчанию) */
-.module-metrics li.management .metric-label,
-.module-metrics li.management .metric-value {
-  color: var(--warning);
-}
-.module-metrics li.core .metric-label,
-.module-metrics li.core .metric-value {
-  color: var(--blue);
-}
-.module-metrics li.enablement .metric-label,
-.module-metrics li.enablement .metric-value {
-  color: var(--success);
-}
 /* ===== Appearance: темы и финальные правки ===== */
-
-/* Тёмная тема: новые токены */
 :root[data-theme="dark"] {
-  --bg:#0F1216;
-  --surface:#171A1F;
-  --text:#E7EAF0;
-  --muted:#9AA3AF;
-  --border:#2A2F37;
-  --divider:#2F3642;
-  --accent:#4D5964;   /* акцент теперь для ФОНА, а не для текста */
-  --success:#34D399;
-  --warning:#FBBF24;
-  --danger:#F87171;
-  --blue:#60A5FA;
-  --footer-bg:#F5671E; /* footer в тёмной теме */
+  --bg:#0F1216; --surface:#171A1F; --text:#E7EAF0; --muted:#9AA3AF;
+  --border:#2A2F37; --divider:#2F3642; --accent:#4D5964; --success:#34D399;
+  --warning:#FBBF24; --danger:#F87171; --blue:#60A5FA; --footer-bg:#F5671E;
 }
-
-/* Базовые подстройки под тёмную тему */
 :root[data-theme="dark"] body { background: var(--bg); color: var(--text); }
 :root[data-theme="dark"] .card { background: var(--surface); border-color: var(--border); }
 :root[data-theme="dark"] .icon-button { border-color: var(--border); color: var(--muted); }
 :root[data-theme="dark"] .icon-button:hover { background: rgba(255,255,255,0.06); }
 :root[data-theme="dark"] .user-menu { background: var(--surface); border-color: var(--border); }
-
-/* Левый сайдбар: белые иконки и надписи */
 :root[data-theme="dark"] .sidebar { background: var(--surface); border-right-color: var(--border); }
 :root[data-theme="dark"] .sidebar .nav-item,
 :root[data-theme="dark"] .sidebar .nav-item span,
-:root[data-theme="dark"] .sidebar .nav-item i { color: #fff; }
+:root[data-theme="dark"] .sidebar .nav-item i { color:#fff; }
 :root[data-theme="dark"] .sidebar .nav-item:hover { background: rgba(255,255,255,0.08); }
-/* Акцент как фон */
-:root[data-theme="dark"] .sidebar .nav-item.active { background: var(--accent); color: #fff; }
-:root[data-theme="dark"] .sidebar .nav-item.active i { color: #fff; }
-
-/* Подвал в тёмной теме */
-:root[data-theme="dark"] .main-footer { background: var(--footer-bg) !important; color: #fff; }
-
-/* Каталог бизнес‑функций: L2 в тёмной теме — чёрный шрифт на белом фоне (уже ОК) */
+:root[data-theme="dark"] .sidebar .nav-item.active { background: var(--accent); color:#fff; }
+:root[data-theme="dark"] .sidebar .nav-item.active i { color:#fff; }
+:root[data-theme="dark"] .main-footer { background: var(--footer-bg) !important; color:#fff; }
 :root[data-theme="dark"] .pcf-l2-container,
-:root[data-theme="dark"] .pcf-l2-table {
-  background: #fff;
-  color: #000;
-  border-color: #E9ECEF;
-}
-:root[data-theme="dark"] .pcf-l2-header { background: #fff; }
+:root[data-theme="dark"] .pcf-l2-table { background:#fff; color:#000; border-color:#E9ECEF; }
+:root[data-theme="dark"] .pcf-l2-header { background:#fff; }
 :root[data-theme="dark"] .pcf-l2-code,
 :root[data-theme="dark"] .pcf-l2-name,
-:root[data-theme="dark"] .pcf-l2-table tbody td { color: #000; }
-
-/* В темной теме не красим текст в #4D5964 — возвращаем привычный цвет текста */
-:root[data-theme="dark"] .main-header .page-title { color: var(--text) !important; }
+:root[data-theme="dark"] .pcf-l2-table tbody td { color:#000; }
+:root[data-theme="dark"] .main-header .page-title,
 :root[data-theme="dark"] .module-title { color: var(--text) !important; }
 
-/* Переключатель темы (только иконка), маленький круглый */
-.sidebar { position: relative; }
-.appearance-toggle {
-  position: absolute;
-  left: 12px; right: 12px; bottom: 12px;
-  width: 36px; height: 36px;                /* маленький круглый размер */
-  border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  cursor: pointer;
-  box-shadow: var(--shadow);
+/* Переключатель темы (круглая кнопка) */
+.sidebar { position:relative; }
+.appearance-toggle{
+  position:absolute; left:12px; right:12px; bottom:12px;
+  width:36px; height:36px; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text); cursor:pointer; box-shadow:var(--shadow);
   transition: background .15s ease, border-color .15s ease, transform .15s ease;
 }
-.appearance-toggle:hover { transform: translateY(-1px); }
-/* Иконка */
-.appearance-toggle i { width: 18px; height: 18px; color: var(--accent); }
-
-/* В тёмной теме кнопка с фоном #4D5964 (акцент), иконка — белая */
-:root[data-theme="dark"] .appearance-toggle {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-:root[data-theme="dark"] .appearance-toggle i { color: #fff; }
-
-/* Когда сайдбар свёрнут — кнопку прижмем и оставим круглой */
-body.sidebar-collapsed .appearance-toggle {
-  left: 8px; right: 8px; bottom: 8px;
-}
-/* ======================== ANALYTICS PAGE (CFO Dashboard - Final Polished) ======================== */
-
-.analytics-page { display: flex; flex-direction: column; gap: 24px; }
-
-/* --- Header & Filters --- */
-.analytics-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; }
-.analytics-header__title-block { display: flex; align-items: center; gap: 16px; }
-.analytics-header__icon { width: 32px; height: 32px; color: var(--blue); }
-.analytics-header__title { margin: 0; font-size: 24px; font-weight: 700; color: var(--blue); }
-.analytics-header__subtitle { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
-.analytics-header__filters { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-.analytics-filter { display: flex; align-items: center; gap: 8px; }
-.analytics-filter label { font-weight: 500; color: var(--muted); font-size: 14px; }
-.analytics-filter select { padding: 6px 10px; border-radius: var(--r-8); border: 1px solid var(--border); background-color: var(--surface); color: var(--text); }
-.analytics-segmented-control { display: flex; background-color: var(--bg); border-radius: var(--r-8); padding: 4px; border: 1px solid var(--border); }
-.analytics-segmented-control button { padding: 4px 14px; border: none; background-color: transparent; border-radius: var(--r-6); color: var(--muted); font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.analytics-segmented-control button.active { background-color: var(--surface); color: var(--text); box-shadow: var(--shadow); }
-
-/* --- Grids --- */
-.analytics-grid { display: grid; gap: 20px; }
-.analytics-grid--kpi { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.analytics-grid--2-col { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
-.analytics-grid--3-col { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-/* 3. НОВАЯ СЕТКА 1x1 */
-.analytics-grid--1-1 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
-@media (min-width: 900px) {
-  .analytics-grid--1-1 { grid-template-columns: 1fr 1fr; }
-}
-
-/* --- KPI & Chart Cards --- */
-.analytics-kpi, .analytics-chart { background-color: var(--surface); border-radius: var(--r-12); padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; }
-.analytics-kpi__header { display: flex; align-items: flex-start; gap: 12px; }
-.analytics-kpi__icon { width: 24px; height: 24px; color: var(--blue); flex-shrink: 0; margin-top: 2px; }
-.analytics-kpi__title-block { flex-grow: 1; }
-.analytics-kpi__title { font-size: 14px; font-weight: 600; color: var(--muted); }
-.analytics-kpi__subtitle { font-size: 11px; color: var(--muted); text-transform: uppercase; margin: 2px 0 0; }
-.info-icon { width: 14px; height: 14px; cursor: help; opacity: 0.6; transition: opacity 0.2s; flex-shrink: 0; }
-.info-icon:hover { opacity: 1; }
-.analytics-kpi__value { font-size: 28px; font-weight: 700; color: var(--blue); margin-top: auto; padding-top: 8px; }
-.analytics-kpi__unit { font-size: 18px; color: var(--muted); margin-left: 4px; }
-.analytics-kpi__trend { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
-.analytics-kpi__trend i { width: 14px; height: 14px; }
-.analytics-kpi__trend.is-positive { color: var(--success); }
-.analytics-kpi__trend.is-negative { color: var(--danger); }
-
-.analytics-chart__header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
-.analytics-chart__header i, .analytics-chart__header svg { width: 20px; height: 20px; color: var(--blue); flex-shrink: 0; margin-top: 2px; }
-.analytics-chart__title-block { flex-grow: 1; }
-.analytics-chart__title { margin: 0; font-size: 16px; font-weight: 600; color: var(--blue); }
-.analytics-chart__subtitle { margin: 2px 0 0; font-size: 12px; color: var(--muted); text-transform: uppercase; }
-.analytics-chart__body { flex-grow: 1; position: relative; min-height: 280px; }
-.analytics-chart.is-placeholder { align-items: center; justify-content: center; font-weight: 600; border-style: dashed; color: var(--blue); }
-
-/* --- Dark Theme --- */
-:root[data-theme="dark"] .analytics-header__title { color: var(--text); }
-:root[data-theme="dark"] .analytics-filter select,
-:root[data-theme="dark"] .analytics-segmented-control { background-color: var(--surface); border-color: var(--border); }
-:root[data-theme="dark"] .analytics-segmented-control button.active { background-color: var(--bg); }
-:root[data-theme="dark"] .analytics-kpi, 
-:root[data-theme="dark"] .analytics-chart { background-color: var(--surface); border-color: var(--border); }
-:root[data-theme="dark"] .analytics-chart.is-placeholder { background-color: transparent; }
-:root[data-theme="dark"] .analytics-kpi__value,
-:root[data-theme="dark"] .analytics-kpi__title,
-:root[data-theme="dark"] .analytics-chart__title { color: var(--text); }
-:root[data-theme="dark"] .analytics-kpi__icon,
-:root[data-theme="dark"] .analytics-chart__header i, 
-:root[data-theme="dark"] .analytics-chart__header svg,
-:root[data-theme="dark"] .analytics-chart.is-placeholder,
-:root[data-theme="dark"] .analytics-header__icon,
-:root[data-theme="dark"] .analytics-header__title { color: var(--blue); }
+.appearance-toggle:hover{ transform: translateY(-1px); }
+.appearance-toggle i{ width:18px; height:18px; color:var(--accent); }
+:root[data-theme="dark"] .appearance-toggle{ background:var(--accent); border-color:var(--accent); }
+:root[data-theme="dark"] .appearance-toggle i{ color:#fff; }
+body.sidebar-collapsed .appearance-toggle{ left:8px; right:8px; bottom:8px; }
