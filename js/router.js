@@ -7,38 +7,47 @@ import { qs, refreshIcons } from './utils.js';
 const appEl = qs('#app-container');
 
 const jsRoutes = {
-  'home': renderHomePage,
-  'org': renderOrgPage,
-  'pcf': renderPCFPage,
+  home: renderHomePage,
+  org: renderOrgPage,
+  pcf: renderPCFPage,
 };
 
-const htmlRoutes = ['profile'];
+const htmlRoutes = ['profile', 'pnl-methodology']; // добавили страницу методологии
 
 function setActiveNav(route) {
   const nav = qs('#main-nav');
   if (!nav) return;
 
-  // Сброс активных
-  nav.querySelectorAll('.nav-link').forEach(a => {
+  nav.querySelectorAll('a.nav-link:not(.nav-group-link)').forEach(a => {
     const isActive = a.dataset.route === route;
     a.classList.toggle('active', isActive);
     a.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
 
-  // Автораскрытие групп, если активный пункт внутри
   nav.querySelectorAll('.nav-group').forEach(group => {
     const submenu = group.querySelector('.nav-submenu');
-    const toggle = group.querySelector('.nav-group-toggle');
+    const chevron = group.querySelector('.nav-chevron');
+
     const hasActiveChild = submenu?.querySelector(`a.nav-link[data-route="${route}"]`);
     const shouldOpen = !!hasActiveChild;
 
-    if (submenu) submenu.hidden = !shouldOpen;
-    if (toggle) toggle.setAttribute('aria-expanded', String(shouldOpen));
     group.classList.toggle('is-open', shouldOpen);
+    chevron?.setAttribute('aria-expanded', String(shouldOpen));
 
-    // Заголовки групп не подсвечиваем
-    toggle?.classList.toggle('active', false);
-    toggle?.setAttribute('aria-current', shouldOpen ? 'true' : 'false');
+    if (submenu) {
+      submenu.setAttribute('aria-hidden', String(!shouldOpen));
+      if (shouldOpen) {
+        submenu.style.transition = '';
+        submenu.style.maxHeight = 'none';
+        submenu.style.opacity = '1';
+        submenu.style.overflow = 'visible';
+      } else {
+        submenu.style.transition = '';
+        submenu.style.maxHeight = '0px';
+        submenu.style.opacity = '0';
+        submenu.style.overflow = 'hidden';
+      }
+    }
   });
 }
 
@@ -47,7 +56,6 @@ async function loadHtmlPage(pageName) {
   if (!response.ok) throw new Error(`HTML-страница ${pageName}.html не найдена.`);
   appEl.innerHTML = await response.text();
 
-  // Ре-инициализация скриптов в HTML
   appEl.querySelectorAll('script').forEach(oldScript => {
     const s = document.createElement('script');
     Array.from(oldScript.attributes).forEach(attr => s.setAttribute(attr.name, attr.value));
@@ -84,8 +92,7 @@ async function navigate(routeName) {
 
     if (baseRoute === 'ibp') {
       const sub = route.split('/')[1] || 'financial';
-      const normalized = `ibp/${sub}`;
-      setActiveNav(normalized);
+      setActiveNav(`ibp/${sub}`);
       const mod = await import('./pages/ibp.js');
       await mod.renderIBPPage(appEl, sub);
       refreshIcons();
@@ -133,7 +140,6 @@ window.navigate = (routeName) => navigate(routeName.replace(/^\//, ''));
 export function initRouter() {
   const navMenu = qs('#main-nav') || qs('.nav');
 
-  // Переходы по ссылкам (подменю и одиночные)
   navMenu?.addEventListener('click', (e) => {
     const link = e.target.closest('a.nav-link');
     if (!link) return;

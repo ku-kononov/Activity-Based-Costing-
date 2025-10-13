@@ -1,10 +1,26 @@
 // js/pages/ibp.js
 function pageMeta(sub = 'financial') {
   const map = {
-    'financial': { title: 'Финансовые планы', subtitle: 'IBP | Финансы', icon: 'wallet' },
-    'operational': { title: 'Операционные планы', subtitle: 'IBP | Операции', icon: 'clipboard-list' },
-    'plan-vs-fact': { title: 'Анализ плана и факта', subtitle: 'IBP | Аналитика', icon: 'trending-up' },
-    'management-data': { title: 'Управленческие данные', subtitle: 'IBP | Данные', icon: 'file-cog' },
+    financial: {
+      title: 'Управление финансовыми операциями',
+      subtitle: 'FP&A (Financial Planning & Analysis)',
+      icon: 'calculator',
+    },
+    operational: {
+      title: 'Операционные планы',
+      subtitle: 'IBP | Операции',
+      icon: 'clipboard-list',
+    },
+    'plan-vs-fact': {
+      title: 'Анализ плана и факта',
+      subtitle: 'IBP | Аналитика',
+      icon: 'trending-up',
+    },
+    'management-data': {
+      title: 'Управленческие данные',
+      subtitle: 'IBP | Данные',
+      icon: 'file-cog',
+    },
   };
   return map[sub] || map['financial'];
 }
@@ -12,23 +28,70 @@ function pageMeta(sub = 'financial') {
 export async function renderIBPPage(container, subpage = 'financial') {
   const meta = pageMeta(subpage);
 
+  // Спец-верстка для "Финансовые планы"
+  if (subpage === 'financial') {
+    container.innerHTML = `
+      <div class="analytics-page">
+        <div class="analytics-header">
+          <div class="analytics-header__title-block">
+            <i data-lucide="${meta.icon}" class="analytics-header__icon" aria-hidden="true"></i>
+            <div>
+              <h2 class="analytics-header__title">${meta.title}</h2>
+              <p class="analytics-header__subtitle">${meta.subtitle}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="fp-grid">
+          <!-- 1) Финансовая аналитика (реализовано) -->
+          <a href="#!/analytics" onclick="navigate('analytics'); return false;"
+             class="module-card fp-card fp-card--analytics" style="--module-color: var(--success);" aria-label="Финансовая аналитика">
+            <div class="module-header">
+              <i class="module-icon" data-lucide="line-chart"></i>
+              <h3 class="module-title">Финансовая аналитика</h3>
+            </div>
+            <div class="module-body">
+              <p class="module-text">Данные PnL. Показатели и метрики для поддержки принятия управленческих решений</p>
+            </div>
+          </a>
+
+          <!-- 2) Бюджетирование -->
+          <a href="#!/ibp/financial" onclick="navigate('ibp/financial'); return false;"
+             class="module-card fp-card" style="--module-color: var(--blue);" aria-label="Бюджетирование">
+            <div class="module-header">
+              <i class="module-icon" data-lucide="anchor"></i>
+              <h3 class="module-title">Бюджетирование</h3>
+            </div>
+            <div class="module-body">
+              <p class="module-text">Управление бюджетами компании по различным направлениям деятельности</p>
+            </div>
+          </a>
+
+          <!-- 3) Финансовое планирование -->
+          <a href="#!/ibp/financial" onclick="navigate('ibp/financial'); return false;"
+             class="module-card fp-card" style="--module-color: var(--warning);" aria-label="Финансовое планирование">
+            <div class="module-header">
+              <i class="module-icon" data-lucide="calendar"></i>
+              <h3 class="module-title">Финансовое планирование</h3>
+            </div>
+            <div class="module-body">
+              <p class="module-text">Управление, распределение и контроль денежных средств компании</p>
+            </div>
+          </a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Плейсхолдеры для прочих разделов IBP (как раньше)
   container.innerHTML = `
     <div class="analytics-page">
       <div class="analytics-header">
         <div class="analytics-header__title-block">
-          <i data-lucide="database" class="analytics-header__icon" aria-hidden="true"></i>
+          <i data-lucide="${meta.icon}" class="analytics-header__icon" aria-hidden="true"></i>
           <div>
             <h2 class="analytics-header__title">${meta.title}</h2>
             <p class="analytics-header__subtitle">${meta.subtitle}</p>
-          </div>
-        </div>
-
-        <div class="analytics-header__filters">
-          <div class="analytics-segmented-control" role="tablist" aria-label="Разделы IBP">
-            <button class="${subpage==='financial'?'active':''}" role="tab" aria-selected="${subpage==='financial'}" onclick="navigate('ibp/financial')">Финансы</button>
-            <button class="${subpage==='operational'?'active':''}" role="tab" aria-selected="${subpage==='operational'}" onclick="navigate('ibp/operational')">Операции</button>
-            <button class="${subpage==='plan-vs-fact'?'active':''}" role="tab" aria-selected="${subpage==='plan-vs-fact'}" onclick="navigate('ibp/plan-vs-fact')">План/Факт</button>
-            <button class="${subpage==='management-data'?'active':''}" role="tab" aria-selected="${subpage==='management-data'}" onclick="navigate('ibp/management-data')">Данные</button>
           </div>
         </div>
       </div>

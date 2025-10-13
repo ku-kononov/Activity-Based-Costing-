@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Описание и методология метрик PnL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div class="content" style="padding:16px;">
+    <div class="card" style="padding:16px;">
+      <div class="card-header" style="display:flex; align-items:center; gap:10px;">
+        <i data-lucide="book-open" class="main-icon" aria-hidden="true"></i>
+        <h2 class="card-title" style="margin:0;">Описание и методология метрик PnL</h2>
+      </div>
+      <div style="margin-top:12px; line-height:1.6;">
+        <h3>Основные показатели</h3>
+        <ul>
+          <li><b>Выручка (Revenue)</b> — сумма продаж за период.</li>
+          <li><b>Себестоимость (COGS)</b> — производственные и логистические расходы, напрямую связанные с выпуском/продажей.</li>
+          <li><b>Валовая прибыль</b> = Выручка − COGS.</li>
+          <li><b>Операционные расходы (OPEX)</b> — коммерческие, административные и прочие расходы, не относящиеся к COGS.</li>
+          <li><b>EBITDA</b> — прибыль до процентов, налогов и амортизации.</li>
+          <li><b>Опер. прибыль</b> = EBITDA − Амортизация.</li>
+          <li><b>Чистая прибыль</b> — прибыль после всех расходов, включая проценты и налоги.</li>
+        </ul>
+
+        <h3>Относительные метрики</h3>
+        <ul>
+          <li><b>Net Profit Margin</b> = Чистая прибыль / Выручка × 100%.</li>
+          <li><b>SG&A / Revenue</b> = (Коммерческие + Административные) / Выручка × 100%.</li>
+          <li><b>CMR (Contribution Margin Ratio)</b> = 1 − (COGS + Переменный OPEX)/Выручка.</li>
+          <li><b>Точка безубыточности</b> = Фиксированные затраты / CMR.</li>
+          <li><b>Запас фин. прочности</b> = (Выручка − Точка безубыточности) / Выручка × 100%.</li>
+          <li><b>Операционный рычаг (DOL)</b> ≈ Вклад (CM) / Опер. прибыль; при нестабильности — ΔOp%/ΔRev%.</li>
+        </ul>
+
+        <h3>Методика классификации OPEX</h3>
+        <p>Классификация статей в корзины: Коммерческие, Административные, Аренда и коммунальные, Обслуживание и ремонт, ИТ и связь, Транспорт (адм.), Прочие. Производственные/логистические статьи относятся к COGS и не включаются в OPEX.</p>
+
+        <h3>Базис сравнения</h3>
+        <p>Сравнение «vs средн.»: месяц — скользящее среднее 3 пред. месяцев; квартал — среднее пред. квартала (или YTD); год — среднее помесячное года.</p>
+      </div>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button class="pnl-btn" onclick="navigate('analytics')"><i data-lucide='arrow-left'></i><span>Назад к аналитике</span></button>
+      </div>
+    </div>
+  </div>
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', ()=> { try { window.lucide?.createIcons?.(); } catch(e){} });
+  </script>
+</body>
+</html>

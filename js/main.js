@@ -30,23 +30,72 @@ function injectAppearanceToggle() {
   refreshIcons();
 }
 
+function animateSubmenu(submenu, open) {
+  const currentHeight = submenu.scrollHeight;
+  submenu.style.overflow = 'hidden';
+
+  if (open) {
+    submenu.style.display = 'flex';
+    submenu.style.transition = 'none';
+    submenu.style.maxHeight = '0px';
+    submenu.style.opacity = '0';
+    requestAnimationFrame(() => {
+      const target = submenu.scrollHeight || currentHeight;
+      submenu.style.transition = 'max-height 240ms ease, opacity 180ms ease';
+      submenu.style.maxHeight = `${target}px`;
+      submenu.style.opacity = '1';
+    });
+  } else {
+    const start = submenu.scrollHeight || currentHeight;
+    submenu.style.transition = 'none';
+    submenu.style.maxHeight = `${start}px`;
+    submenu.style.opacity = '1';
+    requestAnimationFrame(() => {
+      submenu.style.transition = 'max-height 240ms ease, opacity 180ms ease';
+      submenu.style.maxHeight = '0px';
+      submenu.style.opacity = '0';
+    });
+  }
+
+  const onEnd = (e) => {
+    if (e.propertyName !== 'max-height') return;
+    submenu.style.transition = '';
+    if (open) {
+      submenu.style.maxHeight = 'none';
+      submenu.style.overflow = 'visible';
+    } else {
+      submenu.style.maxHeight = '0px';
+      submenu.style.overflow = 'hidden';
+    }
+    submenu.removeEventListener('transitionend', onEnd);
+  };
+  submenu.addEventListener('transitionend', onEnd);
+}
+
 function initNavAccordion() {
   const nav = qs('#main-nav');
   if (!nav) return;
 
   nav.addEventListener('click', (e) => {
-    const toggle = e.target.closest('.nav-group-toggle');
-    if (!toggle) return;
+    const btn = e.target.closest('.nav-chevron');
+    if (!btn) return;
 
-    // Разрешаем клик по стрелке и по всей строке заголовка группы
     e.preventDefault();
-    const controls = toggle.getAttribute('aria-controls');
-    const submenu = controls ? qs(`#${controls}`) : toggle.nextElementSibling;
-    const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+    e.stopPropagation();
 
-    toggle.setAttribute('aria-expanded', String(!isExpanded));
-    if (submenu) submenu.hidden = isExpanded;
-    toggle.parentElement?.classList.toggle('is-open', !isExpanded);
+    const controls = btn.getAttribute('aria-controls');
+    const submenu = controls ? qs(`#${controls}`) : null;
+    const group = btn.closest('.nav-group');
+    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+    const nextState = !isExpanded;
+
+    btn.setAttribute('aria-expanded', String(nextState));
+    group?.classList.toggle('is-open', nextState);
+
+    if (submenu) {
+      submenu.setAttribute('aria-hidden', String(!nextState));
+      animateSubmenu(submenu, nextState);
+    }
 
     refreshIcons();
   });
