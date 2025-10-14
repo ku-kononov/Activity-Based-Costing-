@@ -73,7 +73,7 @@ export async function renderIBPPage(container, subpage = 'financial') {
           <a href="#!/ibp/financial" onclick="navigate('ibp/financial'); return false;"
              class="module-card fp-card" style="--module-color: var(--blue);" aria-label="Бюджетирование">
             <div class="module-header">
-              <i class="module-icon" data-lucide="anchor"></i>
+              <i class="module-icon" data-lucide="file-chart-column"></i>
               <h3 class="module-title">Бюджетирование</h3>
             </div>
             <div class="module-body">
@@ -85,7 +85,7 @@ export async function renderIBPPage(container, subpage = 'financial') {
           <a href="#!/ibp/financial" onclick="navigate('ibp/financial'); return false;"
              class="module-card fp-card" style="--module-color: var(--warning);" aria-label="Финансовое планирование">
             <div class="module-header">
-              <i class="module-icon" data-lucide="calendar"></i>
+              <i class="module-icon" data-lucide="calendar-clock"></i>
               <h3 class="module-title">Финансовое планирование</h3>
             </div>
             <div class="module-body">
@@ -119,7 +119,7 @@ export async function renderIBPPage(container, subpage = 'financial') {
           <a href="#!/ibp/operational" onclick="navigate('ibp/operational'); return false;"
              class="module-card" style="--module-color: var(--accent);" aria-label="Операционные планы">
             <div class="module-header">
-              <i class="module-icon" data-lucide="workflow"></i>
+              <i class="module-icon" data-lucide="compass"></i>
               <h3 class="module-title">Операционные планы</h3>
             </div>
             <div class="module-body">

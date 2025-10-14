@@ -10,9 +10,11 @@ function ensurePcfStyles() {
   /* Заголовок страницы */
   .pcf-page .pcf-catalog-header {
     display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    margin-bottom: 16px; /* увеличили расстояние между подписью заголовка и блоками ниже */
   }
   .pcf-page .pcf-title .card-title { color: var(--blue) !important; margin: 0; line-height: 1.2; }
   .pcf-page .pcf-title .card-subtitle { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .pcf-page .pcf-header-icon { color: var(--blue); } /* иконка в шапке — синяя */
 
   /* Кнопка назад справа сверху */
   .pcf-header-actions { display: flex; align-items: center; gap: 8px; }
@@ -77,15 +79,15 @@ function ensurePcfStyles() {
   
   /* Стили для топ-процессов уровня 1 */
   .pcf-page .pcf-group-card .pcf-code {
-    font-size: 13px;  /* итого -18.75% от исходного 16px */
-    font-weight: 400;  /* обычное начертание */
+    font-size: 13px;
+    font-weight: 400;
     line-height: 1.3;
     letter-spacing: 0.05px;
     margin: 2px 0 0;
   }
   .pcf-page .pcf-group-card .pcf-name {
-    font-size: 14px;  /* итого -22% от исходного 18px */
-    font-weight: 300;  /* легкое начертание */
+    font-size: 14px;
+    font-weight: 300;
     line-height: 1.4;
     margin: 4px 0 0;
   }
@@ -375,7 +377,6 @@ function renderLevel2(container, allRows, top) {
     // Визуальная обратная связь
     tr.style.backgroundColor = 'rgba(0,0,0,.035)';
     setTimeout(() => { tr.style.backgroundColor = ''; }, 150);
-    // console.log('Select L2:', code, name);
   });
 
   refreshIcons();
