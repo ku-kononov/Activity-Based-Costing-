@@ -9,49 +9,211 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body>
-  <div class="content" style="padding:16px;">
-    <div class="card" style="padding:16px;">
-      <div class="card-header" style="display:flex; align-items:center; gap:10px;">
-        <i data-lucide="book-open" class="main-icon" aria-hidden="true"></i>
-        <h2 class="card-title" style="margin:0;">Описание и методология метрик PnL</h2>
+  <div class="content meth-modern">
+    <style>
+      :root {
+        /* Новая палитра для акцентов */
+        --c-rev: #0ea5e9;    /* sky */ --c-gp: #8b5cf6;     /* violet */
+        --c-sga: #f59e0b;    /* amber */ --c-op: #10b981;     /* emerald */
+        --c-ebi: #22c55e;    /* green */ --c-net: #06b6d4;    /* cyan */
+        --c-gr: #ef4444;     /* red */ --c-opex: #a78bfa;   /* purple */
+        --c-safety: #14b8a6; /* teal */ --c-dol: #7c3aed;    /* indigo */
+        --c-bridge: #64748b; /* slate */
+      }
+      /* Базовая сетка страницы */
+      .meth-modern { padding: 16px; display: grid; gap: 16px; }
+      .card { background: var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow: var(--shadow); }
+
+      /* Шапка: заголовок слева (синий), кнопка справа */
+      .meth-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 14px;
+      }
+      .meth-title { display: inline-flex; align-items: center; gap: 10px; color: var(--blue); }
+      .meth-title i { width: 24px; height: 24px; color: var(--blue); }
+      .meth-title h1 { margin: 0; font-size: 20px; font-weight: 800; color: var(--blue); }
+      .btn-ghost {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 999px;
+        background: var(--surface); color: var(--text);
+        border: 1px solid var(--border); box-shadow: var(--shadow);
+        font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
+      }
+      .btn-ghost:hover { background: #f6f7f9; }
+      .btn-ghost i { width: 18px; height: 18px; color: var(--muted); }
+
+      /* Вертикальная колонка блоков */
+      .stack { display: grid; gap: 14px; }
+      .metric {
+        padding: 14px 16px; display: grid; gap: 10px;
+        position: relative; overflow: hidden;
+      }
+      .metric::before {
+        content: ""; position: absolute; inset: 0 0 auto 0; height: 56px;
+        background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0)); pointer-events: none;
+      }
+      .metric-head { display: flex; align-items: center; gap: 10px; }
+      .metric-head i { width: 20px; height: 20px; }
+      .metric-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--text); }
+      .metric-body { display: grid; gap: 10px; }
+      .block { display: grid; gap: 6px; }
+      .block-title { font-size: 12px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
+      .block-text { margin: 0; color: var(--text); line-height: 1.55; }
+      .formula {
+        background: #f8fafc; border: 1px solid var(--border);
+        border-radius: 10px; padding: 8px 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 13px; color: var(--text); white-space: pre-wrap;
+      }
+      .callout {
+        border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+        display: grid; gap: 6px; background: var(--surface);
+      }
+      .callout .c-title { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
+      .callout .c-title i { width: 16px; height: 16px; color: var(--muted); }
+      .callout.ok { border-left: 4px solid var(--c-op); }
+      .callout.warn { border-left: 4px solid var(--c-gr); }
+      .callout.info { border-left: 4px solid var(--blue); }
+
+      /* Цветовые акценты */
+      .metric[data-accent="rev"] { border-left: 4px solid var(--c-rev); } .metric[data-accent="rev"] .metric-head i { color: var(--c-rev); }
+      .metric[data-accent="gp"] { border-left: 4px solid var(--c-gp); } .metric[data-accent="gp"] .metric-head i { color: var(--c-gp); }
+      .metric[data-accent="sga"] { border-left: 4px solid var(--c-sga); } .metric[data-accent="sga"] .metric-head i { color: var(--c-sga); }
+      .metric[data-accent="op"] { border-left: 4px solid var(--c-op); } .metric[data-accent="op"] .metric-head i { color: var(--c-op); }
+      .metric[data-accent="ebitda"] { border-left: 4px solid var(--c-ebi); } .metric[data-accent="ebitda"] .metric-head i { color: var(--c-ebi); }
+      .metric[data-accent="net"] { border-left: 4px solid var(--c-net); } .metric[data-accent="net"] .metric-head i { color: var(--c-net); }
+      .metric[data-accent="growth"] { border-left: 4px solid var(--c-gr); } .metric[data-accent="growth"] .metric-head i { color: var(--c-gr); }
+      .metric[data-accent="opex"] { border-left: 4px solid var(--c-opex); } .metric[data-accent="opex"] .metric-head i { color: var(--c-opex); }
+      .metric[data-accent="safety"] { border-left: 4px solid var(--c-safety); } .metric[data-accent="safety"] .metric-head i { color: var(--c-safety); }
+      .metric[data-accent="dol"] { border-left: 4px solid var(--c-dol); } .metric[data-accent="dol"] .metric-head i { color: var(--c-dol); }
+      .metric[data-accent="bridge"] { border-left: 4px solid var(--c-bridge); } .metric[data-accent="bridge"] .metric-head i { color: var(--c-bridge); }
+
+      /* Словарь */
+      .glossary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+      .term-card { display: flex; flex-direction: column; gap: 4px; }
+      .term-card dt { font-weight: 700; font-size: 14px; color: var(--text); }
+      .term-card dd { margin: 0; font-size: 13px; color: var(--muted); }
+
+      /* Тёмная тема */
+      :root[data-theme="dark"] .btn-ghost:hover { background: rgba(255,255,255,0.06); }
+      :root[data-theme="dark"] .formula { background: #111827; border-color: var(--border); }
+      :root[data-theme="dark"] .metric::before { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0)); }
+    </style>
+
+    <!-- Шапка -->
+    <header class="meth-header">
+      <div class="meth-title">
+        <i data-lucide="book-open-check" aria-hidden="true"></i>
+        <h1>Описание и методология метрик PnL</h1>
       </div>
-      <div style="margin-top:12px; line-height:1.6;">
-        <h3>Основные показатели</h3>
-        <ul>
-          <li><b>Выручка (Revenue)</b> — сумма продаж за период.</li>
-          <li><b>Себестоимость (COGS)</b> — производственные и логистические расходы, напрямую связанные с выпуском/продажей.</li>
-          <li><b>Валовая прибыль</b> = Выручка − COGS.</li>
-          <li><b>Операционные расходы (OPEX)</b> — коммерческие, административные и прочие расходы, не относящиеся к COGS.</li>
-          <li><b>EBITDA</b> — прибыль до процентов, налогов и амортизации.</li>
-          <li><b>Опер. прибыль</b> = EBITDA − Амортизация.</li>
-          <li><b>Чистая прибыль</b> — прибыль после всех расходов, включая проценты и налоги.</li>
-        </ul>
-
-        <h3>Относительные метрики</h3>
-        <ul>
-          <li><b>Net Profit Margin</b> = Чистая прибыль / Выручка × 100%.</li>
-          <li><b>SG&A / Revenue</b> = (Коммерческие + Административные) / Выручка × 100%.</li>
-          <li><b>CMR (Contribution Margin Ratio)</b> = 1 − (COGS + Переменный OPEX)/Выручка.</li>
-          <li><b>Точка безубыточности</b> = Фиксированные затраты / CMR.</li>
-          <li><b>Запас фин. прочности</b> = (Выручка − Точка безубыточности) / Выручка × 100%.</li>
-          <li><b>Операционный рычаг (DOL)</b> ≈ Вклад (CM) / Опер. прибыль; при нестабильности — ΔOp%/ΔRev%.</li>
-        </ul>
-
-        <h3>Методика классификации OPEX</h3>
-        <p>Классификация статей в корзины: Коммерческие, Административные, Аренда и коммунальные, Обслуживание и ремонт, ИТ и связь, Транспорт (адм.), Прочие. Производственные/логистические статьи относятся к COGS и не включаются в OPEX.</p>
-
-        <h3>Базис сравнения</h3>
-        <p>Сравнение «vs средн.»: месяц — скользящее среднее 3 пред. месяцев; квартал — среднее пред. квартала (или YTD); год — среднее помесячное года.</p>
+      <div class="meth-actions">
+        <a href="#!/analytics" class="btn-ghost" title="Назад к аналитике" onclick="navigate('analytics'); return false;">
+          <i data-lucide="arrow-left"></i><span>Назад</span>
+        </a>
       </div>
+    </header>
 
-      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
-        <button class="pnl-btn" onclick="navigate('analytics')"><i data-lucide='arrow-left'></i><span>Назад к аналитике</span></button>
-      </div>
-    </div>
+    <!-- Вертикальная колонка блоков -->
+    <main class="stack" aria-label="Метрики и методология">
+
+      <!-- Словарь терминов -->
+      <section class="metric card" data-accent="bridge">
+        <div class="metric-head">
+          <i data-lucide="message-square-quote"></i>
+          <h2 class="metric-title">Краткий словарь терминов</h2>
+        </div>
+        <dl class="glossary-grid">
+          <div class="term-card"><dt>PnL</dt><dd>Profit and Loss Statement - Отчёт о прибылях и убытках</dd></div>
+          <div class="term-card"><dt>EBITDA</dt><dd>Earnings Before Interest, Taxes, Depreciation, and Amortization - Прибыль до вычета процентов, налогов и амортизации</dd></div>
+          <div class="term-card"><dt>COGS</dt><dd>Cost of Goods Sold - Себестоимость проданных товаров</dd></div>
+          <div class="term-card"><dt>SG&A</dt><dd>Selling, General & Administrative - Коммерческие, общие и административные расходы</dd></div>
+          <div class="term-card"><dt>D&A</dt><dd>Depreciation & Amortization - Амортизация материальных и нематериальных активов</dd></div>
+          <div class="term-card"><dt>DOL</dt><dd>Degree of Operating Leverage - Операционный рычаг</dd></div>
+          <div class="term-card"><dt>CMR</dt><dd>Contribution Margin Ratio - Коэффициент маржинального дохода</dd></div>
+          <div class="term-card"><dt>BEP / BE</dt><dd>Break-Even Point - Точка безубыточности</dd></div>
+          <div class="term-card"><dt>Var / Fixed</dt><dd>Variable / Fixed Costs - Переменные / Постоянные затраты</dd></div>
+          <div class="term-card"><dt>MoM</dt><dd>Month-over-Month - Месяц к месяцу, сравнение с предыдущим месяцем</dd></div>
+        </dl>
+      </section>
+
+      <!-- 1. Revenue -->
+      <section class="metric card" data-accent="rev">
+        <div class="metric-head"><i data-lucide="banknote"></i><h2 class="metric-title">Выручка (Revenue)</h2></div>
+        <div class="metric-body">
+          <div class="block"><div class="block-title">Что это простыми словами</div><p class="block-text">Общий доход от основной деятельности за период. Не включаем «возмещение затрат» и прочие неоперационные компенсации.</p></div>
+          <div class="block"><div class="block-title">Зачем бизнесу</div><p class="block-text">Точка отсчёта: все рентабельности, DOL, точка безубыточности и масштабируемость опираются на динамику выручки и её структуру по каналам/SKU.</p></div>
+          <div class="block"><div class="block-title">Как считаем</div><div class="formula">Revenue = Σ(выручка по каналам реализации) за выбранный период</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">Хорошо — растёт быстрее инфляции/рынка и бюджета, при сохранении (или росте) маржинальности.</p></div>
+        </div>
+      </section>
+
+      <!-- 2. EBITDA -->
+      <section class="metric card" data-accent="ebitda">
+        <div class="metric-head"><i data-lucide="sprout"></i><h2 class="metric-title">EBITDA</h2></div>
+        <div class="metric-body">
+          <div class="block"><div class="block-title">Что это простыми словами</div><p class="block-text">Операционная «денежная» прибыль до процентов, налогов и амортизации. Показывает, насколько эффективно генерирует деньги основной бизнес.</p></div>
+          <div class="block"><div class="block-title">Методология</div><div class="formula">EBITDA = Операционная прибыль + Амортизация</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">EBITDA margin 10–20% — хороший коридор для многих отраслей. Важна устойчивость и тренд.</p></div>
+        </div>
+      </section>
+
+      <!-- 3. Net Profit -->
+      <section class="metric card" data-accent="net">
+        <div class="metric-head"><i data-lucide="trophy"></i><h2 class="metric-title">Чистая прибыль (Net Profit)</h2></div>
+        <div class="metric-body">
+          <div class="block"><div class="block-title">Что это</div><p class="block-text">Финальный результат после всех расходов: COGS, SG&A, D&A, проценты и налоги. Деньги, доступные для дивидендов/реинвестиций.</p></div>
+          <div class="block"><div class="block-title">Методология</div><div class="formula">Net Profit = Прибыль до налогообложения − Налог на прибыль</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">Положительная и растущая чистая прибыль, без «одноразовых» доходов.</p></div>
+        </div>
+      </section>
+
+      <!-- 4. Net Margin -->
+      <section class="metric card" data-accent="net">
+        <div class="metric-head"><i data-lucide="percent"></i><h2 class="metric-title">Чистая рентабельность (Net Margin)</h2></div>
+        <div class="metric-body">
+          <div class="block"><div class="block-title">Что это</div><p class="block-text">Сколько копеек чистой прибыли остаётся с каждого рубля выручки.</p></div>
+          <div class="block"><div class="block-title">Как считаем</div><div class="formula">Net Margin (%) = Net Profit / Revenue × 100%</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">5–10% — солидно (по отрасли). Важнее положительная динамика.</p></div>
+        </div>
+      </section>
+
+      <!-- 5. Safety Margin -->
+      <section class="metric card" data-accent="safety">
+        <div class="metric-head"><i data-lucide="shield-check"></i><h2 class="metric-title">Запас финансовой прочности (Safety Margin)</h2></div>
+        <div class="metric-body">
+          <div class="block"><div class="block-title">Что это</div><p class="block-text">«Подушка безопасности»: на сколько % может упасть выручка до нуля по операционной прибыли.</p></div>
+          <div class="block"><div class="block-title">Как считаем</div><div class="formula">CMR = (Revenue − (COGS + Var OPEX)) / Revenue<br/>BEP (Revenue) = (Fixed − Other Op) / CMR<br/>Safety (%) = (Revenue − BEP) / Revenue × 100%</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">20%+ — комфортно; 10–20% — зона внимания; &lt;10% — риск.</p></div>
+        </div>
+      </section>
+
+      <!-- 6. DOL -->
+      <section class="metric card" data-accent="dol">
+        <div class="metric-head"><i data-lucide="activity-square"></i><h2 class="metric-title">Операционный рычаг (DOL)</h2></div>
+        <div class="metric-body">
+          <div class="block"><div class="block-title">Что это</div><p class="block-text">Чувствительность операционной прибыли к изменению выручки. Большой DOL усиливает и рост, и падение.</p></div>
+          <div class="block"><div class="block-title">Как считаем</div><div class="formula">DOL ≈ ΔOperating Profit % / ΔRevenue %</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">DOL &gt; 1 — есть операционный эффект; 2–3 — умеренно-агрессивно; ≫3 — высокая волатильность.</p></div>
+        </div>
+      </section>
+
+      <!-- 7. SG&A / Revenue -->
+      <section class="metric card" data-accent="sga">
+        <div class="metric-head"><i data-lucide="receipt-text"></i><h2 class="metric-title">SG&A к выручке</h2></div>
+        <div class="metric-body">
+          <div class="block"><div class="block-title">Что это</div><p class="block-text">Доля расходов на продажи и управление в выручке. «Сколько копеек тратим» с каждого рубля.</p></div>
+          <div class="block"><div class="block-title">Методология</div><div class="formula">SG&A % = (Selling + G&A) / Revenue × 100%</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">Стабильность/снижение во времени при росте выручки — признак эффективности.</p></div>
+        </div>
+      </section>
+    </main>
   </div>
+
   <script defer src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', ()=> { try { window.lucide?.createIcons?.(); } catch(e){} });
+    document.addEventListener('DOMContentLoaded', () => {
+      try { window.lucide?.createIcons?.(); } catch(e){}
+    });
   </script>
 </body>
 </html>

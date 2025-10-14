@@ -16,10 +16,10 @@ const QUARTER_MAP = {
   3: ['jul_24','aug_24','sep_24'],
   4: ['oct_24','nov_24','dec_24'],
 };
-// Данные в v_pnl_2024 — в тыс. руб. → показываем в млн ₽
+// Данные в v_pnl_2024 — в тыс. руб. → отображаем в млн ₽
 const UNIT_DIVISOR = 1000;
 
-// Нормализованные имена строк (точные соответствия)
+// Нормализованные имена строк
 const EXACT = {
   revenue: 'выручка от реализации продукции работ услуг',
   grossProfit: 'валовая прибыль',
@@ -34,7 +34,7 @@ const EXACT = {
   assetOps: 'доходы расходы от операций с основными средствами',
 };
 
-// Доли переменной части OPEX по корзинам (аппрокс.)
+// Доли переменной части OPEX (аппрокс.)
 const VAR_SHARE = {
   commercial: 0.60,
   transport:  0.70,
@@ -85,7 +85,7 @@ function seriesMoMPercent(arr) {
   return arr.map((v, i) => (i === 0 ? 0 : (arr[i - 1] ? ((v - arr[i - 1]) / Math.abs(arr[i - 1])) * 100 : 0)));
 }
 
-// eqLabel — нужен для быстрых проверок наличия агрегатов в данных
+// Быстрые проверки агр.строк
 const eqLabel = (r, s) => eq(r[LABEL_FIELD], s);
 
 // ====== Тултипы (.info-tip) ======
@@ -161,8 +161,6 @@ function isProductionOrLogistics(labelN) {
     labelN.includes('входящая логистика') || labelN.includes('исходящая логистика')
   );
 }
-
-// Классификация статей OPEX по корзинам
 function classifyOpexLabel(L, hasCommAgg, hasAdminAgg) {
   if (isProductionOrLogistics(L)) return null; // это COGS, не OPEX
 
@@ -231,7 +229,6 @@ function classifyOpexLabel(L, hasCommAgg, hasAdminAgg) {
 
   return null;
 }
-
 function buildOpexBreakdown(pnlData, periodKeys) {
   const hasCommAgg = pnlData.some((r) => eqLabel(r, 'расходы по продаже продукции'));
   const hasAdminAgg = pnlData.some((r) =>
@@ -301,7 +298,7 @@ function initCharts(chartData) {
 
   const compactLegend = { position: 'bottom', labels: { padding: 6, boxWidth: 10, boxHeight: 10 } };
 
-  // 1) Динамика рентабельности (line)
+  // 1) Динамика рентабельности
   const el1 = document.getElementById('profitabilityTrendChart');
   if (el1) {
     charts.profitabilityTrend = new Chart(el1.getContext('2d'), {
@@ -329,10 +326,7 @@ function initCharts(chartData) {
   if (el2) {
     charts.costGrowth = new Chart(el2.getContext('2d'), {
       type: 'bar',
-      data: {
-        labels: chartData.costGrowth.labels,
-        datasets: chartData.costGrowth.datasets,
-      },
+      data: { labels: chartData.costGrowth.labels, datasets: chartData.costGrowth.datasets },
       options: {
         responsive: true,
         interaction: { mode: 'index', intersect: false },
@@ -342,7 +336,7 @@ function initCharts(chartData) {
     });
   }
 
-  // 3) Waterfall (плавающие столбики: пары [low,high])
+  // 3) Waterfall (плавающие столбики)
   const el3 = document.getElementById('waterfallChart');
   if (el3) {
     charts.waterfall = new Chart(el3.getContext('2d'), {
@@ -380,7 +374,7 @@ function initCharts(chartData) {
     });
   }
 
-  // 4) OPEX структура (doughnut)
+  // 4) OPEX структура
   const el4 = document.getElementById('opexStructureChart');
   if (el4) {
     const parent = el4.parentElement;
@@ -404,30 +398,40 @@ function initCharts(chartData) {
     });
   }
 
-  // 5) Safety Margin (stacked bar)
+  // 5) Safety Margin — запас или недобор до BE
   const elSM = document.getElementById('safetyMarginChart');
   if (elSM) {
-    charts.safety = new Chart(elSM.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: ['Выручка / Точка безубыточности'],
-        datasets: [
+    const gap = (chartData.safetyMargin.beRevenueM - chartData.safetyMargin.revenueM);
+    const isShort = gap > 0.0001; // недобор до точки
+    const datasets = isShort
+      ? [
+          { label: 'Выручка', data: [chartData.safetyMargin.revenueM], backgroundColor: '#60A5FA' },
+          { label: 'Недобор до точки', data: [gap], backgroundColor: '#F87171' },
+        ]
+      : [
           { label: 'Точка безубыточности', data: [Math.max(0, chartData.safetyMargin.beRevenueM)], backgroundColor: '#9CA3AF' },
           { label: 'Запас (выше точки)', data: [Math.max(0, chartData.safetyMargin.revenueM - chartData.safetyMargin.beRevenueM)], backgroundColor: '#34D399' },
-        ],
-      },
+        ];
+    charts.safety = new Chart(elSM.getContext('2d'), {
+      type: 'bar',
+      data: { labels: ['BE vs Revenue'], datasets },
       options: {
         responsive: true,
         plugins: {
           legend: compactLegend,
-          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.raw ?? 0)} млн ₽`, afterBody: () => [`Safety Margin: ${fmt(chartData.safetyMargin.safetyPct, 2)}%`] } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.raw ?? 0)} млн ₽`,
+              afterBody: () => [`Safety Margin: ${fmt(chartData.safetyMargin.safetyPct, 2)}%`]
+            }
+          },
         },
         scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'млн ₽' } } },
       },
     });
   }
 
-  // 6) DOL (bar, 2 столбца)
+  // 6) DOL
   const elDOL = document.getElementById('operatingLeverageChart');
   if (elDOL) {
     charts.dol = new Chart(elDOL.getContext('2d'), {
@@ -447,7 +451,7 @@ function initCharts(chartData) {
     });
   }
 
-  // 7) SG&A / Revenue (stacked %)
+  // 7) SG&A / Revenue
   const elSGA = document.getElementById('sgaToRevenueChart');
   if (elSGA) {
     charts.sga = new Chart(elSGA.getContext('2d'), {
@@ -496,18 +500,22 @@ function calculateMetrics(pnlData, periodKeys, prevPeriodKeys = [], state) {
     depr = Math.max(0, ebitda - operatingProfit);
   }
 
+  // OPEX
   const opexBreak = buildOpexBreakdown(pnlData, periodKeys);
   const totalOpex = opexBreak.categories.reduce((s, c) => s + c.value, 0);
   const { commercial: comm, admin, it, rent_utils, repairs, transport, other } = opexBreak.buckets;
   const sga = comm + admin;
 
+  // Прочие опер. дох/расх (net)
   const otherOp = sumWhere(pnlData, periodKeys, (r) => {
     const L = norm(r[LABEL_FIELD]);
     return (eq(L, EXACT.otherOperating) || eq(L, EXACT.otherOperating2) || eq(L, EXACT.assetOps));
   });
+
   const netInterest = sumRowPeriods(rowNetInterest, periodKeys);
   const incomeTax = sumRowPeriods(rowIncomeTax, periodKeys);
 
+  // Представление (млн ₽) и маржи
   const revM = revenue / UNIT_DIVISOR;
   const netM = netProfit / UNIT_DIVISOR;
   const ebitdaM = ebitda / UNIT_DIVISOR;
@@ -556,22 +564,31 @@ function calculateMetrics(pnlData, periodKeys, prevPeriodKeys = [], state) {
     VAR_SHARE.admin      * admin +
     VAR_SHARE.other      * other;
 
-  const variableTotal = (revenue - gross) + variableOpex; // COGS + var OPEX
-  const cmr = revenue > 0 ? Math.max(0, 1 - (variableTotal / revenue)) : 0;
+  const cogs = revenue - gross;
+  const variableTotal = cogs + variableOpex;           // COGS + varOPEX
+  const cmr = revenue > 0 ? (1 - (variableTotal / revenue)) : 0;
+
   const fixedCosts = Math.max(0, totalOpex - variableOpex);
 
-  const beRevenue = (cmr > 0) ? (fixedCosts / cmr) : 0;
-  const safetyAbs = Math.max(0, revenue - beRevenue);
-  const safetyPct = revenue > 0 && beRevenue > 0 ? Math.max(0, (safetyAbs / revenue) * 100) : 0;
+  // Эффективные фиксированные с OtherOp: OP = CM − Fixed + OtherOp ⇒ BE = (Fixed − OtherOp)/CMR
+  const fixedEff = fixedCosts - otherOp;
+  const beRevenueRaw = cmr > 0 ? (fixedEff / cmr) : 0;
+  const beRevenue = Math.max(0, beRevenueRaw);
 
+  // Safety допускает отрицательные значения
+  const safetyAbs = revenue - beRevenue;
+  const safetyPct = revenue > 0 ? (safetyAbs / revenue) * 100 : 0;
+
+  // Δ-% для DOL
+  const revDeltaPct = baseRev ? (((revM) - (baseRev/UNIT_DIVISOR)) / Math.abs(baseRev/UNIT_DIVISOR)) * 100 : 0;
+  const opDeltaPct  = baseEbitda ? (((ebitdaM) - (baseEbitda/UNIT_DIVISOR)) / Math.abs(baseEbitda/UNIT_DIVISOR)) * 100 : 0;
+
+  // DOL: точечно и дельтами
   const contribution = revenue * cmr;
   let dolPoint = 0;
-  const opIncome = operatingProfit;
-  if (Math.abs(opIncome) > 1e-6) {
-    dolPoint = Math.max(-10, Math.min(10, contribution / opIncome));
+  if (Math.abs(operatingProfit) > 1e-6) {
+    dolPoint = Math.max(-10, Math.min(10, contribution / operatingProfit));
   }
-  const revDeltaPct = baseRev ? ((revM - (baseRev/UNIT_DIVISOR)) / Math.abs(baseRev/UNIT_DIVISOR)) * 100 : 0;
-  const opDeltaPct  = baseEbitda ? (((ebitdaM) - (baseEbitda/UNIT_DIVISOR)) / Math.abs(baseEbitda/UNIT_DIVISOR)) * 100 : 0;
   let dolDelta = 0;
   if (Math.abs(revDeltaPct) > 0.1) {
     dolDelta = Math.max(-10, Math.min(10, opDeltaPct / revDeltaPct));
@@ -594,15 +611,15 @@ function calculateMetrics(pnlData, periodKeys, prevPeriodKeys = [], state) {
   const endM = netProfit / UNIT_DIVISOR;
 
   const baseGross = baselineOf(monthlyGross);
-  const baseComm = baselineOf([comm/12,comm/12,comm/12,comm/12,comm/12,comm/12,comm/12,comm/12,comm/12,comm/12,comm/12,comm/12]);
-  const baseAdmin = baselineOf([admin/12,admin/12,admin/12,admin/12,admin/12,admin/12,admin/12,admin/12,admin/12,admin/12,admin/12,admin/12]);
-  const baseIt = baselineOf([it/12, it/12, it/12, it/12, it/12, it/12, it/12, it/12, it/12, it/12, it/12, it/12]);
+  const baseComm = baselineOf(Array(12).fill(comm/12));
+  const baseAdmin = baselineOf(Array(12).fill(admin/12));
+  const baseIt = baselineOf(Array(12).fill(it/12));
 
   const dGrossM = (gross - baseGross) / UNIT_DIVISOR;
   const dCommM = -((comm - (baseComm*12)) / UNIT_DIVISOR);
   const dAdminM = -((admin - (baseAdmin*12)) / UNIT_DIVISOR);
   const dItM = -((it - (baseIt*12)) / UNIT_DIVISOR);
-  const dOtherOpM = (otherOp) / UNIT_DIVISOR;
+  const dOtherOpM = (otherOp) / UNIT_DIVISOR; // базис ~0
   const dInterestM = -(netInterest / UNIT_DIVISOR);
   const dTaxM = -(incomeTax / UNIT_DIVISOR);
 
@@ -679,7 +696,7 @@ function calculateMetrics(pnlData, periodKeys, prevPeriodKeys = [], state) {
         beRevenueM: beRevenue / UNIT_DIVISOR,
         safetyPct,
         safetyM: safetyAbs / UNIT_DIVISOR,
-        info: 'Safety = (Выручка − Точка безубыточности) / Выручка.\nТочка = Фикс. затраты / CMR, где CMR = 1 − (COGS + VarOPEX)/Выручка.',
+        info: 'BE = (Fixed − OtherOp)/CMR. Safety допускает отрицательные значения при BE > Rev.',
       },
       operatingLeverage: {
         revChangePct: revDeltaPct,
@@ -695,8 +712,8 @@ function calculateMetrics(pnlData, periodKeys, prevPeriodKeys = [], state) {
       },
     },
     breakdown: {
-      revenue, gross, cogs: revenue - gross, totalOpex, comm, admin, it, rent_utils, repairs, transport, other,
-      ebitda, operatingProfit, netProfit, cmr, fixedCosts, variableOpex, beRevenue, safetyAbs, safetyPct,
+      revenue, gross, cogs, totalOpex, comm, admin, it, rent_utils, repairs, transport, other,
+      ebitda, operatingProfit, netProfit, cmr, fixedCosts, fixedEff, variableOpex, beRevenue, safetyAbs, safetyPct,
       otherOp, netInterest, incomeTax, depr
     }
   };
@@ -749,7 +766,6 @@ function createHeaderHTML(state) {
     </div>
   `;
 }
-
 function createTopKpiCardHTML(title, subtitle, icon, data, info) {
   const positive = (data.trend ?? 0) >= 0;
   return `
@@ -894,11 +910,11 @@ function exportPnlToPDF() {
   w.document.write(`<html><head><meta charset="UTF-8"><title>PnL</title><style>${css}</style></head><body>`);
   w.document.write(`<h1>Расшифровка PnL и OPEX</h1>`);
   w.document.write(`<div class="meta">Дата выгрузки: ${new Date().toLocaleString('ru-RU')}</div>`);
-  w.document.write(table.outerHTML);
+  w.document.write(document.getElementById('pnl-table')?.outerHTML || '');
   w.document.write(`</body></html>`);
   w.document.close();
   w.focus();
-  setTimeout(() => { w.print(); w.close(); }, 150);
+  setTimeout(() => { try { w.print(); } catch(e){} w.close(); }, 150);
 }
 
 // ====== Рендер страницы ======
@@ -977,7 +993,7 @@ export async function renderAnalyticsPage(container) {
 
         <div class="analytics-grid analytics-grid--3-col">
           ${createChartCardHTML('safetyMarginChart', 'Запас финансовой прочности', 'Financial Safety Margin', 'lifebuoy', metrics.charts.safetyMargin.info, safetyFooter)}
-          ${createChartCardHTML('operatingLeverageChart', 'Операционный рычаг', 'Operating Leverage', 'gauge', metrics.charts.operatingLeverage.info, dolFooter)}
+          ${createChartCardHTML('operatingLeverageChart', 'Операционный рычаг', 'gauge', metrics.charts.operatingLeverage.info, dolFooter)}
           ${createChartCardHTML('sgaToRevenueChart', 'SG&A к выручке', 'SG&A to Revenue', 'percent', metrics.charts.sgaRatio.info, sgaFooter)}
         </div>
 
