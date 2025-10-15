@@ -183,7 +183,7 @@ export async function renderHomePage(container) {
     <div class="home-page">
       ${createBlockHTML({
         title: 'Бизнес-архитектура',
-        subtitle: 'Business Framework',
+        subtitle: 'Enterprise architecture framework',
         icon: 'orbit',
         modules: BA_MODULES,
         color: 'var(--blue)',

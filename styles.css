@@ -1,5 +1,5 @@
 :root{
-  /* Цвета */
+  /* Цвета (светлая) */
   --bg:#F8F9FA; --surface:#FFFFFF; --text:#212529; --muted:#6C757D;
   --border:#E9ECEF; --divider:#DEE2E6;
   --accent:#00B39E; --success:#28A745; --warning:#FFC107; --danger:#DC3545; --blue:#4A89F3;
@@ -241,70 +241,152 @@ body.sidebar-collapsed .nav-chevron{ display:none; }
 .user-menu__item:hover{ background:#f3f4f6; }
 .user-menu__item i{ width:18px; height:18px; color:var(--muted); }
 
-/* ===== Dark theme ===== */
+/* ===== Dark theme — Reimagined ===== */
 :root[data-theme="dark"] {
-  --bg:#111418; --surface:#1A1F24; --text:#E6EDF3; --muted:#8B949E;
-  --border:#2D3640; --divider:#36404D; --accent:#00B39E; --success:#30D158;
-  --warning:#FFA657; --danger:#FF6369; --blue:#6CB6FF; --footer-bg:#242A33;
-  --nav-color:#E6EDF3;
+  /* База тёмной темы */
+  --bg:#0F1216;
+  --surface:#171B20;             /* базовая поверхность */
+  --text:#E6EDF3;
+  --muted:#9AA3AF;
+  --border:#2A313A;
+  --divider:#323A45;
+  --accent:#00B39E;
+  --success:#30D158;
+  --warning:#FFA657;
+  --danger:#FF6369;
+  --blue:#6CB6FF;
+  --footer-bg:#1A1F24;
+  --nav-color:#E7EAF0;
+
+  /* Доп. уровни поверхностей (для снижения контраста) */
+  --surface-1:#171B20;           /* карточки/базовые блоки */
+  --surface-2:#14181C;           /* вложенные элементы, строки таблиц, ноды дерева */
+  --surface-3:#1E2329;           /* шапки таблиц, хедеры секций */
+  --surface-0:#0D1014;           /* фоновые пластины/подложки */
+
+  /* Тени */
+  --shadow:0 1px 2px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.35);
 }
+
 :root[data-theme="dark"] body { background: var(--bg); color: var(--text); }
+
+/* Карточки/контейнеры — мягкие, без выжигающего контраста */
 :root[data-theme="dark"] .card {
-  background: var(--surface);
+  background: var(--surface-1);
   border-color: var(--border);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-  position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
-:root[data-theme="dark"] .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+:root[data-theme="dark"] .card:hover { transform: translateY(-2px); }
+
+/* Header/Sidebar/Buttons */
+:root[data-theme="dark"] .main-header{
+  background: var(--surface-1);
+  border-bottom:1px solid var(--border);
 }
-:root[data-theme="dark"] .card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--r-12);
-  pointer-events: none;
-}
-:root[data-theme="dark"] .icon-button { border-color: var(--border); color: var(--muted); }
-:root[data-theme="dark"] .icon-button:hover {
-  background: rgba(0,179,158,0.15);
-  border-color: var(--accent);
-}
-:root[data-theme="dark"] .user-menu { background: var(--surface); border-color: var(--border); }
-:root[data-theme="dark"] .sidebar { background: var(--surface); border-right-color: var(--border); }
+:root[data-theme="dark"] .main-header .main-icon{ color: var(--accent); }
+:root[data-theme="dark"] .icon-button{ border-color: var(--border); color: var(--muted); background: transparent; }
+:root[data-theme="dark"] .icon-button:hover{ background: rgba(255,255,255,0.06); }
+
+:root[data-theme="dark"] .sidebar { background: var(--surface-1); border-right-color: var(--border); }
 :root[data-theme="dark"] .sidebar .nav-item,
 :root[data-theme="dark"] .sidebar .nav-item span,
-:root[data-theme="dark"] .sidebar .nav-item i { color:#fff; }
-:root[data-theme="dark"] .sidebar .nav-item:hover { background: rgba(255,255,255,0.12); }
-:root[data-theme="dark"] .sidebar .nav-item.active { background: var(--accent); color:#fff; }
-:root[data-theme="dark"] .sidebar .nav-item.active i { color:#fff; }
-:root[data-theme="dark"] .main-footer { background: var(--footer-bg) !important; color:#fff; }
+:root[data-theme="dark"] .sidebar .nav-item i { color:#E6EDF3; }
+:root[data-theme="dark"] .sidebar .nav-item:hover { background: rgba(255,255,255,0.08); }
+:root[data-theme="dark"] .sidebar .nav-item.active { background: var(--accent); color:#0E141A; }
+:root[data-theme="dark"] .sidebar .nav-item.active i { color:#0E141A; }
 
-/* Analytics dark theme tweaks */
-:root[data-theme="dark"] .analytics-header__title {
+/* Footer */
+:root[data-theme="dark"] .main-footer { background: var(--footer-bg) !important; color:#E6EDF3; }
+
+/* ==== Тёмная тема: Организационная структура (убираем белый фон) ==== */
+:root[data-theme="dark"] .org-page .org-header-icon { color: var(--blue); }
+:root[data-theme="dark"] .org-page .org-header-title { color: var(--blue); }
+:root[data-theme="dark"] .org-page .org-header-subtitle { color: var(--muted); }
+
+:root[data-theme="dark"] .org-search-wrap {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+:root[data-theme="dark"] .org-search { color: var(--text); }
+
+:root[data-theme="dark"] .view-toggle.segmented { background: var(--surface-2); border-color: var(--border); }
+:root[data-theme="dark"] .view-toggle .seg-btn { color: var(--muted); background: transparent; }
+:root[data-theme="dark"] .view-toggle .seg-btn.active { background: var(--surface-1); color: var(--text); }
+
+/* Ноды дерева */
+:root[data-theme="dark"] .org-node{
+  background: var(--surface-2);
+  border-color: var(--border);
+  border-left-color: rgba(108,182,255,0.35);
+}
+:root[data-theme="dark"] .org-node-head { color: rgba(108,182,255,0.65); }
+:root[data-theme="dark"] .org-node-title { color: var(--text); }
+:root[data-theme="dark"] .org-code-chip,
+:root[data-theme="dark"] .emp-pill{
+  background: var(--surface-1); color: var(--text); border-color: var(--border);
+}
+
+/* Таблицы */
+:root[data-theme="dark"] .org-table-wrap{
+  background: var(--surface-2); border-color: var(--border); box-shadow: var(--shadow);
+}
+:root[data-theme="dark"] .org-table{
+  background: var(--surface-2);
+}
+:root[data-theme="dark"] .org-table thead th{
+  background: var(--surface-3);
   color: var(--text);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  position: relative;
-  padding-bottom: 4px;
+  border-bottom:1px solid var(--divider);
 }
-:root[data-theme="dark"] .analytics-header__title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 40px;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 1px;
+:root[data-theme="dark"] .org-table th, 
+:root[data-theme="dark"] .org-table td{
+  color: var(--text);
+  border-bottom:1px solid var(--divider);
 }
+:root[data-theme="dark"] .org-table tbody tr[data-has-children="true"]:hover{
+  background: rgba(255,255,255,0.05);
+}
+
+/* ==== Тёмная тема: Домашняя и карточки модулей ==== */
+:root[data-theme="dark"] .module-card{
+  background: var(--surface-1);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+:root[data-theme="dark"] .module-header{ border-bottom-color: var(--border); }
+:root[data-theme="dark"] .module-title{ color: var(--blue); }
+:root[data-theme="dark"] .module-icon{ color: var(--blue); }
+:root[data-theme="dark"] .module-text{ color: var(--muted); }
+
+/* ==== Тёмная тема: PCF ==== */
+:root[data-theme="dark"] .pcf-group-card{
+  background: var(--surface-1); border-color: var(--border); box-shadow: var(--shadow);
+}
+:root[data-theme="dark"] .pcf-group-subtitle{ color: var(--muted); }
+:root[data-theme="dark"] .pcf-item{
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+:root[data-theme="dark"] .pcf-item:hover{
+  border-color: rgba(108,182,255,0.35);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+}
+/* Акцентные группы — мягкие тона вместо сплошной заливки */
+:root[data-theme="dark"] .pcf-item[data-group="core"]{
+  background: rgba(108,182,255,0.12); color:#E6EDF3; border-color: rgba(108,182,255,0.35);
+}
+:root[data-theme="dark"] .pcf-item[data-group="enablement"]{
+  background: rgba(48,209,88,0.10); color:#E6EDF3; border-color: rgba(48,209,88,0.35);
+}
+:root[data-theme="dark"] .pcf-item[data-group="management"]{
+  background: rgba(255,166,87,0.10); color:#E6EDF3; border-color: rgba(255,166,87,0.35);
+}
+
+/* ==== Тёмная тема: Аналитика ==== */
+:root[data-theme="dark"] .analytics-header__title { color: var(--text); }
 :root[data-theme="dark"] .analytics-grid .analytics-kpi,
-:root[data-theme="dark"] .analytics-grid .analytics-chart { background-color: var(--surface); border-color: var(--border); }
+:root[data-theme="dark"] .analytics-grid .analytics-chart { background-color: var(--surface-1); border-color: var(--border); }
 :root[data-theme="dark"] .analytics-chart.is-placeholder { background-color: transparent; }
 :root[data-theme="dark"] .analytics-kpi__value,
 :root[data-theme="dark"] .analytics-kpi__title,
@@ -329,12 +411,13 @@ body.sidebar-collapsed .nav-chevron{ display:none; }
 .appearance-toggle:hover{ transform: translateY(-1px); }
 .appearance-toggle i{ width:18px; height:18px; color:var(--accent); }
 :root[data-theme="dark"] .appearance-toggle{
-  background:var(--surface);
-  border-color:var(--border);
-  box-shadow: 0 0 0 2px var(--accent);
+  background: var(--surface-2);
+  border-color: var(--border);
+  box-shadow: 0 0 0 2px rgba(0,179,158,0.25);
 }
 :root[data-theme="dark"] .appearance-toggle i{ color:#fff; }
 body.sidebar-collapsed .appearance-toggle{ left:8px; right:8px; bottom:8px; }
+
 /* ===== Analytics filters & tables (fix) ===== */
 .analytics-header__filters { display:flex; align-items:center; gap:16px; margin-left:auto; }
 .analytics-filter { display:flex; align-items:center; gap:8px; }
@@ -347,12 +430,12 @@ body.sidebar-collapsed .appearance-toggle{ left:8px; right:8px; bottom:8px; }
   transition: all 0.2s ease;
 }
 :root[data-theme="dark"] .analytics-filter select {
-  border-color: var(--accent);
-  background-color: rgba(0,179,158,0.1);
+  border-color: var(--border);
+  background-color: var(--surface-2);
 }
 :root[data-theme="dark"] .analytics-filter select:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(0,179,158,0.2);
+  box-shadow: 0 0 0 2px rgba(0,179,158,0.20);
 }
 .analytics-segmented-control {
   display:flex; background-color: var(--bg); border-radius: var(--r-8);
@@ -367,32 +450,17 @@ body.sidebar-collapsed .appearance-toggle{ left:8px; right:8px; bottom:8px; }
   background-color: var(--surface); color: var(--text); box-shadow: var(--shadow);
 }
 
+/* Таблица аналитики */
 .analytics-table-wrap { overflow:auto; }
 .analytics-table { width:100%; border-collapse: collapse; }
 .analytics-table td, .analytics-table th {
   padding:8px 10px; border-bottom:1px solid var(--divider); text-align:left; font-size:14px; color:#2b2f33;
 }
+:root[data-theme="dark"] .analytics-table td, 
+:root[data-theme="dark"] .analytics-table th {
+  color: var(--text); border-bottom-color: var(--divider);
+}
 
-/* Dark theme tweaks for filters */
-:root[data-theme="dark"] .analytics-filter select,
-:root[data-theme="dark"] .analytics-segmented-control {
-  background-color: var(--surface);
-  border-color: var(--border);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-  position: relative;
-}
-:root[data-theme="dark"] .analytics-segmented-control::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  bottom: -1px;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--r-8);
-  pointer-events: none;
-}
-:root[data-theme="dark"] .analytics-segmented-control button.active { background-color: var(--bg); }
 /* ===== P&L compact + buttons ===== */
 .pnl-card .pnl-titlebar{
   display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;
@@ -434,10 +502,16 @@ body.sidebar-collapsed .appearance-toggle{ left:8px; right:8px; bottom:8px; }
 
 /* Dark theme tweaks */
 :root[data-theme="dark"] .pnl-btn,
-:root[data-theme="dark"] .pnl-fab{ background: var(--surface); border-color: var(--border); color: var(--text); }
+:root[data-theme="dark"] .pnl-fab{ background: var(--surface-2); border-color: var(--border); color: var(--text); }
 :root[data-theme="dark"] .pnl-btn:hover,
 :root[data-theme="dark"] .pnl-fab:hover{
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08);
   border-color: var(--accent);
 }
-:root[data-theme="dark"] .pnl-table thead th{ background:#1F2430; color:#E7EAF0; }
+:root[data-theme="dark"] .pnl-table thead th{ background: var(--surface-3); color:#E6EDF3; }
+
+/* Дополнительно: плейсхолдеры/эмпти стейты */
+:root[data-theme="dark"] .module-placeholder,
+:root[data-theme="dark"] .pcf-empty{
+  color: var(--muted);
+}
