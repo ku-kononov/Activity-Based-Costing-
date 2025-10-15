@@ -515,3 +515,249 @@ body.sidebar-collapsed .appearance-toggle{ left:8px; right:8px; bottom:8px; }
 :root[data-theme="dark"] .pcf-empty{
   color: var(--muted);
 }
+/* ===================== Dark theme: Финансовая аналитика → P&L ===================== */
+/* Контейнер */
+:root[data-theme="dark"] .pnl-card {
+  background: var(--surface-1);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+:root[data-theme="dark"] .pnl-card .pnl-titlebar { border-bottom: 1px solid var(--border); }
+:root[data-theme="dark"] .pnl-card .analytics-table-wrap {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-10);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* Таблица: базовая поверхность */
+:root[data-theme="dark"] .pnl-table { background: var(--surface-2); }
+:root[data-theme="dark"] .pnl-table thead th {
+  background: var(--surface-3);
+  color: var(--text);
+  border-bottom: 1px solid var(--divider);
+}
+:root[data-theme="dark"] .pnl-table th, 
+:root[data-theme="dark"] .pnl-table td {
+  color: var(--text);
+  border-bottom: 1px solid var(--divider);
+  padding: 10px 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Убираем белые заливки у «Валовая прибыль», «OPEX всего», «Опер. прибыль (EBIT)» */
+:root[data-theme="dark"] .pnl-table tr.subtotal td {
+  background: rgba(255,255,255,0.04) !important; /* спокойная подсветка уровня */
+  color: var(--text);
+  border-bottom-color: var(--divider);
+}
+
+/* Выделение строки EBITDA (класс strong) аккуратным синим тоном */
+:root[data-theme="dark"] .pnl-table tr.strong td {
+  background: rgba(108,182,255,0.10) !important; /* мягкий акцент под EBITDA */
+  color: var(--text);
+}
+
+/* Итоговая строка — акцент через accent, но без выжигающего контраста */
+:root[data-theme="dark"] .pnl-table tr.total td {
+  background: rgba(0,179,158,0.12) !important;
+  border-top: 2px solid rgba(0,179,158,0.35) !important;
+  font-weight: 800;
+}
+
+/* Зебра для читаемости + hover */
+:root[data-theme="dark"] .pnl-table tbody tr:nth-child(even):not(.subtotal):not(.strong):not(.total) td {
+  background: rgba(255,255,255,0.02);
+}
+:root[data-theme="dark"] .pnl-table tbody tr:hover td {
+  background: rgba(108,182,255,0.08);
+}
+
+/* Колонки «label/num/unit»: немного полировки */
+:root[data-theme="dark"] .pnl-table td.label { color: var(--text); font-weight: 700; }
+:root[data-theme="dark"] .pnl-table td.num { color: var(--text); font-weight: 700; }
+:root[data-theme="dark"] .pnl-table td.unit { color: var(--muted); }
+
+/* Кнопки экспорта */
+:root[data-theme="dark"] .pnl-btn { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+:root[data-theme="dark"] .pnl-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); }
+
+/* ===================== Dark theme: Каталог бизнес‑функций (L2) ===================== */
+/* Убираем остаточные белые поверхности на экране L2 */
+:root[data-theme="dark"] .pcf-l2-container {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-12);
+  box-shadow: var(--shadow);
+}
+:root[data-theme="dark"] .pcf-l2-header {
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+}
+:root[data-theme="dark"] .pcf-l2-title .pcf-l2-code { color: var(--blue); }
+:root[data-theme="dark"] .pcf-l2-title .pcf-l2-name { color: var(--text); }
+:root[data-theme="dark"] .pcf-l2-group-chip {
+  background: rgba(108,182,255,0.12);
+  color: var(--text);
+  border: 1px solid rgba(108,182,255,0.35);
+}
+
+/* Таблица L2 */
+:root[data-theme="dark"] .pcf-l2-table-wrap {
+  background: var(--surface-2);
+  padding: 8px 10px 12px;
+}
+:root[data-theme="dark"] .pcf-l2-table {
+  background: var(--surface-2);
+  border-collapse: collapse;
+  width: 100%;
+}
+:root[data-theme="dark"] .pcf-l2-table thead th {
+  background: var(--surface-3);
+  color: var(--text);
+  border-bottom: 1px solid var(--divider);
+  font-weight: 800;
+}
+:root[data-theme="dark"] .pcf-l2-table tbody td {
+  color: var(--text);
+  border-bottom: 1px solid var(--divider);
+}
+:root[data-theme="dark"] .pcf-l2-table tbody tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* Чуть больше контраста в карточках групп (если возвращаетесь на 1 уровень) */
+:root[data-theme="dark"] .pcf-group-card {
+  background: var(--surface-1) !important;
+  border-color: var(--border) !important;
+}
+:root[data-theme="dark"] .pcf-group-title { color: var(--text) !important; }
+:root[data-theme="dark"] .pcf-group-subtitle { color: var(--muted) !important; }
+
+/* Легкая акцентная подсветка элементов списка PCF — читаемо и не «тускло» */
+:root[data-theme="dark"] .pcf-item {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme="dark"] .pcf-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+}
+
+/* Акцентные группы — прибавим «воздуха» по контрасту */
+:root[data-theme="dark"] .pcf-item[data-group="core"] {
+  background: rgba(108,182,255,0.14) !important;
+  border-color: rgba(108,182,255,0.38) !important;
+}
+:root[data-theme="dark"] .pcf-item[data-group="enablement"] {
+  background: rgba(48,209,88,0.13) !important;
+  border-color: rgba(48,209,88,0.38) !important;
+}
+:root[data-theme="dark"] .pcf-item[data-group="management"] {
+  background: rgba(255,166,87,0.13) !important;
+  border-color: rgba(255,166,87,0.40) !important;
+}
+/* ===== Dark theme: PCF L2 — групповой цвет для шапки таблицы, заголовка и кнопки ===== */
+/* 1) Шапка таблицы (Код; Название процесса) — цвет группы */
+:root[data-theme="dark"] .pcf-l2-table thead th {
+  background: var(--group-color) !important;
+  color: #fff !important;
+  border-bottom: none !important;
+}
+
+/* 2) Заголовок процесса (код и название 1-го уровня) — цвет группы */
+:root[data-theme="dark"] .pcf-l2-title .pcf-l2-code,
+:root[data-theme="dark"] .pcf-l2-title .pcf-l2-name {
+  color: var(--group-color) !important;
+}
+
+/* 3) Кнопка «Назад в каталог» — цвет группы, как в светлой теме */
+:root[data-theme="dark"] .btn-back-to-catalog {
+  background: var(--group-color) !important;
+  border-color: var(--group-color) !important;
+  color: #fff !important;
+}
+:root[data-theme="dark"] .btn-back-to-catalog:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+/* (необязательно) Подпись чипа группы — легкий контраст на dark */
+:root[data-theme="dark"] .pcf-l2-group-chip {
+  background: var(--group-color) !important;
+  color: #0E141A !important; /* читаемый текст на акценте */
+  border: 1px solid rgba(0,0,0,0.15) !important;
+}
+/* ============ Org page (Table view) — toolbar buttons modern soft style ============ */
+/* Светлая тема */
+.org-page .org-table-toolbar .btn{
+  background: #F6F8FB;                 /* мягкий «soft» фон вместо белого */
+  border-color: #E3E8EF;
+  color: #2B2F33;
+  border-radius: var(--r-8);
+  box-shadow: none;
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .08s ease;
+}
+.org-page .org-table-toolbar .btn:hover{
+  background: #EEF2F7;
+  border-color: #D7DFEA;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+
+/* Тёмная тема */
+:root[data-theme="dark"] .org-page .org-table-toolbar .btn{
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: none;
+}
+:root[data-theme="dark"] .org-page .org-table-toolbar .btn:hover{
+  background: rgba(255,255,255,0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0,179,158,0.18);
+  transform: translateY(-1px);
+}
+
+/* ============ Org page (Table view) — Код/бейджи (chips) современный вид ============ */
+/* Светлая тема: мягкие теги вместо «белых овальных» */
+.org-code-badge,
+.emp-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 4px 10px;
+  border-radius: var(--r-8);           /* не «пилюля», а мягкий скруглённый прямоугольник */
+  background: #F6F8FB;
+  border: 1px solid #E3E8EF;
+  color:#2B2F33;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.2px;
+  line-height:1;
+}
+/* Небольшой hover в таблице: даёт обратную связь при наведении */
+.org-table td .org-code-badge:hover,
+.org-table td .emp-pill:hover{
+  border-color:#D7DFEA;
+  background:#EEF2F7;
+}
+
+/* Тёмная тема: читаемо, без белого, с лёгким контрастом */
+:root[data-theme="dark"] .org-code-badge,
+:root[data-theme="dark"] .emp-pill{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+  color: var(--text);
+}
+:root[data-theme="dark"] .org-table td .org-code-badge:hover,
+:root[data-theme="dark"] .org-table td .emp-pill:hover{
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(0,179,158,0.35);
+}
+
+/* Немного воздуха для toolbar над таблицей */
+.org-page .org-table-toolbar{ gap:10px; }
