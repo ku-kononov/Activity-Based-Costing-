@@ -2,6 +2,7 @@
 import { initRouter } from './router.js';
 import { initIconsOnce, refreshIcons, qs } from './utils.js';
 import { initAppearance, toggleAppearance, getAppearance } from './theme.js';
+import { supabase } from './api.js';
 
 function injectAppearanceToggle() {
   const sidebar = qs('.sidebar');
@@ -134,11 +135,80 @@ function initGlobalUI() {
   initNavAccordion();
 }
 
+/* ================== Header avatar (user-area) ================== */
+function renderHeaderAvatar(url) {
+  const btn = qs('#userMenuButton');
+  if (!btn) return;
+  // remove previous img if any
+  const oldImg = btn.querySelector('img.avatar-img');
+  if (oldImg) oldImg.remove();
+  // ensure we have icon or img
+  const icon = btn.querySelector('.avatar-icon');
+  if (url) {
+    // show image, remove icon
+    if (icon) icon.remove();
+    const img = document.createElement('img');
+    img.className = 'avatar-img';
+    img.alt = 'avatar';
+    img.src = url;
+    // inline size (не нужна правка CSS)
+    img.style.width = '24px';
+    img.style.height = '24px';
+    img.style.borderRadius = '50%';
+    img.style.objectFit = 'cover';
+    img.style.display = 'block';
+    btn.insertBefore(img, btn.firstChild);
+  } else {
+    // ensure default icon "user" вместо scan-face
+    if (icon) {
+      icon.setAttribute('data-lucide', 'user');
+    } else {
+      const i = document.createElement('i');
+      i.setAttribute('data-lucide', 'user');
+      i.className = 'avatar-icon';
+      btn.insertBefore(i, btn.firstChild);
+    }
+  }
+  refreshIcons();
+}
+
+async function refreshHeaderAvatar() {
+  try {
+    if (!supabase) { renderHeaderAvatar(null); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { renderHeaderAvatar(null); return; }
+    const { data, error } = await supabase.from('profiles').select('avatar_url').eq('user_id', user.id).maybeSingle?.()
+      || await supabase.from('profiles').select('avatar_url').eq('user_id', user.id).single();
+    if (error) { renderHeaderAvatar(null); return; }
+    const url = data?.avatar_url || null;
+    renderHeaderAvatar(url);
+  } catch {
+    renderHeaderAvatar(null);
+  }
+}
+
+function initHeaderAvatar() {
+  refreshHeaderAvatar(); // initial
+  if (supabase?.auth) {
+    try {
+      supabase.auth.onAuthStateChange((_event, _session) => {
+        refreshHeaderAvatar();
+      });
+    } catch {}
+  }
+  // listen avatar updates from profile page
+  document.addEventListener('profile:avatar-updated', (e) => {
+    const url = e.detail?.url || null;
+    renderHeaderAvatar(url);
+  });
+}
+
 function initApp() {
   initAppearance();
   initGlobalUI();
   initRouter();
   initIconsOnce();
+  initHeaderAvatar();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

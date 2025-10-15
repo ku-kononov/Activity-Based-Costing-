@@ -1,0 +1,462 @@
+<!-- profile.html -->
+<section class="data-card profile-page">
+  <div class="card profile-header">
+    <div class="profile-header__left">
+      <div class="avatar-wrap" id="avatarWrap" title="Изменить аватар">
+        <img id="avatarPreview" alt="avatar" />
+        <i id="avatarFallback" data-lucide="user"></i>
+        <input type="file" id="avatarInput" accept="image/*" aria-label="Выбрать аватар" />
+      </div>
+      <div>
+        <h2 class="profile-title">Профиль пользователя</h2>
+        <p class="profile-subtitle">Данные берутся из таблицы public.profiles</p>
+      </div>
+    </div>
+    <div class="profile-header__right">
+      <button class="btn" id="btnSignOut"><i data-lucide="log-out"></i><span>Выйти</span></button>
+    </div>
+  </div>
+
+  <div class="card auth-card" id="authCard" hidden>
+    <h3 class="card-title">Вход или регистрация</h3>
+    <div class="auth-grid">
+      <div class="auth-col">
+        <h4>Вход</h4>
+        <div class="form-field">
+          <label for="signinEmail">Email</label>
+          <input type="email" id="signinEmail" placeholder="you@company.com" />
+        </div>
+        <div class="form-field">
+          <label for="signinPassword">Пароль</label>
+          <input type="password" id="signinPassword" placeholder="••••••••" />
+        </div>
+        <button class="btn primary" id="btnSignIn"><i data-lucide="log-in"></i><span>Войти</span></button>
+      </div>
+      <div class="auth-col">
+        <h4>Регистрация</h4>
+        <div class="form-field">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" placeholder="you@company.com" />
+        </div>
+        <div class="form-field">
+          <label for="signupPassword">Пароль</label>
+          <input type="password" id="signupPassword" placeholder="Минимум 6 символов" />
+        </div>
+        <button class="btn success" id="btnSignUp"><i data-lucide="user-plus"></i><span>Зарегистрироваться</span></button>
+        <p class="muted">После регистрации может потребоваться подтверждение email.</p>
+      </div>
+    </div>
+    <div id="authMsg" class="msg"></div>
+  </div>
+
+  <div class="card profile-form-card" id="profileCard" hidden>
+    <div class="card-title-row">
+      <h3 class="card-title">Основные данные</h3>
+      <button class="btn" id="btnSaveProfile"><i data-lucide="save"></i><span>Сохранить профиль</span></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="firstName">Имя</label>
+        <input type="text" id="firstName" placeholder="Иван" />
+      </div>
+      <div class="form-field">
+        <label for="lastName">Фамилия</label>
+        <input type="text" id="lastName" placeholder="Иванов" />
+      </div>
+      <div class="form-field">
+        <label for="email">Email (смена требует подтверждения)</label>
+        <input type="email" id="email" placeholder="you@company.com" />
+      </div>
+      <div class="form-field">
+        <label for="jobTitle">Должность</label>
+        <input type="text" id="jobTitle" placeholder="Руководитель отдела" />
+      </div>
+      <div class="form-field">
+        <label for="departmentSelect">Подразделение</label>
+        <select id="departmentSelect">
+          <option value="">Выберите подразделение</option>
+        </select>
+      </div>
+    </div>
+    <div id="profileMsg" class="msg"></div>
+  </div>
+
+  <div class="card profile-security-card" id="securityCard" hidden>
+    <div class="card-title-row">
+      <h3 class="card-title">Безопасность</h3>
+      <button class="btn" id="btnChangePassword"><i data-lucide="shield"></i><span>Сменить пароль</span></button>
+    </div>
+    <div class="form-grid small">
+      <div class="form-field">
+        <label for="newPassword">Новый пароль</label>
+        <input type="password" id="newPassword" placeholder="••••••••" />
+      </div>
+      <div class="form-field">
+        <label for="confirmPassword">Подтверждение пароля</label>
+        <input type="password" id="confirmPassword" placeholder="••••••••" />
+      </div>
+    </div>
+    <div id="securityMsg" class="msg"></div>
+  </div>
+</section>
+
+<style>
+  .profile-page { display: flex; flex-direction: column; gap: 16px; }
+  .profile-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .profile-header__left { display: flex; align-items: center; gap: 16px; }
+  .avatar-wrap { position: relative; width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 2px solid var(--border); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
+  .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; display:none; }
+  .avatar-wrap i { width: 36px; height: 36px; color: var(--muted); }
+  .avatar-wrap:hover{ box-shadow: var(--shadow); transform: translateY(-1px); }
+  .avatar-wrap input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .profile-title { margin: 0; font-size: 22px; font-weight: 800; color: var(--blue); }
+  .profile-subtitle { margin: 2px 0 0; color: var(--muted); }
+
+  .auth-card .auth-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 8px; }
+  .auth-card .auth-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-10); padding: 12px; }
+  .auth-card h4 { margin: 0 0 8px 0; color: var(--blue); }
+
+  .profile-form-card .form-grid,
+  .profile-security-card .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .profile-security-card .form-grid.small { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-field label { font-weight: 700; color: var(--muted); font-size: 13px; }
+  .form-field input, .form-field select {
+    border: 1px solid var(--border);
+    border-radius: var(--r-8);
+    padding: 8px 10px;
+    background: var(--surface);
+    color: var(--text);
+  }
+  .form-field input:focus, .form-field select:focus { outline: none; box-shadow: 0 0 0 2px rgba(74,137,243,0.18); border-color: var(--blue); }
+
+  .card-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .card-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--blue); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: var(--r-8);
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    cursor: pointer; font-weight: 700;
+    transition: transform .1s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--blue); }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.success { background: var(--success); border-color: var(--success); color: #fff; }
+  .btn.success:hover { filter: brightness(1.05); }
+
+  .msg { margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .msg.error { color: var(--danger); }
+  .msg.ok { color: var(--success); }
+
+  @media (max-width: 560px) {
+    .avatar-wrap { width: 56px; height: 56px; }
+    .profile-title { font-size: 20px; }
+  }
+
+  :root[data-theme="dark"] .auth-card .auth-col{
+    background: var(--surface-1);
+  }
+</style>
+
+<script>
+(function() {
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ENV || {};
+  const supa = (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+  const qs = (sel, root = document) => root.querySelector(sel);
+
+  // UI refs
+  const authCard = qs('#authCard');
+  const profileCard = qs('#profileCard');
+  const securityCard = qs('#securityCard');
+  const authMsg = qs('#authMsg');
+  const profileMsg = qs('#profileMsg');
+  const securityMsg = qs('#securityMsg');
+
+  const avatarInput = qs('#avatarInput');
+  const avatarPreview = qs('#avatarPreview');
+  const avatarFallback = qs('#avatarFallback');
+
+  const btnSignIn = qs('#btnSignIn');
+  const btnSignUp = qs('#btnSignUp');
+  const btnSignOut = qs('#btnSignOut');
+  const btnSaveProfile = qs('#btnSaveProfile');
+  const btnChangePassword = qs('#btnChangePassword');
+
+  const signinEmail = qs('#signinEmail');
+  const signinPassword = qs('#signinPassword');
+  const signupEmail = qs('#signupEmail');
+  const signupPassword = qs('#signupPassword');
+
+  const firstName = qs('#firstName');
+  const lastName = qs('#lastName');
+  const email = qs('#email');
+  const jobTitle = qs('#jobTitle');
+  const departmentSelect = qs('#departmentSelect');
+
+  const newPassword = qs('#newPassword');
+  const confirmPassword = qs('#confirmPassword');
+
+  if (!supa) {
+    authMsg.textContent = 'Supabase не инициализирован. Проверьте ENV.';
+    authCard.hidden = false;
+    return;
+  }
+
+  async function refreshAuthUI() {
+    const { data: { user } } = await supa.auth.getUser();
+    if (user) {
+      authCard.hidden = true;
+      profileCard.hidden = false;
+      securityCard.hidden = false;
+      btnSignOut.hidden = false;
+      await loadDepartments();
+      await loadOrCreateProfile(user);
+    } else {
+      authCard.hidden = false;
+      profileCard.hidden = true;
+      securityCard.hidden = true;
+      btnSignOut.hidden = true;
+    }
+    try { window.lucide?.createIcons?.(); } catch(e){}
+  }
+
+  // Departments list from BOLT_orgchat — фикс: alias + сортировка по alias
+  async function loadDepartments() {
+    try {
+      const { data, error } = await supa
+        .from('BOLT_orgchat')
+        .select('"Department Name" as department_name')
+        .order('department_name', { ascending: true });
+      if (error) throw error;
+      const opts = (data || [])
+        .map(r => r.department_name)
+        .filter(Boolean)
+        .map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+        .join('');
+      departmentSelect.innerHTML = '<option value="">Выберите подразделение</option>' + opts;
+    } catch (e) {
+      console.error('Ошибка загрузки подразделений:', e);
+      departmentSelect.innerHTML = '<option value="">Не удалось загрузить список</option>';
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  }
+
+  async function loadOrCreateProfile(user) {
+    profileMsg.textContent = 'Загрузка профиля...';
+    try {
+      let { data: profile, error } = await supa
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (!profile) {
+        const initial = {
+          user_id: user.id,
+          email: user.email ?? '',
+          first_name: '',
+          last_name: '',
+          job_title: '',
+          department_name: null,
+          avatar_url: null
+        };
+        const { data: created, error: upErr } = await supa.from('profiles').insert(initial).select('*').single();
+        if (upErr) throw upErr;
+        profile = created;
+      }
+
+      // Fill form
+      firstName.value = profile.first_name || '';
+      lastName.value = profile.last_name || '';
+      email.value = profile.email || (user.email ?? '');
+      jobTitle.value = profile.job_title || '';
+      if (profile.department_name) {
+        const exists = Array.from(departmentSelect.options).some(o => o.value === profile.department_name);
+        if (!exists) {
+          const opt = document.createElement('option');
+          opt.value = profile.department_name; opt.textContent = profile.department_name;
+          departmentSelect.appendChild(opt);
+        }
+        departmentSelect.value = profile.department_name;
+      } else {
+        departmentSelect.value = '';
+      }
+
+      // Avatar
+      if (profile.avatar_url) {
+        avatarPreview.src = profile.avatar_url;
+        avatarPreview.style.display = 'block';
+        avatarFallback.style.display = 'none';
+      } else {
+        avatarPreview.src = '';
+        avatarPreview.style.display = 'none';
+        avatarFallback.style.display = 'block';
+      }
+
+      profileMsg.textContent = 'Профиль загружен.';
+      setTimeout(() => profileMsg.textContent = '', 1200);
+    } catch (e) {
+      console.error('Ошибка загрузки/создания профиля:', e);
+      profileMsg.textContent = 'Ошибка загрузки профиля.';
+      profileMsg.classList.add('error');
+    }
+  }
+
+  // Save profile
+  qs('#btnSaveProfile')?.addEventListener('click', async () => {
+    profileMsg.textContent = '';
+    try {
+      const { data: { user } } = await supa.auth.getUser();
+      if (!user) throw new Error('Нет авторизации.');
+      const payload = {
+        first_name: firstName.value.trim(),
+        last_name: lastName.value.trim(),
+        email: email.value.trim(),
+        job_title: jobTitle.value.trim(),
+        department_name: departmentSelect.value || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supa.from('profiles').update(payload).eq('user_id', user.id);
+      if (error) throw error;
+
+      // Обновление email в auth (если поменяли)
+      if (email.value.trim() && email.value.trim() !== (user.email ?? '')) {
+        const { error: auErr } = await supa.auth.updateUser({ email: email.value.trim() });
+        if (auErr) {
+          console.warn('Не удалось обновить email в auth:', auErr);
+          profileMsg.innerHTML = 'Профиль сохранён. Изменение email: ошибка или требуется подтверждение.';
+        } else {
+          profileMsg.innerHTML = 'Профиль сохранён. Проверьте почту для подтверждения смены email.';
+        }
+      } else {
+        profileMsg.textContent = 'Профиль сохранён.';
+      }
+      profileMsg.classList.remove('error');
+      profileMsg.classList.add('ok');
+      setTimeout(() => { profileMsg.textContent = ''; profileMsg.classList.remove('ok'); }, 2000);
+    } catch (e) {
+      console.error('Ошибка сохранения профиля:', e);
+      profileMsg.textContent = 'Ошибка сохранения профиля.';
+      profileMsg.classList.add('error');
+    }
+  });
+
+  // Change password
+  qs('#btnChangePassword')?.addEventListener('click', async () => {
+    securityMsg.textContent = '';
+    const pass1 = newPassword.value.trim();
+    const pass2 = confirmPassword.value.trim();
+    if (!pass1 || pass1.length < 6) {
+      securityMsg.textContent = 'Пароль должен быть не короче 6 символов.'; securityMsg.classList.add('error'); return;
+    }
+    if (pass1 !== pass2) {
+      securityMsg.textContent = 'Пароли не совпадают.'; securityMsg.classList.add('error'); return;
+    }
+    try {
+      const { data: { user } } = await supa.auth.getUser();
+      if (!user) throw new Error('Нет авторизации.');
+      const { error } = await supa.auth.updateUser({ password: pass1 });
+      if (error) throw error;
+      securityMsg.textContent = 'Пароль обновлён.'; securityMsg.classList.remove('error'); securityMsg.classList.add('ok');
+      newPassword.value = ''; confirmPassword.value = '';
+      setTimeout(() => { securityMsg.textContent = ''; securityMsg.classList.remove('ok'); }, 2000);
+    } catch (e) {
+      console.error('Ошибка смены пароля:', e);
+      securityMsg.textContent = 'Ошибка изменения пароля.'; securityMsg.classList.add('error');
+    }
+  });
+
+  // Sign in / Sign up / Sign out
+  qs('#btnSignIn')?.addEventListener('click', async () => {
+    authMsg.textContent = '';
+    try {
+      const { error } = await supa.auth.signInWithPassword({
+        email: signinEmail.value.trim(), password: signinPassword.value.trim()
+      });
+      if (error) throw error;
+      authMsg.textContent = 'Успешный вход.'; authMsg.classList.remove('error'); authMsg.classList.add('ok');
+      await refreshAuthUI();
+    } catch (e) {
+      console.error('SignIn error:', e);
+      authMsg.textContent = 'Ошибка входа. Проверьте email/пароль.'; authMsg.classList.add('error');
+    }
+  });
+
+  qs('#btnSignUp')?.addEventListener('click', async () => {
+    authMsg.textContent = '';
+    try {
+      const { error } = await supa.auth.signUp({
+        email: signupEmail.value.trim(), password: signupPassword.value.trim()
+      });
+      if (error) throw error;
+      authMsg.textContent = 'Регистрация выполнена. Проверьте почту для подтверждения.';
+      authMsg.classList.remove('error'); authMsg.classList.add('ok');
+    } catch (e) {
+      console.error('SignUp error:', e);
+      authMsg.textContent = 'Ошибка регистрации. Возможно, email уже занят.'; authMsg.classList.add('error');
+    }
+  });
+
+  qs('#btnSignOut')?.addEventListener('click', async () => {
+    await supa.auth.signOut();
+    authMsg.textContent = 'Вы вышли из системы.';
+    authMsg.classList.remove('error'); authMsg.classList.add('ok');
+    await refreshAuthUI();
+  });
+
+  // Avatar upload → Supabase Storage ('avatars' bucket)
+  qs('#avatarInput')?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const { data: { user } } = await supa.auth.getUser();
+      if (!user) throw new Error('Нет авторизации.');
+
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: upErr } = await supa.storage.from('avatars').upload(filePath, file, { upsert: true, cacheControl: '3600' });
+      if (upErr) {
+        console.error('Upload error:', upErr);
+        throw new Error('Не удалось загрузить аватар. Убедитесь, что существует Storage bucket "avatars" (Public: ON) и у вас есть права записи.');
+      }
+
+      const { data: pub } = supa.storage.from('avatars').getPublicUrl(filePath);
+      const publicUrl = pub?.publicUrl;
+      if (!publicUrl) throw new Error('Не удалось получить публичный URL аватара.');
+
+      const { error: updErr } = await supa.from('profiles').update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq('user_id', user.id);
+      if (updErr) throw updErr;
+
+      // UI
+      avatarPreview.src = publicUrl;
+      avatarPreview.style.display = 'block';
+      avatarFallback.style.display = 'none';
+      profileMsg.textContent = 'Аватар обновлён.';
+      profileMsg.classList.remove('error'); profileMsg.classList.add('ok');
+      setTimeout(() => { profileMsg.textContent = ''; profileMsg.classList.remove('ok'); }, 2000);
+
+      // Сообщим шапке обновить аватар
+      document.dispatchEvent(new CustomEvent('profile:avatar-updated', { detail: { url: publicUrl } }));
+    } catch (e) {
+      console.error('Avatar upload error:', e);
+      profileMsg.textContent = e.message || 'Ошибка загрузки аватара.';
+      profileMsg.classList.add('error');
+    } finally {
+      e.target.value = '';
+    }
+  });
+
+  // Init
+  refreshAuthUI();
+})();
+</script>
