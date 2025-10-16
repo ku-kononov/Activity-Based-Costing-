@@ -7,7 +7,7 @@ export async function renderCostsPage(container) {
           <i data-lucide="chart-pie" class="analytics-header__icon" aria-hidden="true"></i>
           <div>
             <h2 class="analytics-header__title">Затраты процессов</h2>
-            <p class="analytics-header__subtitle">ABC / PnL, драйверы затрат и аналитика</p>
+            <p class="analytics-header__subtitle">Activity Based Costing (ABC)</p>
           </div>
         </div>
       </div>

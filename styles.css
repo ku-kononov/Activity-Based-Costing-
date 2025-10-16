@@ -761,3 +761,253 @@ body.sidebar-collapsed .appearance-toggle{ left:8px; right:8px; bottom:8px; }
 
 /* Немного воздуха для toolbar над таблицей */
 .org-page .org-table-toolbar{ gap:10px; }
+
+/* ============ EBITDA Chart Modern Styles ============ */
+/* Light theme */
+.ebitda-chart-modern {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.ebitda-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(0,179,158,0.05) 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.ebitda-chart-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ebitda-chart-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+}
+
+.ebitda-chart-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ebitda-chart-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.ebitda-chart-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.ebitda-chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ebitda-chart-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ebitda-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ebitda-filter label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ebitda-year-select {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ebitda-year-select:hover {
+  border-color: var(--accent);
+}
+
+.ebitda-year-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,179,158,0.1);
+}
+
+.ebitda-segmented-control {
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.ebitda-segmented-control button {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ebitda-segmented-control button.active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,179,158,0.3);
+}
+
+.ebitda-segmented-control button:hover:not(.active) {
+  background: rgba(0,179,158,0.1);
+  color: var(--accent);
+}
+
+.ebitda-chart-body {
+  padding: 24px;
+  background: var(--surface);
+  position: relative;
+}
+
+.info-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--muted);
+  cursor: help;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.info-tip:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.info-tip i {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.ibp-tip-bubble {
+  position: fixed;
+  z-index: 9999;
+  max-width: 480px;
+  background: rgba(17,24,39,0.98);
+  color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -120%);
+  transition: opacity 0.2s ease;
+  white-space: pre-line;
+  word-wrap: break-word;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Dark theme for EBITDA Chart */
+:root[data-theme="dark"] .ebitda-chart-modern {
+  background: var(--surface-1);
+  border-color: var(--border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+:root[data-theme="dark"] .ebitda-chart-header {
+  background: linear-gradient(135deg, var(--surface-1) 0%, rgba(0,179,158,0.12) 100%);
+  border-bottom-color: var(--divider);
+}
+
+:root[data-theme="dark"] .ebitda-chart-title {
+  color: var(--text);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+:root[data-theme="dark"] .ebitda-chart-subtitle {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .ebitda-chart-body {
+  background: var(--surface-1);
+}
+
+:root[data-theme="dark"] .ebitda-year-select {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .ebitda-year-select:hover {
+  border-color: var(--accent);
+  background: rgba(0,179,158,0.15);
+}
+
+:root[data-theme="dark"] .ebitda-segmented-control {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .ebitda-segmented-control button:not(.active) {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .ebitda-segmented-control button:hover:not(.active) {
+  background: rgba(0,179,158,0.2);
+  color: var(--accent);
+}
+
+:root[data-theme="dark"] .info-tip {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] .info-tip:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+:root[data-theme="dark"] .ibp-tip-bubble {
+  background: rgba(23,26,31,0.98);
+  border-color: var(--border);
+}
