@@ -1,24 +1,17 @@
 <!-- profile.html -->
 <section class="data-card profile-page">
   <div class="card profile-header">
-    <div class="profile-header__left">
-      <div class="avatar-wrap" id="avatarWrap" title="Изменить аватар">
-        <img id="avatarPreview" alt="avatar" />
-        <i id="avatarFallback" data-lucide="user"></i>
-        <input type="file" id="avatarInput" accept="image/*" aria-label="Выбрать аватар" />
-      </div>
-      <div>
-        <h2 class="profile-title">Профиль пользователя</h2>
-        <p class="profile-subtitle">Данные берутся из таблицы public.profiles</p>
-      </div>
+    <div class="avatar-wrap" id="avatarWrap" title="Изменить аватар">
+      <img id="avatarPreview" alt="avatar" />
+      <i id="avatarFallback" data-lucide="user"></i>
+      <input type="file" id="avatarInput" accept="image/*" aria-label="Выбрать аватар" />
     </div>
-    <div class="profile-header__right">
-      <button class="btn" id="btnSignOut"><i data-lucide="log-out"></i><span>Выйти</span></button>
-    </div>
+    <h2 class="profile-title">Профиль пользователя</h2>
+    <button class="btn" id="btnSignOut"><i data-lucide="log-out"></i><span>Выйти</span></button>
   </div>
 
   <div class="card auth-card" id="authCard" hidden>
-    <h3 class="card-title">Вход или регистрация</h3>
+    <h3 class="card-title auth-card__title">Вход или регистрация</h3>
     <div class="auth-grid">
       <div class="auth-col">
         <h4>Вход</h4>
@@ -55,27 +48,31 @@
       <button class="btn" id="btnSaveProfile"><i data-lucide="save"></i><span>Сохранить профиль</span></button>
     </div>
     <div class="form-grid">
-      <div class="form-field">
-        <label for="firstName">Имя</label>
-        <input type="text" id="firstName" placeholder="Иван" />
+      <div class="form-row">
+        <div class="form-field">
+          <label for="firstName">Имя</label>
+          <input type="text" id="firstName" placeholder="Иван" />
+        </div>
+        <div class="form-field">
+          <label for="lastName">Фамилия</label>
+          <input type="text" id="lastName" placeholder="Иванов" />
+        </div>
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@company.com" />
+        </div>
       </div>
-      <div class="form-field">
-        <label for="lastName">Фамилия</label>
-        <input type="text" id="lastName" placeholder="Иванов" />
-      </div>
-      <div class="form-field">
-        <label for="email">Email (смена требует подтверждения)</label>
-        <input type="email" id="email" placeholder="you@company.com" />
-      </div>
-      <div class="form-field">
-        <label for="jobTitle">Должность</label>
-        <input type="text" id="jobTitle" placeholder="Руководитель отдела" />
-      </div>
-      <div class="form-field">
-        <label for="departmentSelect">Подразделение</label>
-        <select id="departmentSelect">
-          <option value="">Выберите подразделение</option>
-        </select>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="departmentSelect">Подразделение</label>
+          <select id="departmentSelect">
+            <option value="">Выберите подразделение</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="jobTitle">Должность</label>
+          <input type="text" id="jobTitle" placeholder="Руководитель отдела" />
+        </div>
       </div>
     </div>
     <div id="profileMsg" class="msg"></div>
@@ -102,22 +99,83 @@
 
 <style>
   .profile-page { display: flex; flex-direction: column; gap: 16px; }
-  .profile-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .profile-header__left { display: flex; align-items: center; gap: 16px; }
-  .avatar-wrap { position: relative; width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 2px solid var(--border); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
+  .profile-page .card {
+    border: 2px solid #4A89F3;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(74, 137, 243, 0.15);
+  }
+  .profile-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0px;
+    padding: 12px 16px;
+    min-height: 48px;
+    width: 100%;
+  }
+  .profile-header .avatar-wrap {
+    margin-right: 8px;
+  }
+  .profile-header .profile-title {
+    margin-right: auto;
+  }
+  .profile-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+  .avatar-wrap {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
   .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; display:none; }
-  .avatar-wrap i { width: 36px; height: 36px; color: var(--muted); }
+  .avatar-wrap i { width: 20px; height: 20px; color: var(--muted); }
   .avatar-wrap:hover{ box-shadow: var(--shadow); transform: translateY(-1px); }
   .avatar-wrap input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .profile-title { margin: 0; font-size: 22px; font-weight: 800; color: var(--blue); }
   .profile-subtitle { margin: 2px 0 0; color: var(--muted); }
 
   .auth-card .auth-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 8px; }
   .auth-card .auth-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-10); padding: 12px; }
   .auth-card h4 { margin: 0 0 8px 0; color: var(--blue); }
+  .auth-card__title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 700;
+  }
 
-  .profile-form-card .form-grid,
-  .profile-security-card .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .profile-form-card .form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .profile-form-card .form-row {
+    display: grid;
+    gap: 12px;
+  }
+  .profile-form-card .form-row:first-child {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .profile-form-card .form-row:last-child {
+    grid-template-columns: repeat(2, 3fr);
+    justify-content: flex-start;
+    gap: 20px;
+    max-width: none;
+  }
+  .profile-security-card .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
   .profile-security-card .form-grid.small { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 
   .form-field { display: flex; flex-direction: column; gap: 6px; }
@@ -153,8 +211,9 @@
   .msg.ok { color: var(--success); }
 
   @media (max-width: 560px) {
-    .avatar-wrap { width: 56px; height: 56px; }
-    .profile-title { font-size: 20px; }
+    .avatar-wrap { width: 36px; height: 36px; }
+    .avatar-wrap i { width: 18px; height: 18px; }
+    .profile-title { font-size: 18px; }
   }
 
   :root[data-theme="dark"] .auth-card .auth-col{
