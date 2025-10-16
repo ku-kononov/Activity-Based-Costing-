@@ -110,7 +110,7 @@
     justify-content: space-between !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    gap: 0px;
+    gap: 0;
     padding: 12px 16px;
     min-height: 48px;
     width: 100%;
@@ -145,96 +145,88 @@
   .avatar-wrap i { width: 20px; height: 20px; color: var(--muted); }
   .avatar-wrap:hover{ box-shadow: var(--shadow); transform: translateY(-1px); }
   .avatar-wrap input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .profile-subtitle { margin: 2px 0 0; color: var(--muted); }
-
   .auth-card .auth-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 8px; }
   .auth-card .auth-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-10); padding: 12px; }
-  .auth-card h4 { margin: 0 0 8px 0; color: var(--blue); }
-  .auth-card__title {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 20px;
-    font-weight: 700;
-  }
-
-  .profile-form-card .form-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .profile-form-card .form-row {
-    display: grid;
-    gap: 12px;
-  }
-  .profile-form-card .form-row:first-child {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .profile-form-card .form-row:last-child {
-    grid-template-columns: repeat(2, 3fr);
-    justify-content: flex-start;
-    gap: 20px;
-    max-width: none;
-  }
+  .auth-card__title { text-align: center; margin-bottom: 20px; font-size: 20px; font-weight: 700; }
+  .profile-form-card .form-grid { display: flex; flex-direction: column; gap: 16px; }
+  .profile-form-card .form-row { display: grid; gap: 12px; }
+  .profile-form-card .form-row:first-child { grid-template-columns: repeat(3, 1fr); }
+  .profile-form-card .form-row:last-child { grid-template-columns: repeat(2, 3fr); gap: 20px; }
   .profile-security-card .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
   .profile-security-card .form-grid.small { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-
   .form-field { display: flex; flex-direction: column; gap: 6px; }
   .form-field label { font-weight: 700; color: var(--muted); font-size: 13px; }
-  .form-field input, .form-field select {
-    border: 1px solid var(--border);
-    border-radius: var(--r-8);
-    padding: 8px 10px;
-    background: var(--surface);
-    color: var(--text);
-  }
+  .form-field input, .form-field select { border: 1px solid var(--border); border-radius: var(--r-8); padding: 8px 10px; background: var(--surface); color: var(--text); }
   .form-field input:focus, .form-field select:focus { outline: none; box-shadow: 0 0 0 2px rgba(74,137,243,0.18); border-color: var(--blue); }
-
   .card-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
   .card-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--blue); }
-
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 12px; border-radius: var(--r-8);
-    border: 1px solid var(--border);
-    background: var(--surface); color: var(--text);
-    cursor: pointer; font-weight: 700;
-    transition: transform .1s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
-  }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--r-8); border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-weight: 700; transition: transform .1s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease; }
   .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--blue); }
   .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
   .btn.primary:hover { filter: brightness(1.05); }
   .btn.success { background: var(--success); border-color: var(--success); color: #fff; }
   .btn.success:hover { filter: brightness(1.05); }
-
   .msg { margin-top: 8px; font-size: 13px; color: var(--muted); }
   .msg.error { color: var(--danger); }
   .msg.ok { color: var(--success); }
-
-  @media (max-width: 560px) {
-    .avatar-wrap { width: 36px; height: 36px; }
-    .avatar-wrap i { width: 18px; height: 18px; }
-    .profile-title { font-size: 18px; }
-  }
-
-  :root[data-theme="dark"] .auth-card .auth-col{
-    background: var(--surface-1);
-  }
+  @media (max-width: 560px) { .avatar-wrap { width: 36px; height: 36px; } .avatar-wrap i { width: 18px; height: 18px; } .profile-title { font-size: 18px; } }
+  :root[data-theme="dark"] .auth-card .auth-col{ background: var(--surface-1); }
 </style>
 
+<!-- ENV: вставьте ваши значения -->
 <script>
-(function() {
+  window.ENV = {
+    SUPABASE_URL: 'https://eqpdepmgriuivevvrulc.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxcGRlcG1ncml1aXZldnZydWxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNjIwOTUsImV4cCI6MjA3MTkzODA5NX0.RrU_XWmoYCitZoeq27aH9iKJrb_wczOei8P4h0e2GR8'
+  };
+</script>
+
+<!-- Supabase SDK -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.45.2/dist/umd/supabase.js"></script>
+
+<!-- Логика страницы -->
+<script>
+(async function() {
+  // 1) Гарантируем доступность Supabase SDK (подгрузим, если не подключен)
+  async function ensureSupabaseSDK() {
+    if (window.supabase?.createClient) return;
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/@supabase/supabase-js@2.45.2/dist/umd/supabase.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('Не удалось загрузить Supabase SDK'));
+      document.head.appendChild(s);
+    });
+  }
+  await ensureSupabaseSDK();
+
+  // 2) Клиент Supabase (устойчивые сессии)
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ENV || {};
-  const supa = (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY)
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+  const authMsg = document.getElementById('authMsg');
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL.includes('YOUR-PROJECT')) {
+    if (authMsg) {
+      authMsg.textContent = 'Не заданы ENV (SUPABASE_URL/SUPABASE_ANON_KEY). Задайте window.ENV перед скриптом.';
+      authMsg.classList.add('error');
+    }
+    return;
+  }
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
 
+  // 3) Утилиты и ссылки
   const qs = (sel, root = document) => root.querySelector(sel);
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const fileToDataURL = (file) => new Promise((res, rej) => {
+    const r = new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file);
+  });
 
-  // UI refs
-  const authCard = qs('#authCard');
   const profileCard = qs('#profileCard');
   const securityCard = qs('#securityCard');
-  const authMsg = qs('#authMsg');
   const profileMsg = qs('#profileMsg');
   const securityMsg = qs('#securityMsg');
 
@@ -262,23 +254,35 @@
   const newPassword = qs('#newPassword');
   const confirmPassword = qs('#confirmPassword');
 
-  if (!supa) {
-    authMsg.textContent = 'Supabase не инициализирован. Проверьте ENV.';
-    authCard.hidden = false;
-    return;
+  function setMsg(el, text, ok=false) {
+    if (!el) return;
+    el.textContent = text || '';
+    el.classList.remove('error','ok');
+    if (text) el.classList.add(ok ? 'ok' : 'error');
   }
 
+  // 4) Ждём смены сессии → обновляем UI
+  supa.auth.onAuthStateChange(() => refreshAuthUI());
+
+  // 5) UI обновление по сессии
   async function refreshAuthUI() {
     const { data: { user } } = await supa.auth.getUser();
     if (user) {
-      authCard.hidden = true;
+      qs('#authCard').hidden = true;
       profileCard.hidden = false;
       securityCard.hidden = false;
       btnSignOut.hidden = false;
+      
       await loadDepartments();
       await loadOrCreateProfile(user);
+      
+      const pending = localStorage.getItem('pending_avatar_b64');
+      if (pending) {
+        await saveAvatarURLToProfile(pending);
+        localStorage.removeItem('pending_avatar_b64');
+      }
     } else {
-      authCard.hidden = false;
+      qs('#authCard').hidden = false;
       profileCard.hidden = true;
       securityCard.hidden = true;
       btnSignOut.hidden = true;
@@ -286,7 +290,7 @@
     try { window.lucide?.createIcons?.(); } catch(e){}
   }
 
-  // Departments list from BOLT_orgchat — фикс: alias + сортировка по alias
+  // 6) Справочник подразделений
   async function loadDepartments() {
     try {
       const { data, error } = await supa
@@ -297,21 +301,18 @@
       const opts = (data || [])
         .map(r => r.department_name)
         .filter(Boolean)
-        .map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+        .map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`)
         .join('');
       departmentSelect.innerHTML = '<option value="">Выберите подразделение</option>' + opts;
     } catch (e) {
-      console.error('Ошибка загрузки подразделений:', e);
+      console.error('loadDepartments error:', e);
       departmentSelect.innerHTML = '<option value="">Не удалось загрузить список</option>';
     }
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-  }
-
+  // 7) Профиль: загрузка/создание
   async function loadOrCreateProfile(user) {
-    profileMsg.textContent = 'Загрузка профиля...';
+    setMsg(profileMsg, 'Загрузка профиля...', true);
     try {
       let { data: profile, error } = await supa
         .from('profiles')
@@ -321,25 +322,17 @@
       if (error && error.code !== 'PGRST116') throw error;
 
       if (!profile) {
-        const initial = {
-          user_id: user.id,
-          email: user.email ?? '',
-          first_name: '',
-          last_name: '',
-          job_title: '',
-          department_name: null,
-          avatar_url: null
-        };
-        const { data: created, error: upErr } = await supa.from('profiles').insert(initial).select('*').single();
-        if (upErr) throw upErr;
-        profile = created;
+        const initial = { user_id: user.id, email: user.email ?? '', first_name: '', last_name: '', job_title: '', department_name: null, avatar_url: null };
+        const ins = await supa.from('profiles').insert(initial).select('*').single();
+        if (ins.error) throw ins.error;
+        profile = ins.data;
       }
-
-      // Fill form
+      
       firstName.value = profile.first_name || '';
       lastName.value = profile.last_name || '';
       email.value = profile.email || (user.email ?? '');
       jobTitle.value = profile.job_title || '';
+      
       if (profile.department_name) {
         const exists = Array.from(departmentSelect.options).some(o => o.value === profile.department_name);
         if (!exists) {
@@ -351,8 +344,7 @@
       } else {
         departmentSelect.value = '';
       }
-
-      // Avatar
+      
       if (profile.avatar_url) {
         avatarPreview.src = profile.avatar_url;
         avatarPreview.style.display = 'block';
@@ -362,22 +354,22 @@
         avatarPreview.style.display = 'none';
         avatarFallback.style.display = 'block';
       }
-
-      profileMsg.textContent = 'Профиль загружен.';
-      setTimeout(() => profileMsg.textContent = '', 1200);
+      
+      setMsg(profileMsg, 'Профиль загружен.', true);
+      setTimeout(() => setMsg(profileMsg, ''), 1200);
     } catch (e) {
-      console.error('Ошибка загрузки/создания профиля:', e);
-      profileMsg.textContent = 'Ошибка загрузки профиля.';
-      profileMsg.classList.add('error');
+      console.error('loadOrCreateProfile error:', e);
+      setMsg(profileMsg, `Ошибка загрузки профиля: ${e.message || e}`);
     }
   }
 
-  // Save profile
-  qs('#btnSaveProfile')?.addEventListener('click', async () => {
-    profileMsg.textContent = '';
+  // 8) Сохранить профиль
+  btnSaveProfile?.addEventListener('click', async () => {
+    setMsg(profileMsg, '');
     try {
       const { data: { user } } = await supa.auth.getUser();
-      if (!user) throw new Error('Нет авторизации.');
+      if (!user) throw new Error('Сначала войдите в систему.');
+      
       const payload = {
         first_name: firstName.value.trim(),
         last_name: lastName.value.trim(),
@@ -386,136 +378,181 @@
         department_name: departmentSelect.value || null,
         updated_at: new Date().toISOString(),
       };
+      
       const { error } = await supa.from('profiles').update(payload).eq('user_id', user.id);
       if (error) throw error;
-
-      // Обновление email в auth (если поменяли)
-      if (email.value.trim() && email.value.trim() !== (user.email ?? '')) {
-        const { error: auErr } = await supa.auth.updateUser({ email: email.value.trim() });
+      
+      const curEmail = user.email ?? '';
+      if (payload.email && payload.email !== curEmail) {
+        const { error: auErr } = await supa.auth.updateUser({ email: payload.email });
         if (auErr) {
-          console.warn('Не удалось обновить email в auth:', auErr);
-          profileMsg.innerHTML = 'Профиль сохранён. Изменение email: ошибка или требуется подтверждение.';
+          console.warn('auth update email:', auErr);
+          setMsg(profileMsg, 'Профиль сохранён. Смена email: ошибка или требуется подтверждение.', true);
         } else {
-          profileMsg.innerHTML = 'Профиль сохранён. Проверьте почту для подтверждения смены email.';
+          setMsg(profileMsg, 'Профиль сохранён. Проверьте почту для подтверждения смены email.', true);
         }
       } else {
-        profileMsg.textContent = 'Профиль сохранён.';
+        setMsg(profileMsg, 'Профиль сохранён.', true);
       }
-      profileMsg.classList.remove('error');
-      profileMsg.classList.add('ok');
-      setTimeout(() => { profileMsg.textContent = ''; profileMsg.classList.remove('ok'); }, 2000);
+      setTimeout(() => setMsg(profileMsg, ''), 2000);
     } catch (e) {
-      console.error('Ошибка сохранения профиля:', e);
-      profileMsg.textContent = 'Ошибка сохранения профиля.';
-      profileMsg.classList.add('error');
+      console.error('save profile error:', e);
+      setMsg(profileMsg, `Ошибка сохранения профиля: ${e.message || e}`);
     }
   });
 
-  // Change password
-  qs('#btnChangePassword')?.addEventListener('click', async () => {
-    securityMsg.textContent = '';
-    const pass1 = newPassword.value.trim();
-    const pass2 = confirmPassword.value.trim();
-    if (!pass1 || pass1.length < 6) {
-      securityMsg.textContent = 'Пароль должен быть не короче 6 символов.'; securityMsg.classList.add('error'); return;
-    }
-    if (pass1 !== pass2) {
-      securityMsg.textContent = 'Пароли не совпадают.'; securityMsg.classList.add('error'); return;
-    }
+  // 9) Смена пароля
+  btnChangePassword?.addEventListener('click', async () => {
+    setMsg(securityMsg, '');
+    const pass1 = (qs('#newPassword').value || '').trim();
+    const pass2 = (qs('#confirmPassword').value || '').trim();
+    if (!pass1 || pass1.length < 6) { setMsg(securityMsg, 'Пароль должен быть не короче 6 символов.'); return; }
+    if (pass1 !== pass2) { setMsg(securityMsg, 'Пароли не совпадают.'); return; }
+    
     try {
       const { data: { user } } = await supa.auth.getUser();
-      if (!user) throw new Error('Нет авторизации.');
+      if (!user) throw new Error('Сначала войдите в систему.');
+      
       const { error } = await supa.auth.updateUser({ password: pass1 });
       if (error) throw error;
-      securityMsg.textContent = 'Пароль обновлён.'; securityMsg.classList.remove('error'); securityMsg.classList.add('ok');
-      newPassword.value = ''; confirmPassword.value = '';
-      setTimeout(() => { securityMsg.textContent = ''; securityMsg.classList.remove('ok'); }, 2000);
+      
+      setMsg(securityMsg, 'Пароль обновлён.', true);
+      qs('#newPassword').value=''; qs('#confirmPassword').value='';
+      setTimeout(() => setMsg(securityMsg, ''), 2000);
     } catch (e) {
-      console.error('Ошибка смены пароля:', e);
-      securityMsg.textContent = 'Ошибка изменения пароля.'; securityMsg.classList.add('error');
+      console.error('change password error:', e);
+      setMsg(securityMsg, `Ошибка изменения пароля: ${e.message || e}`);
     }
   });
 
-  // Sign in / Sign up / Sign out
-  qs('#btnSignIn')?.addEventListener('click', async () => {
-    authMsg.textContent = '';
+  // 10) Вход
+  btnSignIn?.addEventListener('click', async () => {
+    setMsg(authMsg, '');
     try {
-      const { error } = await supa.auth.signInWithPassword({
-        email: signinEmail.value.trim(), password: signinPassword.value.trim()
-      });
+      const email = (signinEmail.value || '').trim();
+      const password = (signinPassword.value || '').trim();
+      if (!email || !password) throw new Error('Введите email и пароль.');
+      
+      const { error } = await supa.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      authMsg.textContent = 'Успешный вход.'; authMsg.classList.remove('error'); authMsg.classList.add('ok');
+      
+      setMsg(authMsg, 'Успешный вход.', true);
       await refreshAuthUI();
     } catch (e) {
-      console.error('SignIn error:', e);
-      authMsg.textContent = 'Ошибка входа. Проверьте email/пароль.'; authMsg.classList.add('error');
+      console.error('signIn error:', e);
+      setMsg(authMsg, `Ошибка входа: ${e.message || e}`);
     }
   });
 
-  qs('#btnSignUp')?.addEventListener('click', async () => {
-    authMsg.textContent = '';
+  // 11) Регистрация
+  btnSignUp?.addEventListener('click', async () => {
+    setMsg(authMsg, '');
     try {
-      const { error } = await supa.auth.signUp({
-        email: signupEmail.value.trim(), password: signupPassword.value.trim()
-      });
-      if (error) throw error;
-      authMsg.textContent = 'Регистрация выполнена. Проверьте почту для подтверждения.';
-      authMsg.classList.remove('error'); authMsg.classList.add('ok');
+      const email = (signupEmail.value || '').trim();
+      const password = (signupPassword.value || '').trim();
+      if (!email || !password || password.length < 6) throw new Error('Введите корректные email и пароль (≥6).');
+
+      const { data, error } = await supa.auth.signUp({ email, password });
+      
+      if (error) {
+        const msg = (error.message || '').toLowerCase();
+        if (msg.includes('already') || msg.includes('exist') || error.status === 422) {
+          const si = await supa.auth.signInWithPassword({ email, password });
+          if (si.error) throw si.error;
+          setMsg(authMsg, 'Учетная запись уже существует — выполнен вход.', true);
+          await refreshAuthUI();
+          return;
+        }
+        throw error;
+      }
+      
+      if (data?.user?.id) {
+        setMsg(authMsg, 'Регистрация выполнена. Проверьте почту (если требуется подтверждение).', true);
+        try { await loadOrCreateProfile(data.user); } catch(_) {}
+        await refreshAuthUI();
+      } else {
+        setMsg(authMsg, 'Регистрация выполнена. Проверьте почту для подтверждения.', true);
+      }
     } catch (e) {
-      console.error('SignUp error:', e);
-      authMsg.textContent = 'Ошибка регистрации. Возможно, email уже занят.'; authMsg.classList.add('error');
+      console.error('signUp error:', e);
+      setMsg(authMsg, `Ошибка регистрации: ${e.message || e}`);
     }
   });
 
-  qs('#btnSignOut')?.addEventListener('click', async () => {
+  // 12) Выход
+  btnSignOut?.addEventListener('click', async () => {
     await supa.auth.signOut();
-    authMsg.textContent = 'Вы вышли из системы.';
-    authMsg.classList.remove('error'); authMsg.classList.add('ok');
+    setMsg(authMsg, 'Вы вышли из системы.', true);
     await refreshAuthUI();
   });
 
-  // Avatar upload → Supabase Storage ('avatars' bucket)
-  qs('#avatarInput')?.addEventListener('change', async (e) => {
-    const file = e.target.files?.[0];
+  // 13) Аватар
+  async function saveAvatarURLToProfile(url) {
+    const { data: { user } } = await supa.auth.getUser();
+    if (!user) return false;
+    const { error } = await supa.from('profiles').update({ avatar_url: url, updated_at: new Date().toISOString() }).eq('user_id', user.id);
+    if (error) throw error;
+    
+    // Обновляем кэш
+    const cached = readCache(user.id) || {};
+    cached.avatar_url = url;
+    writeCache(user.id, cached);
+    
+    return true;
+  }
+
+  avatarInput?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0]; e.target.value = '';
     if (!file) return;
+    
+    const MAX_MB = 5;
+    const allowed = /^image\/(png|jpe?g|webp|gif)$/i;
+    if (!allowed.test(file.type)) { setMsg(profileMsg, 'Поддерживаются PNG/JPG/WebP/GIF.'); return; }
+    if (file.size > MAX_MB * 1024 * 1024) { setMsg(profileMsg, `Размер файла ≤ ${MAX_MB} МБ.`); return; }
+    
+    const previewUrl = await fileToDataURL(file);
+    avatarPreview.src = previewUrl;
+    avatarPreview.style.display = 'block';
+    avatarFallback.style.display = 'none';
+
     try {
       const { data: { user } } = await supa.auth.getUser();
-      if (!user) throw new Error('Нет авторизации.');
-
-      const filePath = `${user.id}/${Date.now()}_${file.name}`;
-      const { error: upErr } = await supa.storage.from('avatars').upload(filePath, file, { upsert: true, cacheControl: '3600' });
-      if (upErr) {
-        console.error('Upload error:', upErr);
-        throw new Error('Не удалось загрузить аватар. Убедитесь, что существует Storage bucket "avatars" (Public: ON) и у вас есть права записи.');
+      if (!user) {
+        localStorage.setItem('pending_avatar_b64', previewUrl);
+        setMsg(profileMsg, 'Аватар будет сохранён после входа.', true);
+        return;
       }
-
-      const { data: pub } = supa.storage.from('avatars').getPublicUrl(filePath);
-      const publicUrl = pub?.publicUrl;
-      if (!publicUrl) throw new Error('Не удалось получить публичный URL аватара.');
-
-      const { error: updErr } = await supa.from('profiles').update({ avatar_url: publicUrl, updated_at: new Date().toISOString() }).eq('user_id', user.id);
-      if (updErr) throw updErr;
-
-      // UI
-      avatarPreview.src = publicUrl;
-      avatarPreview.style.display = 'block';
-      avatarFallback.style.display = 'none';
-      profileMsg.textContent = 'Аватар обновлён.';
-      profileMsg.classList.remove('error'); profileMsg.classList.add('ok');
-      setTimeout(() => { profileMsg.textContent = ''; profileMsg.classList.remove('ok'); }, 2000);
-
-      // Сообщим шапке обновить аватар
-      document.dispatchEvent(new CustomEvent('profile:avatar-updated', { detail: { url: publicUrl } }));
-    } catch (e) {
-      console.error('Avatar upload error:', e);
-      profileMsg.textContent = e.message || 'Ошибка загрузки аватара.';
-      profileMsg.classList.add('error');
-    } finally {
-      e.target.value = '';
+      
+      let finalUrl = '';
+      try {
+        const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+        const filePath = `${user.id}/avatar_${Date.now()}.${ext}`;
+        const up = await supa.storage.from('avatars').upload(filePath, file, { upsert: true, cacheControl: '3600', contentType: file.type });
+        if (up.error) throw up.error;
+        
+        const { data: pub } = supa.storage.from('avatars').getPublicUrl(filePath);
+        finalUrl = pub?.publicUrl;
+        if (!finalUrl) {
+          const signed = await supa.storage.from('avatars').createSignedUrl(filePath, 60*60*24*365);
+          if (signed.error) throw signed.error;
+          finalUrl = signed.data.signedUrl;
+        }
+      } catch (storageErr) {
+        console.warn('Storage недоступен, сохраняем как base64:', storageErr?.message || storageErr);
+        finalUrl = previewUrl;
+      }
+      
+      await saveAvatarURLToProfile(finalUrl);
+      setMsg(profileMsg, 'Аватар обновлён.', true);
+      setTimeout(() => setMsg(profileMsg, ''), 2000);
+      document.dispatchEvent(new CustomEvent('profile:avatar-updated', { detail: { url: finalUrl } }));
+    } catch (e2) {
+      console.error('avatar error:', e2);
+      setMsg(profileMsg, `Ошибка обновления аватара: ${e2.message || e2}`);
     }
   });
 
-  // Init
+  // 14) Старт
   refreshAuthUI();
 })();
 </script>

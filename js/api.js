@@ -1,84 +1,109 @@
 // js/api.js
+'use strict';
+
+/**
+ * Универсальный Supabase‑клиент + кэш с привязкой к сессии.
+ * Требуются ENV: window.ENV = { SUPABASE_URL: '...', SUPABASE_ANON_KEY: '...' }
+ */
+
 const supa = (() => {
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ENV || {};
   if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
-    return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    try {
+      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      });
+    } catch (e) {
+      console.error('Ошибка инициализации Supabase:', e);
+      return null;
+    }
   }
-  console.warn('Supabase клиент не был инициализирован. Проверьте ENV переменные.');
+  console.warn('Supabase клиент не был инициализирован. Проверьте window.ENV (SUPABASE_URL, SUPABASE_ANON_KEY).');
   return null;
 })();
 export const supabase = supa;
 
-const cache = {};
+/* ========= Кэш с привязкой к сессии ========= */
+const cache = Object.create(null);
 
-async function fetchData(tableName, select = '*') {
-  if (cache[tableName]) return cache[tableName];
-  if (!supa) throw new Error('Supabase не инициализирован.');
-
-  const { data, error } = await supa.from(tableName).select(select).limit(50000);
-  if (error) {
-    throw new Error(`Не удалось прочитать "${tableName}": ${error.message}.`);
+async function getSessionKey() {
+  if (!supa) return 'anon';
+  try {
+    const { data: { session } } = await supa.auth.getSession();
+    return session?.user?.id || 'anon';
+  } catch {
+    return 'anon';
   }
-  if (!data || data.length === 0) {
-    console.warn(`Таблица "${tableName}" вернула 0 строк. Проверьте RLS и наличие данных.`);
-  }
-  cache[tableName] = data;
-  return data;
 }
 
-export const fetchOrgRows = () => fetchData('BOLT_orgchat');
-export const fetchPCFRows = () => fetchData('BOLT_pcf', 'code:"PCF Code", name:"Process Name", parent_id:"Parent Process ID"');
-export const fetchPnlData = (year) => fetchData(`v_pnl_${year}`);
+if (supa?.auth?.onAuthStateChange) {
+  supa.auth.onAuthStateChange(() => {
+    Object.keys(cache).forEach(k => delete cache[k]);
+  });
+}
 
 /**
- * Корректная статистика для модуля "Компания":
- * - total_employees: сотрудники в "генеральной дирекции" (Department ID = ORG-001)
- *   + сотрудники подразделений, где Parent Department ID = ORG-001
- * - total_departments: количество подразделений, где Parent Department ID = ORG-001
+ * Универсальная выборка из таблицы/вью с кэшированием по сессии.
+ * @param {string} tableName
+ * @param {string} [select='*']
+ * @param {{ noCache?: boolean, limit?: number }} [options]
  */
-export async function fetchOrgStats() {
-  const ROOT_DEPT_ID = 'ORG-001'; // Генеральная дирекция
-  if (cache['org_stats']) return cache['org_stats'];
+export async function fetchData(tableName, select = '*', options = {}) {
   if (!supa) throw new Error('Supabase не инициализирован.');
 
-  // Запрос 1: "генеральная дирекция" (одна строка по Department ID)
-  // Запрос 2: все прямые подчиненные (Parent Department ID = ORG-001)
+  const sel = (typeof select === 'string' && select.trim().length > 0) ? select : '*';
+  const sessKey = await getSessionKey();
+  const key = `${tableName}::${sel}::${sessKey}`;
+
+  if (!options.noCache && cache[key]) return cache[key];
+
+  let query = supa.from(tableName).select(sel);
+  if (Number.isFinite(options.limit)) query = query.limit(options.limit);
+
+  const { data, error } = await query;
+  if (error) throw new Error(`Не удалось прочитать "${tableName}": ${error.message}.`);
+
+  cache[key] = data || [];
+  return cache[key];
+}
+
+/** Полные строки из BOLT_orgchat (если требуется) */
+export const fetchOrgRows = () => fetchData('BOLT_orgchat');
+
+/** PCF (минимальные поля) */
+export const fetchPCFRows = () =>
+  fetchData('BOLT_pcf', 'code:"PCF Code", name:"Process Name", parent_id:"Parent Process ID"');
+
+/** PnL-вью за год */
+export const fetchPnlData = (year) => fetchData(`v_pnl_${year}`);
+
+/** Отсортированный список подразделений (строки) */
+export async function fetchOrgDepartments() {
+  const rows = await fetchData('BOLT_orgchat', '"Department Name"');
+  const names = Array.from(new Set((rows || []).map(r => r?.['Department Name']).filter(Boolean)));
+  names.sort((a, b) => a.localeCompare(b, 'ru'));
+  return names;
+}
+
+/** Статистика для раздела "Компания" */
+export async function fetchOrgStats() {
+  if (!supa) throw new Error('Supabase не инициализирован.');
+  const ROOT_DEPT_ID = 'ORG-001';
+
   const [rootRes, childrenRes] = await Promise.all([
-    supa
-      .from('BOLT_orgchat')
-      .select('"number of employees"')
-      .eq('Department ID', ROOT_DEPT_ID)
-      .limit(1),
-    supa
-      .from('BOLT_orgchat')
-      .select('"number of employees"')
-      .eq('Parent Department ID', ROOT_DEPT_ID),
+    supa.from('BOLT_orgchat').select('"number of employees"').eq('Department ID', ROOT_DEPT_ID).limit(1),
+    supa.from('BOLT_orgchat').select('"number of employees"').eq('Parent Department ID', ROOT_DEPT_ID)
   ]);
 
-  if (rootRes.error) {
-    console.error('Ошибка чтения корневого отдела (ORG-001):', rootRes.error);
-    throw new Error(`Не удалось получить данные по генеральной дирекции: ${rootRes.error.message}`);
-  }
-  if (childrenRes.error) {
-    console.error('Ошибка чтения дочерних подразделений (Parent=ORG-001):', childrenRes.error);
-    throw new Error(`Не удалось получить данные по подразделениям: ${childrenRes.error.message}`);
-  }
+  if (rootRes.error) throw new Error(`Не удалось получить данные по генеральной дирекции: ${rootRes.error.message}`);
+  if (childrenRes.error) throw new Error(`Не удалось получить данные по подразделениям: ${childrenRes.error.message}`);
 
   const rootRow = (rootRes.data && rootRes.data[0]) || null;
   const rootEmployees = rootRow ? Number(rootRow['number of employees'] || 0) : 0;
 
   const childrenRows = childrenRes.data || [];
   const total_departments = childrenRows.length;
-  const childrenEmployees = childrenRows.reduce(
-    (sum, r) => sum + Number(r?.['number of employees'] || 0),
-    0
-  );
+  const childrenEmployees = childrenRows.reduce((sum, r) => sum + Number(r?.['number of employees'] || 0), 0);
 
-  const stats = {
-    total_employees: rootEmployees + childrenEmployees,
-    total_departments,
-  };
-
-  cache['org_stats'] = stats;
-  return stats;
+  return { total_employees: rootEmployees + childrenEmployees, total_departments };
 }
