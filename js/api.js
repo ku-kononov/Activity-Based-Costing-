@@ -70,9 +70,12 @@ export async function fetchData(tableName, select = '*', options = {}) {
 /** Полные строки из BOLT_orgchat (если требуется) */
 export const fetchOrgRows = () => fetchData('BOLT_orgchat');
 
+/** Полные строки из BOLT_Cost Driver_pcf+orgchat для связи процессов и подразделений */
+export const fetchCostDriverPCFOrgRows = () => fetchData('BOLT_Cost Driver_pcf+orgchat');
+
 /** PCF (минимальные поля) */
 export const fetchPCFRows = () =>
-  fetchData('BOLT_pcf', 'code:"PCF Code", name:"Process Name", parent_id:"Parent Process ID"');
+  fetchData('BOLT_pcf', '"Process ID", code:"PCF Code", name:"Process Name", parent_id:"Parent Process ID"');
 
 /** PnL-вью за год */
 export const fetchPnlData = (year) => fetchData(`v_pnl_${year}`);
@@ -107,3 +110,20 @@ export async function fetchOrgStats() {
 
   return { total_employees: rootEmployees + childrenEmployees, total_departments };
 }
+
+/** Получить названия подразделений по списку кодов */
+export async function fetchDepartmentNamesByCodes(orgCodes) {
+  if (!orgCodes || !orgCodes.length) return {};
+  const codesList = orgCodes.join(',');
+  const rows = await fetchData('BOLT_orgchat', '"Department ID", "Department Name", "Parent Department ID"', { noCache: true });
+  const nameMap = {};
+  rows.forEach(row => {
+    if (orgCodes.includes(row['Department ID'])) {
+      nameMap[row['Department ID']] = row['Department Name'];
+    }
+  });
+  return nameMap;
+}
+
+/** Получить полную оргструктуру для построения иерархии */
+export const fetchOrgStructure = () => fetchData('BOLT_orgchat', '"Department ID", "Department Name", "Parent Department ID"');
