@@ -1,94 +1,141 @@
 // js/pages/org-structure.js
-import { fetchOrgRows } from '../api.js';
+import { fetchOrgRows, fetchData } from '../api.js';
 import { debounce, norm, refreshIcons, iconSlugFor } from '../utils.js';
 
+/* ========== Встроенные стили для модального окна (однократно) ========== */
+let __orgTableStylesInjected = false;
+function ensureOrgTableStyles() {
+  if (__orgTableStylesInjected) return;
+  const css = `
+    .process-popup-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 8px; font-weight: 600;
+      border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer; transition: all .2s;
+    }
+    .process-popup-btn:not([disabled]):hover {
+      background: var(--bg); border-color: var(--blue); color: var(--blue);
+    }
+    .process-popup-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+    .process-popup-btn i { width: 14px; height: 14px; }
+    .process-popup-btn .count { font-size: 12px; font-weight: 700; }
+
+    .org-modal-overlay {
+      position: fixed; inset: 0; z-index: 1050;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .2s ease; pointer-events: none;
+    }
+    .org-modal-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+    .org-modal-window {
+      background: var(--surface); border-radius: 16px;
+      width: 90%; max-width: 800px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column;
+      transform: scale(0.95); transition: transform .2s ease;
+    }
+    .org-modal-overlay.is-open .org-modal-window { transform: scale(1); }
+    
+    .org-modal-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .org-modal-title { font-size: 18px; font-weight: 700; margin: 0; }
+    .org-modal-close { background: transparent; border: none; cursor: pointer; padding: 4px; }
+
+    .org-modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+    .process-group { margin-bottom: 20px; }
+    .process-group-title {
+      font-size: 14px; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--divider);
+    }
+    .process-list-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; font-size: 14px;
+    }
+    .process-list-item-marker {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .process-list-item-name { font-weight: 600; }
+  `;
+  const styleEl = document.createElement('style');
+  styleEl.textContent = css;
+  document.head.appendChild(styleEl);
+  __orgTableStylesInjected = true;
+}
+
+
+/* ================== Вспомогалки (восстановлены) ================== */
+const normalizeCode = (c) => String(c||'').trim().replace(/^PCF[-\s]*/i,'').replace(/[^\d.]/g,'').replace(/^\.+|\.+$/g,'').replace(/\.+/g,'.');
+const getMajorAny = (c) => parseInt(String(c||'').split('.')[0],10)||0;
+const cmpNormCodes = (a, b) => {
+  const A = a.split('.').map(Number), B = b.split('.').map(Number);
+  for (let i=0; i<Math.max(A.length,B.length); i++) {
+    const d = (A[i]||0) - (B[i]||0);
+    if (d !== 0) return d;
+  }
+  return 0;
+};
+
 /* ----------------------- Нормализация и дерево ----------------------- */
-// Жёстко под ваши колонки:
-// - Department ID
-// - Parent Department ID
-// - Department Name
-// - Department Code
-// - number of employees
 function normalizeRows(rows) {
   if (!Array.isArray(rows) || !rows.length) return [];
-
   let auto = 0;
   const seen = new Set();
-
   return rows.map(r => {
     const rawId = r['Department ID'];
     const rawPid = r['Parent Department ID'];
     const name = String(r['Department Name'] ?? '').trim();
     const code = String(r['Department Code'] ?? '').trim();
     const hcRaw = r['number of employees'];
-
     if (!name) return null;
-
     let id = String(rawId ?? '').trim();
-    if (!id) id = `row-${auto++}`;
-    if (seen.has(id)) id = `${id}-${auto++}`;
+    if (!id || seen.has(id)) id = `${id || 'row'}-${auto++}`;
     seen.add(id);
-
     const parentId = String(rawPid ?? '').trim() || null;
     const headcount = hcRaw != null && hcRaw !== '' ? parseInt(String(hcRaw).replace(/[^\d]/g, ''), 10) : null;
-
     return { id, parentId, name, code, headcount, children: [] };
   }).filter(Boolean);
 }
 
 function buildTree(items) {
-  if (!items || !items.length) return null;
-
-  // Картотека узлов
-  const byId = new Map(items.map(it => [it.id, { ...it, children: [] }]));
-
-  // Связываем дети -> родитель (только если родитель существует и не self)
-  const childIds = new Set();
-  byId.forEach(n => {
-    const pid = n.parentId && n.parentId !== n.id && byId.has(n.parentId) ? n.parentId : null;
-    if (pid) {
-      byId.get(pid).children.push(n);
-      childIds.add(n.id);
+    if (!items || !items.length) return null;
+    const byId = new Map(items.map(it => [it.id, { ...it, children: [] }]));
+    const childIds = new Set();
+    byId.forEach(n => {
+      const pid = n.parentId && n.parentId !== n.id && byId.has(n.parentId) ? n.parentId : null;
+      if (pid) {
+        byId.get(pid).children.push(n);
+        childIds.add(n.id);
+      }
+    });
+    let roots = Array.from(byId.values()).filter(n => !childIds.has(n.id));
+    if (roots.length === 0 && byId.size > 0) {
+      const first = byId.values().next().value;
+      if (first) {
+        first.parentId = null;
+        roots = [first];
+      }
     }
-  });
-
-  // Корни = те, кто ни разу не помечен как ребёнок
-  let roots = Array.from(byId.values()).filter(n => !childIds.has(n.id));
-
-  // Если корней нет (циклические ссылки) — разрываем цикл у первого попавшегося
-  if (roots.length === 0) {
-    const first = byId.values().next().value;
-    if (first) {
-      // Удаляем у него ссылку на родителя и считаем корнем
-      first.parentId = null;
-      roots = [first];
+    let root = roots.find(n => /генеральн/i.test(n.name)) || null;
+    if (!root && roots.length > 0) {
+      root = { id: 'CEO_VIRTUAL', name: 'Генеральная дирекция', code: 'CEO', children: roots };
     }
-  }
-
-  // Предпочтём корень с "Генеральн"
-  let root = roots.find(n => /генеральн/i.test(n.name)) || null;
-
-  if (!root && roots.length === 1) {
-    root = roots[0];
-    if (!/генеральн/i.test(root.name)) {
-      root = { id: 'CEO_VIRTUAL', name: 'Генеральная дирекция', code: 'CEO', headcount: null, parentId: null, children: [roots[0]] };
-    }
-  } else if (!root && roots.length > 1) {
-    root = { id: 'CEO_VIRTUAL', name: 'Генеральная дирекция', code: 'CEO', headcount: null, parentId: null, children: roots };
-  }
-
-  return root || null;
+    return root || null;
 }
 
 const DIR_COLORS = ['#14b8a6', '#60a5fa', '#34d399', '#f59e0b', '#f472b6', '#a78bfa', '#06b6d4', '#22c55e', '#ef4444'];
 function colorizeByDirectorate(root) {
+  if (!root) return;
   const rootColor = '#94a3b8';
   root.color = rootColor;
   (root.children || []).forEach((dir, i) => {
     const color = DIR_COLORS[i % DIR_COLORS.length];
     (function paint(n) { n.color = color; (n.children || []).forEach(paint); })(dir);
   });
-
   (function overrideColors(n) {
     const nameNorm = norm(n.name);
     if (nameNorm.includes('секретариат') || (nameNorm.includes('проектн') && nameNorm.includes('офис'))) {
@@ -98,13 +145,13 @@ function colorizeByDirectorate(root) {
   })(root);
 }
 
-/* ---------------------------- Вспомогалки ---------------------------- */
-function setDepth(n, d = 0) { n.depth = d; (n.children || []).forEach(c => setDepth(c, d + 1)); }
+function setDepth(n, d = 0) { if(n) { n.depth = d; (n.children || []).forEach(c => setDepth(c, d + 1)); } }
 const matches = (n, q) => !q || norm(n.name).includes(q) || norm(n.code || '').includes(q);
 
+
 /* ----------------------------- LIST VIEW ----------------------------- */
-function renderOrgList(container, root) {
-  container.innerHTML = `
+function renderOrgList(container, root, costData, pcfData) {
+    container.innerHTML = `
     <section class="data-card org-page">
       <div class="card-header org-header">
         <div class="org-title-left">
@@ -133,7 +180,7 @@ function renderOrgList(container, root) {
   const wrap = container.querySelector('#orgListWrap');
   const searchEl = container.querySelector('#orgGlobalSearch');
   const btnTable = container.querySelector('#btnOrgTable');
-  btnTable?.addEventListener('click', () => renderOrgTable(container, root));
+  btnTable?.addEventListener('click', () => renderOrgTable(container, root, costData, pcfData));
 
   setDepth(root);
   const expanded = new Set([root.id]);
@@ -143,8 +190,7 @@ function renderOrgList(container, root) {
     const d = n.depth || 0;
     const kids = n.children || [];
     const open = expanded.has(n.id);
-    const show = matches(n, q);
-    if (!show) return;
+    if (q && !matches(n, q)) return;
 
     const el = document.createElement('div');
     el.className = 'org-node';
@@ -192,7 +238,7 @@ function renderOrgList(container, root) {
 
     wrap.appendChild(el);
 
-    if (kids.length && expanded.has(n.id)) kids.forEach(drawNode);
+    if (kids.length && open) kids.forEach(drawNode);
   };
 
   const doRender = () => { wrap.innerHTML = ''; drawNode(root); refreshIcons(); };
@@ -200,13 +246,35 @@ function renderOrgList(container, root) {
   doRender();
 }
 
-/* ---------------------------- TABLE VIEW ----------------------------- */
-function renderOrgTable(container, root) {
+
+/* ---------------------------- TABLE VIEW (с новой колонкой) ----------------------------- */
+function renderOrgTable(container, root, costData, pcfData) {
+  ensureOrgTableStyles();
   const all = [];
   setDepth(root);
   (function collect(n) { all.push(n); (n.children || []).forEach(collect); })(root);
   const byId = new Map(all.map(n => [n.id, n]));
   const expanded = new Set([root.id]);
+  
+  const pcfMap = new Map(pcfData.map(p => [p['Process ID'], p]));
+
+  all.forEach(dept => {
+    dept.processes = costData
+      .filter(row => Number(String(row[dept.id] || '0').replace(',', '.')) !== 0)
+      .map(row => {
+        const pcfInfo = pcfMap.get(row['Process ID']) || {};
+        const major = getMajorAny(pcfInfo['PCF Code']);
+        const groupKey = [1,13].includes(major) ? 'management' : [2,3,4,5,6].includes(major) ? 'core' : 'enablement';
+        const color = {core:'var(--blue)', enablement:'var(--success)', management:'var(--warning)'}[groupKey];
+        return {
+          name: pcfInfo['Process Name'] || row['Process ID'],
+          code: pcfInfo['PCF Code'] || 'N/A',
+          group: groupKey,
+          color: color
+        };
+      })
+      .sort((a,b) => cmpNormCodes(a.code, b.code));
+  });
 
   container.innerHTML = `
     <section class="data-card org-page">
@@ -215,7 +283,7 @@ function renderOrgTable(container, root) {
           <i data-lucide="drama" class="main-icon org-header-icon"></i>
           <div class="org-title-texts">
             <h3 class="card-title org-header-title">Организационная структура</h3>
-            <p class="card-subtitle org-header-subtitle">Organizational Structure</p>
+            <p class="card-subtitle org-header-subtitle">Представление в виде таблицы</p>
           </div>
         </div>
         <div class="org-actions-top">
@@ -232,13 +300,10 @@ function renderOrgTable(container, root) {
       <div class="org-table-toolbar">
         <button id="btnExpandAll" class="btn"><i data-lucide="chevrons-down-up"></i> Развернуть все</button>
         <button id="btnCollapseAll" class="btn"><i data-lucide="chevrons-up-down"></i> Свернуть до дирекций</button>
-        <span class="toolbar-spacer"></span>
-        <button id="btnExportExcel" class="btn"><i data-lucide="file-spreadsheet"></i> Экспорт в Excel</button>
-        <button id="btnExportPDF" class="btn"><i data-lucide="file-text"></i> Экспорт в PDF</button>
       </div>
       <div class="org-table-wrap">
         <table class="org-table" id="orgTable">
-          <thead><tr><th style="width:56%;">Подразделение</th><th style="width:22%;">Код</th><th style="width:22%;">Численность</th></tr></thead>
+          <thead><tr><th style="width:15%;">Код</th><th style="width:40%;">Подразделение</th><th style="width:20%;">Численность</th><th style="width:25%;">Процессы</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -248,47 +313,51 @@ function renderOrgTable(container, root) {
 
   const tbody = container.querySelector('#orgTable tbody');
   const searchEl = container.querySelector('#orgGlobalSearch');
-  const btnList = container.querySelector('#btnOrgList');
-  btnList?.addEventListener('click', () => renderOrgList(container, root));
+  container.querySelector('#btnOrgList')?.addEventListener('click', () => renderOrgList(container, root, costData, pcfData));
 
   const visible = (n) => {
     if (n === root) return true;
     let cur = n;
-    while (cur.parentId) { const p = byId.get(cur.parentId); if (!p) break; if (!expanded.has(p.id)) return false; cur = p; }
+    while (cur.parentId) {
+      const p = byId.get(cur.parentId);
+      if (!p || !expanded.has(p.id)) return false;
+      cur = p;
+    }
     return true;
   };
 
-  const collectVisible = (q) => all
-    .filter(n => visible(n) && matches(n, q))
-    .map(n => ({
-      id: n.id,
-      name: n.depth === 0 ? 'Генеральная дирекция' : n.name,
-      code: n.code || '—',
-      headcount: n.headcount ?? '—',
-      depth: n.depth,
-      hasChildren: (n.children || []).length > 0,
-      color: n.color
-    }));
-
   const doRender = () => {
     const q = norm(searchEl?.value || '');
-    const rows = collectVisible(q);
+    const rows = all.filter(n => visible(n) && matches(n, q));
     tbody.innerHTML = rows.map(r => `
-      <tr data-id="${r.id}" data-has-children="${r.hasChildren}">
+      <tr data-id="${r.id}" data-has-children="${(r.children || []).length > 0}">
+        <td><span class="org-code-badge">${r.code || '—'}</span></td>
         <td>
           <div class="tree-cell">
             <span class="tree-indent" style="--depth:${r.depth}"></span>
-            <span>${r.name}</span>
+            <span>${r.depth === 0 ? 'Генеральная дирекция' : r.name}</span>
           </div>
         </td>
-        <td><span class="org-code-badge">${r.code}</span></td>
-        <td>${r.headcount}</td>
+        <td>${r.headcount ?? '—'}</td>
+        <td>
+          <button class="process-popup-btn" data-dept-id="${r.id}" ${r.processes.length === 0 ? 'disabled' : ''}>
+            <i data-lucide="list-checks"></i>
+            <span class="count">${r.processes.length}</span>
+          </button>
+        </td>
       </tr>
     `).join('');
     refreshIcons();
   };
 
   tbody.addEventListener('click', e => {
+    const btn = e.target.closest('.process-popup-btn');
+    if (btn) {
+      e.stopPropagation();
+      const dept = all.find(d => d.id === btn.dataset.deptId);
+      if (dept) showProcessModal(dept);
+      return;
+    }
     const tr = e.target.closest('tr');
     if (!tr || tr.dataset.hasChildren !== 'true') return;
     const id = tr.dataset.id;
@@ -300,43 +369,98 @@ function renderOrgTable(container, root) {
   container.querySelector('#btnExpandAll').addEventListener('click', () => { all.forEach(n => expanded.add(n.id)); doRender(); });
   container.querySelector('#btnCollapseAll').addEventListener('click', () => { expanded.clear(); expanded.add(root.id); doRender(); });
   searchEl?.addEventListener('input', debounce(doRender, 200));
-  container.querySelector('#btnExportExcel').addEventListener('click', () => { /* ... экспорт ... */ });
-  container.querySelector('#btnExportPDF').addEventListener('click', () => { /* ... экспорт ... */ });
   doRender();
 }
 
-/* ------------------------------ ENTRY ------------------------------ */
-export async function renderOrgPage(container) {
-  container.innerHTML = `
-    <section class="data-card org-page">
-      <div class="card-header org-header">
-        <div class="org-title-left">
-          <i data-lucide="drama" class="main-icon org-header-icon"></i>
-          <div class="org-title-texts">
-            <h3 class="card-title org-header-title">Организационная структура</h3>
-            <p class="card-subtitle org-header-subtitle">Загрузка оргструктуры…</p>
-          </div>
+/* -------------------------- MODAL WINDOW --------------------------- */
+function showProcessModal(department) {
+    const existingModal = document.querySelector('.org-modal-overlay');
+    if (existingModal) existingModal.remove();
+
+    const groupProcesses = (processes) => {
+        const groups = { management: [], core: [], enablement: [] };
+        processes.forEach(p => {
+            if (groups[p.group]) groups[p.group].push(p);
+        });
+        return groups;
+    };
+
+    const renderGroup = (title, processes) => {
+        if (!processes.length) return '';
+        const color = processes[0].color;
+        return `
+            <div class="process-group">
+                <h4 class="process-group-title" style="color: ${color};">${title}</h4>
+                ${processes.map(p => `
+                    <div class="process-list-item">
+                        <span class="process-list-item-marker" style="background-color: ${p.color};"></span>
+                        <span class="process-list-item-name">${p.code} ${p.name}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    };
+
+    const grouped = groupProcesses(department.processes);
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'org-modal-overlay';
+    overlay.innerHTML = `
+        <div class="org-modal-window">
+            <div class="org-modal-header">
+                <h3 class="org-modal-title">Процессы подразделения: ${department.name}</h3>
+                <button class="org-modal-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="org-modal-body">
+                ${renderGroup('Управление', grouped.management)}
+                ${renderGroup('Основные', grouped.core)}
+                ${renderGroup('Обеспечение', grouped.enablement)}
+            </div>
         </div>
-      </div>
-    </section>
-  `;
+    `;
+
+    document.body.appendChild(overlay);
+    refreshIcons();
+
+    const close = () => {
+        overlay.classList.remove('is-open');
+        setTimeout(() => overlay.remove(), 250);
+    };
+
+    setTimeout(() => overlay.classList.add('is-open'), 10);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector('.org-modal-close').addEventListener('click', close);
+}
+
+
+/* ------------------------------ ENTRY POINT ------------------------------ */
+export async function renderOrgPage(container) {
+  container.innerHTML = `<section class="data-card org-page"><div class="card-header org-header"><div class="org-title-left"><i data-lucide="drama" class="main-icon org-header-icon"></i><div class="org-title-texts"><h3 class="card-title org-header-title">Организационная структура</h3><p class="card-subtitle org-header-subtitle">Загрузка...</p></div></div></div></section>`;
   refreshIcons();
 
   try {
-    const raw = await fetchOrgRows();
-    if (!raw || raw.length === 0) {
-      throw new Error('Таблица public."BOLT_orgchat" вернула 0 строк. Проверьте RLS-политику SELECT и наличие данных.');
-    }
-    const rows = normalizeRows(raw);
+    const [rawOrg, costData, pcfDataRaw] = await Promise.all([
+        fetchOrgRows(),
+        fetchData('BOLT_Cost Driver_pcf+orgchat', '*'),
+        fetchData('BOLT_pcf', '*, "Process ID", "Process Name", "PCF Code"')
+    ]);
+    
+    if (!rawOrg || rawOrg.length === 0) throw new Error('Таблица оргструктуры (BOLT_orgchat) пуста.');
+    
+    const rows = normalizeRows(rawOrg);
     const root = buildTree(rows);
-    if (!root) throw new Error('Данные оргструктуры пусты или не удалось построить иерархию. Проверьте Parent Department ID.');
+    if (!root) throw new Error('Не удалось построить иерархию оргструктуры.');
+    
     colorizeByDirectorate(root);
-    renderOrgList(container, root);
+    
+    const pcfData = pcfDataRaw.map(r => ({
+        'Process ID': r['Process ID'],
+        'Process Name': r['Process Name'],
+        'PCF Code': r['PCF Code'],
+    }));
+
+    renderOrgTable(container, root, costData, pcfData);
   } catch (e) {
-    container.innerHTML = `
-      <div class="data-card" style="border-color:#DC3545;">
-        <div class="card-header"><h3 class="card-title">Ошибка</h3></div>
-        <div style="padding:8px; white-space:pre-wrap;">${e.message || String(e)}</div>
-      </div>`;
+    container.innerHTML = `<div class="data-card" style="border-color:var(--danger);"><div class="card-header"><h3 class="card-title">Ошибка</h3></div><div style="padding:8px;">${e.message || String(e)}</div></div>`;
   }
 }
