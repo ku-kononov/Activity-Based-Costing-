@@ -20,6 +20,8 @@ function ensureOrgTableStyles() {
     .process-popup-btn i { width: 14px; height: 14px; }
     .process-popup-btn .count { font-size: 12px; font-weight: 700; }
 
+    .org-node-head .emp-pill { margin-left: auto; }
+    
     .org-modal-overlay {
       position: fixed; inset: 0; z-index: 1050;
       background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
@@ -68,7 +70,7 @@ function ensureOrgTableStyles() {
 }
 
 
-/* ================== Вспомогалки (восстановлены) ================== */
+/* ================== Вспомогалки ================== */
 const normalizeCode = (c) => String(c||'').trim().replace(/^PCF[-\s]*/i,'').replace(/[^\d.]/g,'').replace(/^\.+|\.+$/g,'').replace(/\.+/g,'.');
 const getMajorAny = (c) => parseInt(String(c||'').split('.')[0],10)||0;
 const cmpNormCodes = (a, b) => {
@@ -148,17 +150,82 @@ function colorizeByDirectorate(root) {
 function setDepth(n, d = 0) { if(n) { n.depth = d; (n.children || []).forEach(c => setDepth(c, d + 1)); } }
 const matches = (n, q) => !q || norm(n.name).includes(q) || norm(n.code || '').includes(q);
 
+/* -------------------------- MODAL WINDOW --------------------------- */
+function showProcessModal(department) {
+    const existingModal = document.querySelector('.org-modal-overlay');
+    if (existingModal) existingModal.remove();
+
+    const groupProcesses = (processes) => {
+        const groups = { management: [], core: [], enablement: [] };
+        (processes || []).forEach(p => {
+            if (groups[p.group]) groups[p.group].push(p);
+        });
+        return groups;
+    };
+
+    const renderGroup = (title, processes) => {
+        if (!processes.length) return '';
+        const color = processes[0].color;
+        return `
+            <div class="process-group">
+                <h4 class="process-group-title" style="color: ${color}; border-color: ${color};">${title}</h4>
+                ${processes.map(p => `
+                    <div class="process-list-item">
+                        <span class="process-list-item-marker" style="background-color: ${p.color};"></span>
+                        <span class="process-list-item-name">${p.code} ${p.name}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    };
+
+    const grouped = groupProcesses(department.processes);
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'org-modal-overlay';
+    overlay.innerHTML = `
+        <div class="org-modal-window">
+            <div class="org-modal-header">
+                <h3 class="org-modal-title">Процессы подразделения: ${department.name}</h3>
+                <button class="org-modal-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="org-modal-body">
+                ${renderGroup('Управление', grouped.management)}
+                ${renderGroup('Основные', grouped.core)}
+                ${renderGroup('Обеспечение', grouped.enablement)}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    refreshIcons();
+
+    const handleEscape = (e) => { if (e.key === 'Escape') close(); };
+    const close = () => {
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', handleEscape);
+        overlay.classList.remove('is-open');
+        setTimeout(() => overlay.remove(), 250);
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleEscape);
+    setTimeout(() => overlay.classList.add('is-open'), 10);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector('.org-modal-close').addEventListener('click', close);
+}
+
 
 /* ----------------------------- LIST VIEW ----------------------------- */
-function renderOrgList(container, root, costData, pcfData) {
-    container.innerHTML = `
+function renderOrgList(container, root, allNodes) {
+  container.innerHTML = `
     <section class="data-card org-page">
       <div class="card-header org-header">
         <div class="org-title-left">
           <i data-lucide="drama" class="main-icon org-header-icon"></i>
           <div class="org-title-texts">
             <h3 class="card-title org-header-title">Организационная структура</h3>
-            <p class="card-subtitle org-header-subtitle">Organizational Structure</p>
+            <p class="card-subtitle org-header-subtitle">Представление в виде списка</p>
           </div>
         </div>
         <div class="org-actions-top">
@@ -179,10 +246,8 @@ function renderOrgList(container, root, costData, pcfData) {
 
   const wrap = container.querySelector('#orgListWrap');
   const searchEl = container.querySelector('#orgGlobalSearch');
-  const btnTable = container.querySelector('#btnOrgTable');
-  btnTable?.addEventListener('click', () => renderOrgTable(container, root, costData, pcfData));
+  container.querySelector('#btnOrgTable')?.addEventListener('click', () => renderOrgTable(container, root, allNodes));
 
-  setDepth(root);
   const expanded = new Set([root.id]);
   let q = '';
 
@@ -196,16 +261,15 @@ function renderOrgList(container, root, costData, pcfData) {
     el.className = 'org-node';
     el.style.setProperty('--depth', d);
     if (n.color) el.style.setProperty('--dir-color', n.color);
-    el.dataset.depth = String(d);
-
+    
     const head = document.createElement('div');
     head.className = 'org-node-head';
+    head.dataset.deptId = n.id;
 
     const caret = document.createElement('button');
     caret.className = 'org-caret';
-    const caretIcon = kids.length ? (open ? 'chevron-up' : 'chevron-down') : 'dot';
-    caret.innerHTML = `<i data-lucide="${caretIcon}"></i>`;
-    if (!kids.length) caret.setAttribute('disabled', 'true');
+    caret.innerHTML = `<i data-lucide="${kids.length ? (open ? 'chevron-up' : 'chevron-down') : 'dot'}"></i>`;
+    if (!kids.length) caret.disabled = true;
 
     const ico = document.createElement('i');
     ico.setAttribute('data-lucide', iconSlugFor(n.name));
@@ -213,8 +277,7 @@ function renderOrgList(container, root, costData, pcfData) {
 
     const title = document.createElement('div');
     title.className = 'org-node-title';
-    const displayName = d === 0 ? 'Генеральная дирекция' : n.name;
-    title.textContent = displayName;
+    title.textContent = n.name; // ИСПРАВЛЕНО
 
     const code = document.createElement('span');
     code.className = 'org-code-chip';
@@ -225,16 +288,26 @@ function renderOrgList(container, root, costData, pcfData) {
     emp.title = 'Численность';
     emp.textContent = `${n.headcount ?? '—'} чел.`;
 
+    const processBtn = document.createElement('button');
+    processBtn.className = 'process-popup-btn';
+    processBtn.dataset.deptId = n.id;
+    processBtn.disabled = n.processes.length === 0;
+    processBtn.innerHTML = `<i data-lucide="list-checks"></i><span class="count">${n.processes.length}</span>`;
+    
     head.appendChild(caret);
     head.appendChild(ico);
     head.appendChild(title);
     head.appendChild(code);
     head.appendChild(emp);
+    head.appendChild(processBtn);
     el.appendChild(head);
 
     const toggle = () => { if (kids.length) { open ? expanded.delete(n.id) : expanded.add(n.id); doRender(); } };
     caret.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
-    head.addEventListener('click', (e) => { if (e.target.closest('.org-code-chip')) return; toggle(); });
+    head.addEventListener('click', (e) => {
+      if (e.target.closest('.org-code-chip, .process-popup-btn')) return;
+      toggle();
+    });
 
     wrap.appendChild(el);
 
@@ -243,39 +316,17 @@ function renderOrgList(container, root, costData, pcfData) {
 
   const doRender = () => { wrap.innerHTML = ''; drawNode(root); refreshIcons(); };
   searchEl?.addEventListener('input', debounce(() => { q = norm(searchEl.value); doRender(); }, 200));
+  
   doRender();
 }
 
 
-/* ---------------------------- TABLE VIEW (с новой колонкой) ----------------------------- */
-function renderOrgTable(container, root, costData, pcfData) {
+/* ---------------------------- TABLE VIEW ----------------------------- */
+function renderOrgTable(container, root, allNodes) {
   ensureOrgTableStyles();
-  const all = [];
-  setDepth(root);
-  (function collect(n) { all.push(n); (n.children || []).forEach(collect); })(root);
-  const byId = new Map(all.map(n => [n.id, n]));
+  const byId = new Map(allNodes.map(n => [n.id, n]));
   const expanded = new Set([root.id]);
   
-  const pcfMap = new Map(pcfData.map(p => [p['Process ID'], p]));
-
-  all.forEach(dept => {
-    dept.processes = costData
-      .filter(row => Number(String(row[dept.id] || '0').replace(',', '.')) !== 0)
-      .map(row => {
-        const pcfInfo = pcfMap.get(row['Process ID']) || {};
-        const major = getMajorAny(pcfInfo['PCF Code']);
-        const groupKey = [1,13].includes(major) ? 'management' : [2,3,4,5,6].includes(major) ? 'core' : 'enablement';
-        const color = {core:'var(--blue)', enablement:'var(--success)', management:'var(--warning)'}[groupKey];
-        return {
-          name: pcfInfo['Process Name'] || row['Process ID'],
-          code: pcfInfo['PCF Code'] || 'N/A',
-          group: groupKey,
-          color: color
-        };
-      })
-      .sort((a,b) => cmpNormCodes(a.code, b.code));
-  });
-
   container.innerHTML = `
     <section class="data-card org-page">
       <div class="card-header org-header">
@@ -313,7 +364,7 @@ function renderOrgTable(container, root, costData, pcfData) {
 
   const tbody = container.querySelector('#orgTable tbody');
   const searchEl = container.querySelector('#orgGlobalSearch');
-  container.querySelector('#btnOrgList')?.addEventListener('click', () => renderOrgList(container, root, costData, pcfData));
+  container.querySelector('#btnOrgList')?.addEventListener('click', () => renderOrgList(container, root, allNodes));
 
   const visible = (n) => {
     if (n === root) return true;
@@ -328,14 +379,14 @@ function renderOrgTable(container, root, costData, pcfData) {
 
   const doRender = () => {
     const q = norm(searchEl?.value || '');
-    const rows = all.filter(n => visible(n) && matches(n, q));
+    const rows = allNodes.filter(n => visible(n) && matches(n, q));
     tbody.innerHTML = rows.map(r => `
       <tr data-id="${r.id}" data-has-children="${(r.children || []).length > 0}">
         <td><span class="org-code-badge">${r.code || '—'}</span></td>
         <td>
           <div class="tree-cell">
             <span class="tree-indent" style="--depth:${r.depth}"></span>
-            <span>${r.depth === 0 ? 'Генеральная дирекция' : r.name}</span>
+            <span>${r.name}</span>
           </div>
         </td>
         <td>${r.headcount ?? '—'}</td>
@@ -354,7 +405,7 @@ function renderOrgTable(container, root, costData, pcfData) {
     const btn = e.target.closest('.process-popup-btn');
     if (btn) {
       e.stopPropagation();
-      const dept = all.find(d => d.id === btn.dataset.deptId);
+      const dept = allNodes.find(d => d.id === btn.dataset.deptId);
       if (dept) showProcessModal(dept);
       return;
     }
@@ -366,75 +417,16 @@ function renderOrgTable(container, root, costData, pcfData) {
     doRender();
   });
 
-  container.querySelector('#btnExpandAll').addEventListener('click', () => { all.forEach(n => expanded.add(n.id)); doRender(); });
+  container.querySelector('#btnExpandAll').addEventListener('click', () => { allNodes.forEach(n => expanded.add(n.id)); doRender(); });
   container.querySelector('#btnCollapseAll').addEventListener('click', () => { expanded.clear(); expanded.add(root.id); doRender(); });
   searchEl?.addEventListener('input', debounce(doRender, 200));
   doRender();
 }
 
-/* -------------------------- MODAL WINDOW --------------------------- */
-function showProcessModal(department) {
-    const existingModal = document.querySelector('.org-modal-overlay');
-    if (existingModal) existingModal.remove();
-
-    const groupProcesses = (processes) => {
-        const groups = { management: [], core: [], enablement: [] };
-        processes.forEach(p => {
-            if (groups[p.group]) groups[p.group].push(p);
-        });
-        return groups;
-    };
-
-    const renderGroup = (title, processes) => {
-        if (!processes.length) return '';
-        const color = processes[0].color;
-        return `
-            <div class="process-group">
-                <h4 class="process-group-title" style="color: ${color};">${title}</h4>
-                ${processes.map(p => `
-                    <div class="process-list-item">
-                        <span class="process-list-item-marker" style="background-color: ${p.color};"></span>
-                        <span class="process-list-item-name">${p.code} ${p.name}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    };
-
-    const grouped = groupProcesses(department.processes);
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'org-modal-overlay';
-    overlay.innerHTML = `
-        <div class="org-modal-window">
-            <div class="org-modal-header">
-                <h3 class="org-modal-title">Процессы подразделения: ${department.name}</h3>
-                <button class="org-modal-close"><i data-lucide="x"></i></button>
-            </div>
-            <div class="org-modal-body">
-                ${renderGroup('Управление', grouped.management)}
-                ${renderGroup('Основные', grouped.core)}
-                ${renderGroup('Обеспечение', grouped.enablement)}
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-    refreshIcons();
-
-    const close = () => {
-        overlay.classList.remove('is-open');
-        setTimeout(() => overlay.remove(), 250);
-    };
-
-    setTimeout(() => overlay.classList.add('is-open'), 10);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-    overlay.querySelector('.org-modal-close').addEventListener('click', close);
-}
-
 
 /* ------------------------------ ENTRY POINT ------------------------------ */
 export async function renderOrgPage(container) {
+  ensureOrgTableStyles();
   container.innerHTML = `<section class="data-card org-page"><div class="card-header org-header"><div class="org-title-left"><i data-lucide="drama" class="main-icon org-header-icon"></i><div class="org-title-texts"><h3 class="card-title org-header-title">Организационная структура</h3><p class="card-subtitle org-header-subtitle">Загрузка...</p></div></div></div></section>`;
   refreshIcons();
 
@@ -442,24 +434,52 @@ export async function renderOrgPage(container) {
     const [rawOrg, costData, pcfDataRaw] = await Promise.all([
         fetchOrgRows(),
         fetchData('BOLT_Cost Driver_pcf+orgchat', '*'),
-        fetchData('BOLT_pcf', '*, "Process ID", "Process Name", "PCF Code"')
+        fetchData('BOLT_pcf', '*')
     ]);
     
-    if (!rawOrg || rawOrg.length === 0) throw new Error('Таблица оргструктуры (BOLT_orgchat) пуста.');
+    if (!rawOrg || !rawOrg.length) throw new Error('Таблица оргструктуры (BOLT_orgchat) пуста.');
     
-    const rows = normalizeRows(rawOrg);
-    const root = buildTree(rows);
+    const orgRows = normalizeRows(rawOrg);
+    const root = buildTree(orgRows);
     if (!root) throw new Error('Не удалось построить иерархию оргструктуры.');
     
     colorizeByDirectorate(root);
     
-    const pcfData = pcfDataRaw.map(r => ({
-        'Process ID': r['Process ID'],
-        'Process Name': r['Process Name'],
-        'PCF Code': r['PCF Code'],
-    }));
+    const pcfMap = new Map((pcfDataRaw || []).map(p => [p['Process ID'], p]));
+    const allNodes = [];
+    (function collect(n) { allNodes.push(n); (n.children || []).forEach(collect); })(root);
 
-    renderOrgTable(container, root, costData, pcfData);
+    allNodes.forEach(dept => {
+        dept.processes = costData
+            .filter(row => Number(String(row[dept.id] || '0').replace(',', '.')) !== 0)
+            .map(row => {
+                const pcfInfo = pcfMap.get(row['Process ID']) || {};
+                const major = getMajorAny(pcfInfo['PCF Code']);
+                const groupKey = [1,13].includes(major) ? 'management' : [2,3,4,5,6].includes(major) ? 'core' : 'enablement';
+                const color = {core:'var(--blue)', enablement:'var(--success)', management:'var(--warning)'}[groupKey];
+                return {
+                    name: pcfInfo['Process Name'] || row['Process ID'],
+                    code: pcfInfo['PCF Code'] || 'N/A',
+                    group: groupKey,
+                    color: color
+                };
+            })
+            .sort((a,b) => cmpNormCodes(a.code, b.code));
+    });
+
+    renderOrgList(container, root, allNodes, costData, pcfMap);
+
+    // Единый обработчик для модального окна
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.process-popup-btn');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dept = allNodes.find(d => d.id === btn.dataset.deptId);
+            if (dept) showProcessModal(dept);
+        }
+    });
+
   } catch (e) {
     container.innerHTML = `<div class="data-card" style="border-color:var(--danger);"><div class="card-header"><h3 class="card-title">Ошибка</h3></div><div style="padding:8px;">${e.message || String(e)}</div></div>`;
   }
