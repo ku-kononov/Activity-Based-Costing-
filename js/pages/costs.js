@@ -11,6 +11,9 @@ const fmt = (val, digits = 1) =>
 
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 
+const cssVar = (name, fallback) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name)?.trim() || fallback;
+
 // Конвертер ArrayBuffer в Base64 для встраивания шрифта в PDF
 const ab2b64 = (buffer) => {
   let binary = '';
@@ -61,7 +64,7 @@ function injectCostStyles() {
     .metric-modal-overlay.is-open { opacity: 1; pointer-events: auto; }
     .metric-modal { background: var(--surface); border-radius: 16px; width: min(96vw, 1100px); max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 18px 48px rgba(0,0,0,.28); overflow: hidden; }
     .metric-modal__header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-    .metric-modal__header i[data-lucide] { width: 22px; height: 22px; color: var(--blue); }
+    .metric-modal__header i[data-lucide] { width: 22px; height: 22px; }
     .metric-modal__title { font-size: 18px; font-weight: 800; }
     .metric-modal__subtitle { margin-left: auto; color: var(--muted); font-weight: 600; }
     .metric-modal__body { padding: 16px 18px; overflow: auto; color: var(--text); line-height: 1.55; }
@@ -70,6 +73,8 @@ function injectCostStyles() {
     .metric-close { width: 36px; height: 36px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border:1px solid var(--border); background: var(--bg); color: var(--muted); }
     .metric-close:hover { background: var(--blue); color:#fff; border-color: transparent; transform: rotate(90deg); }
     .metric-card__body { padding: 10px 8px 12px; color: var(--muted); font-size: 13px; }
+    .metric-modal__header .title--blue, .metric-modal__header .title--blue + i[data-lucide] { color: var(--blue); }
+
 
     /* Таблица внутри модалок (универсальная) */
     .metric-table { width:100%; border-collapse: collapse; }
@@ -119,6 +124,34 @@ function injectCostStyles() {
     .proc-chip { padding: 2px 6px; border-radius: 6px; color:#fff; font-size:12px; font-weight:700; text-align:center; }
     .proc-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .proc-fte { font-weight:700; font-variant-numeric: tabular-nums; }
+
+    /* === VA widget (мини‑показатели и модалка) === */
+    .va-mini { padding: 12px 8px 16px; }
+    .va-mini-cards { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px; }
+    .va-mini-item {
+      background: var(--surface);
+      border:1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center;
+    }
+    .va-mini-value { font-size: 24px; font-weight: 800; color: var(--muted); line-height:1.1; font-variant-numeric: tabular-nums; }
+    .va-mini-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+    /* VA modal layout */
+    .va-modal-grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; align-items:stretch; }
+    .va-legend-below { display:flex; align-items:center; gap:12px; justify-content:center; margin-top:8px; color: var(--muted); font-size: 13px; }
+    .va-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .va-explainer, .va-chart-container {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .va-explainer { font-size: 13.5px; line-height: 1.6; }
+    .va-chart-container { align-items: center; justify-content: center; }
   `;
   const styleEl = document.createElement('style');
   styleEl.id = 'costs-page-styles';
@@ -331,27 +364,23 @@ async function showFteModal() {
     <div class="metric-modal-overlay" id="${id}">
       <div class="metric-modal">
         <div class="metric-modal__header">
-          <i data-lucide="pencil-ruler"></i>
-          <div class="metric-modal__title">FTE (Full-Time Equivalent)</div>
+          <i data-lucide="pencil-ruler" class="title--blue"></i>
+          <div class="metric-modal__title title--blue">FTE (Full-Time Equivalent)</div>
           <div class="metric-modal__subtitle">Трудозатраты по процессам</div>
           <div class="metric-modal__actions">
             <div class="tip-wrap">
               <button class="metric-icon-btn" id="fteTipBtn" aria-label="Подсказка"><i data-lucide="help-circle"></i></button>
               <div class="tip-bubble" id="fteTip">
-FTE (Full-Time Equivalent﻿) — это показатель, обозначающий эквивалент полной занятости одного сотрудника
+FTE (Full-Time Equivalent﻿) — это показатель, обозначающий эквивалент полной занятости одного сотрудника.
 Он используется для оценки суммарной рабочей нагрузки, учитывая как сотрудников с полной занятостью, 
 так и тех, кто работает неполный рабочий день или по гибкому графику. 
-Например, два сотрудника, каждый из которых работает по половине ставки, вместе составляют 1 FTE
+Например, два сотрудника, каждый из которых работает по половине ставки, вместе составляют 1 FTE.
 
 Применение FTE:
-• Помогает организациям точно планировать потребности в персонале и управлять трудозатратами
-• Используется для составления бюджетов, прогнозирования и оценки эффективности работы команды
-• Обеспечивает стандартизацию трудозатрат при анализе и сравнении подразделений или проектов
-• Важно для оптимизации распределения ресурсов и оценки производительности
-
-Зачем нужен FTE?
-Он позволяет видеть реальную загрузку персонала, рационально распределять рабочие часы, контролировать 
-издержки и принимать обоснованные управленческие решения по кадровому планированию и развитию бизнеса
+• Помогает организациям точно планировать потребности в персонале и управлять трудозатратами.
+• Используется для составления бюджетов, прогнозирования и оценки эффективности работы команды.
+• Обеспечивает стандартизацию трудозатрат при анализе и сравнении подразделений или проектов.
+• Важно для оптимизации распределения ресурсов и оценки производительности.
               </div>
             </div>
             <button class="metric-icon-btn" id="fteExportBtn" aria-label="Экспорт в PDF"><i data-lucide="download"></i></button>
@@ -398,7 +427,7 @@ FTE (Full-Time Equivalent﻿) — это показатель, обознача�
   btnClose.addEventListener('click', close);
   btnTip.addEventListener('click', (e) => { e.stopPropagation(); tip.classList.toggle('is-visible'); });
   document.addEventListener('click', (e) => {
-    if (!btnTip.contains(e.target) && !tip.contains(e.target)) tip.classList.remove('is-visible');
+    if (tip && !btnTip.contains(e.target) && !tip.contains(e.target)) tip.classList.remove('is-visible');
   }, false);
 
   const data = await prepareFTEData();
@@ -437,26 +466,16 @@ FTE (Full-Time Equivalent﻿) — это показатель, обознача�
           },
         });
       } else {
-        // Фоллбек-таблица если Chart.js нет
         const rows = labels.map((l, i) => `<tr><td>${l}</td><td class="mono">${fmt(vals[i], 2)}</td></tr>`).join('');
-        content.innerHTML = `
-          <table class="metric-table">
-            <thead><tr><th>Процесс</th><th>FTE</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        `;
+        content.innerHTML = `<table class="metric-table"><thead><tr><th>Процесс</th><th>FTE</th></tr></thead><tbody>${rows}</tbody></table>`;
       }
     } else {
       treeControls.style.display = 'flex';
       content.innerHTML = buildDeptHierarchyHTML(data.roots);
       refreshIcons();
       const host = content;
-      document.getElementById('treeExpand')?.addEventListener('click', () => {
-        host.querySelectorAll('.dept-node').forEach((d) => (d.open = true));
-      });
-      document.getElementById('treeCollapse')?.addEventListener('click', () => {
-        host.querySelectorAll('.dept-node').forEach((d) => (d.open = false));
-      });
+      document.getElementById('treeExpand')?.addEventListener('click', () => host.querySelectorAll('.dept-node').forEach((d) => (d.open = true)));
+      document.getElementById('treeCollapse')?.addEventListener('click', () => host.querySelectorAll('.dept-node').forEach((d) => (d.open = false)));
     }
   }
 
@@ -519,6 +538,202 @@ async function createFteWidget(mountEl) {
   }
 
   el.addEventListener('click', showFteModal);
+}
+
+/* ========== VA vs NVA: подготовка, виджет, модалка (современный UI/UX) ========== */
+const normVaFlag = (v) => {
+  const s = String(v ?? '').trim().toLowerCase();
+  if (!s) return 'UNK';
+  if (s.startsWith('va') || s.includes('value-added')) return 'VA';
+  if (s.startsWith('nva') || s.includes('non-value')) return 'NVA';
+  if (s.includes('value') && !s.includes('non')) return 'VA';
+  return 'UNK';
+};
+
+async function prepareVaBreakdown() {
+  const [pcfData, costData] = await Promise.all([
+    fetchData('BOLT_pcf', '"Process ID", "Process Name", "PCF Code", "VA/NVA"'),
+    fetchData('BOLT_Cost Driver_pcf+orgchat', '*'),
+  ]);
+
+  const classById = new Map();
+  const labelById = new Map();
+  const codeById = new Map();
+  pcfData.forEach((p) => {
+    classById.set(p['Process ID'], normVaFlag(p['VA/NVA']));
+    labelById.set(p['Process ID'], p['Process Name'] || '');
+    codeById.set(p['Process ID'], p['PCF Code'] || '');
+  });
+
+  const agg = { VA: 0, NVA: 0, UNK: 0 };
+  const topVA = new Map();
+  const topNVA = new Map();
+
+  costData.forEach((row) => {
+    const pid = row['Process ID'];
+    const clazz = classById.get(pid) || 'UNK';
+    let fte = 0;
+    Object.keys(row).forEach((k) => {
+      if (k.startsWith('ORG-')) {
+        const v = Number(String(row[k] || '0').replace(',', '.'));
+        if (Number.isFinite(v) && v > 0) fte += v;
+      }
+    });
+    if (fte <= 0) return;
+    agg[clazz] = (agg[clazz] || 0) + fte;
+
+    const rec = { code: codeById.get(pid) || '', label: labelById.get(pid) || '', fte };
+    if (clazz === 'VA') topVA.set(pid, { ...rec, fte: (topVA.get(pid)?.fte || 0) + fte });
+    else if (clazz === 'NVA') topNVA.set(pid, { ...rec, fte: (topNVA.get(pid)?.fte || 0) + fte });
+  });
+
+  const topVaArr = [...topVA.values()].sort((a, b) => b.fte - a.fte).slice(0, 10);
+  const topNvaArr = [...topNVA.values()].sort((a, b) => b.fte - a.fte).slice(0, 10);
+
+  return {
+    totals: { va: agg.VA || 0, nva: agg.NVA || 0, unk: agg.UNK || 0 },
+    topVa: topVaArr,
+    topNva: topNvaArr,
+  };
+}
+
+async function createVaWidget(mountEl) {
+  const el = mountEl || document.getElementById('card-va');
+  if (!el) return;
+
+  el.classList.add('clickable-card', 'va-widget');
+  el.innerHTML = `
+    <div class="analytics-chart__header">
+      <i data-lucide="pie-chart" class="title--blue"></i>
+      <div class="analytics-chart__title-block">
+        <h3 class="analytics-chart__title">Доля процессов с добавленной стоимостью</h3>
+        <p class="analytics-header__subtitle">Value‑Added vs. Non‑Value‑Added</p>
+      </div>
+    </div>
+    <div class="va-mini">
+      <div class="va-mini-cards" id="vaMiniCards">Загрузка...</div>
+    </div>
+  `;
+  refreshIcons();
+
+  try {
+    const res = await prepareVaBreakdown();
+    const { va, nva } = res.totals;
+    const total = (va || 0) + (nva || 0);
+    const pct = (v) => total > 0 ? `${fmt((v / total) * 100, 1)}%` : '0.0%';
+
+    const box = (label, v) => `
+      <div class="va-mini-item">
+        <div class="va-mini-value">${fmt(v, 1)} FTE</div>
+        <div class="va-mini-label">${label} • ${pct(v)}</div>
+      </div>`;
+
+    document.getElementById('vaMiniCards').innerHTML = `
+      ${box('Value‑Added (VA)', va)}
+      ${box('Non‑Value‑Added (NVA)', nva)}
+    `;
+
+    el.addEventListener('click', () => showVaModal(res));
+  } catch (e) {
+    const box = document.getElementById('vaMiniCards');
+    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных</span>`;
+  }
+}
+
+function showVaModal(prepared) {
+  const id = 'va-modal-overlay';
+  document.getElementById(id)?.remove();
+
+  const tpl = `
+    <div class="metric-modal-overlay" id="${id}">
+      <div class="metric-modal" style="width: min(96vw, 980px);">
+        <div class="metric-modal__header">
+          <i data-lucide="pie-chart" class="title--blue"></i>
+          <div class="metric-modal__title title--blue">Доля процессов с добавленной стоимостью</div>
+          <div class="metric-modal__subtitle">VA vs NVA (по FTE)</div>
+          <div class="metric-modal__actions">
+            <button class="metric-close" id="vaClose" aria-label="Закрыть"><i data-lucide="x"></i></button>
+          </div>
+        </div>
+        <div class="metric-modal__body">
+          <div class="va-modal-grid">
+            <div class="va-chart-container">
+              <canvas id="vaDonut" style="max-height: 280px;"></canvas>
+              <div class="va-legend-below">
+                <span><span class="va-dot" style="background: ${cssVar('--blue', '#4A89F3')}"></span> Value‑Added (VA)</span>
+                <span><span class="va-dot" style="background:#4B5563"></span> Non‑Value‑Added (NVA)</span>
+              </div>
+            </div>
+            <div class="va-explainer">
+              <p><strong>Value‑Added (VA)</strong> и <strong>Non‑Value‑Added (NVA)</strong> — ключевые понятия в бережливом производстве и процессном управлении:</p>
+              <ul style="margin:0 0 0 18px; padding:0;">
+                <li><strong>Value‑Added (VA)</strong> — деятельность, которая напрямую увеличивает ценность продукта или услуги с точки зрения конечного потребителя. Такие операции меняют или улучшают продукт, за них клиент готов платить.</li>
+                <li style="margin-top:8px;"><strong>Non‑Value‑Added (NVA)</strong> — деятельность, которая не добавляет ценности клиенту и рассматривается или как необходимая для поддержания процессов, или как прямые потери. Задача — оптимизировать процессы: сосредоточиться на VA и эффективно управлять NVA.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top:16px; display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+            <div>
+              <p style="font-weight:700;margin:0 0 6px;color:${cssVar('--blue', '#4A89F3')}">Top‑10 Value‑Added</p>
+              <div class="metric-table-wrap" style="background: var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+                <table class="metric-table">
+                  <thead><tr><th>Код</th><th>Процесс</th><th>FTE</th></tr></thead>
+                  <tbody id="vaTopVa"></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <p style="font-weight:700;margin:0 0 6px;color:#4B5563;">Top‑10 Non‑Value‑Added</p>
+              <div class="metric-table-wrap" style="background: var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+                <table class="metric-table">
+                  <thead><tr><th>Код</th><th>Процесс</th><th>FTE</th></tr></thead>
+                  <tbody id="vaTopNva"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', tpl);
+  refreshIcons();
+
+  const overlay = document.getElementById(id);
+  document.getElementById('vaClose').addEventListener('click', () => {
+    overlay.classList.remove('is-open');
+    setTimeout(() => overlay.remove(), 180);
+  });
+  setTimeout(() => overlay.classList.add('is-open'), 10);
+
+  const { totals, topVa, topNva } = prepared;
+  const va = totals.va || 0, nva = totals.nva || 0;
+  const blue = cssVar('--blue', '#4A89F3');
+
+  const canvas = document.getElementById('vaDonut');
+  if (window.Chart && canvas) {
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Value‑Added', 'Non‑Value‑Added'],
+        datasets: [{ data: [va, nva], backgroundColor: [blue, '#4B5563'], borderWidth: 1 }]
+      },
+      options: {
+        cutout: '58%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ` ${c.label}: ${fmt(c.raw, 2)} FTE` } } },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  } else if (canvas) {
+    canvas.parentElement.innerHTML = `<table class="metric-table"><thead><tr><th>Категория</th><th>FTE</th></tr></thead><tbody><tr><td>Value‑Added</td><td class="mono">${fmt(va, 2)}</td></tr><tr><td>Non‑Value‑Added</td><td class="mono">${fmt(nva, 2)}</td></tr></tbody></table>`;
+  }
+
+  const toRows = (arr, color) => arr.map(p => `<tr><td><span class="chip" style="background:${color}">${p.code || '-'}</span></td><td title="${p.label || ''}">${p.label || '-'}</td><td class="mono">${fmt(p.fte, 2)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted);">Нет данных</td></tr>';
+  document.getElementById('vaTopVa').innerHTML = toRows(topVa, blue);
+  document.getElementById('vaTopNva').innerHTML = toRows(topNva, '#4B5563');
 }
 
 // ========== Универсальный модал для остальных виджетов ==========
@@ -605,22 +820,7 @@ function initMetricCards() {
     );
   }
 
-  // 3) Доля процессов с добавленной стоимостью (VA vs NVA)
-  const va = document.getElementById('card-va');
-  if (va) {
-    renderStaticCard(
-      va,
-      { icon: 'pie-chart', title: 'Доля процессов с добавленной стоимостью', subtitle: 'Value-Added vs. Non-Value-Added Activities' },
-      () => showMetricModal({
-        icon: 'pie-chart',
-        title: 'Доля процессов с добавленной стоимостью',
-        subtitle: 'VA vs. NVA',
-        html: `<p>Разделим стоимость на Value‑Added и Non‑Value‑Added. Диаграмма + список кандидатов на оптимизацию.</p>`
-      })
-    );
-  }
-
-  // 4) SPCR — доля затрат продаж в выручке
+  // 3) SPCR — доля затрат продаж в выручке
   const spcr = document.getElementById('card-spcr');
   if (spcr) {
     renderStaticCard(
@@ -635,7 +835,7 @@ function initMetricCards() {
     );
   }
 
-  // 5) RPSC — эффективность процессов продаж
+  // 4) RPSC — эффективность процессов продаж
   const rpsc = document.getElementById('card-rpsc');
   if (rpsc) {
     renderStaticCard(
@@ -655,7 +855,7 @@ function initMetricCards() {
 
 // ========== Точка входа ==========
 export async function renderCostsPage(container) {
-  // Библиотеки для PDF (если понадобятся)
+  // Библиотеки
   const ensureScript = (id, src) => {
     if (document.getElementById(id)) return Promise.resolve();
     return new Promise((resolve, reject) => {
@@ -665,6 +865,7 @@ export async function renderCostsPage(container) {
     });
   };
   await Promise.all([
+    ensureScript('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js'),
     ensureScript('jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
     ensureScript('jspdf-autotable', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js'),
   ]);
@@ -716,7 +917,9 @@ export async function renderCostsPage(container) {
   // Инициализация карточек
   initMetricCards();
 
-  // FTE-виджет (кликабелен, открывает расширенную модалку с Процессы/Подразделения, экспортом и подсказкой)
+  // Специализированные виджеты
   await createFteWidget(document.getElementById('card-fte'));
+  await createVaWidget(document.getElementById('card-va'));
+
   refreshIcons();
 }
