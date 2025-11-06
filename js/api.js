@@ -114,7 +114,6 @@ export async function fetchOrgStats() {
 /** Получить названия подразделений по списку кодов */
 export async function fetchDepartmentNamesByCodes(orgCodes) {
   if (!orgCodes || !orgCodes.length) return {};
-  const codesList = orgCodes.join(',');
   const rows = await fetchData('BOLT_orgchat', '"Department ID", "Department Name", "Parent Department ID"', { noCache: true });
   const nameMap = {};
   rows.forEach(row => {
@@ -127,3 +126,135 @@ export async function fetchDepartmentNamesByCodes(orgCodes) {
 
 /** Получить полную оргструктуру для построения иерархии */
 export const fetchOrgStructure = () => fetchData('BOLT_orgchat', '"Department ID", "Department Name", "Parent Department ID"');
+
+/* ========= НОВЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С ПРОФИЛЯМИ ========= */
+
+/**
+ * Загружает существующий профиль пользователя или создает новый
+ * @param {Object} user - объект пользователя от Supabase Auth
+ * @returns {Promise<Object>} - объект профиля
+ */
+export async function loadOrCreateProfile(user) {
+  if (!supa) throw new Error('Supabase не инициализирован');
+  if (!user?.id) throw new Error('Требуется объект пользователя');
+
+  try {
+    // Сначала пытаемся получить существующий профиль
+    let { data: profile, error } = await supa
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    // Если профиля нет (ошибка PGRST116), создаем новый
+    if (error && error.code === 'PGRST116') {
+      console.log('Профиль не найден, создаем новый...');
+      
+      const newProfile = {
+        user_id: user.id,
+        email: user.email || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_active: true,
+        login_count: 0,
+        ui_theme: 'light',
+        language: 'ru',
+        security_level: 1,
+        employment_type: 'FULL_TIME',
+        status: 'ACTIVE'
+      };
+
+      const { data: createdProfile, error: createError } = await supa
+        .from('profiles')
+        .insert([newProfile])
+        .select()
+        .single();
+
+      if (createError) throw createError;
+      
+      console.log('Профиль успешно создан');
+      profile = createdProfile;
+    } else if (error) {
+      throw error;
+    }
+
+    // Обновляем информацию о последнем входе
+    await supa
+      .from('profiles')
+      .update({
+        last_login: new Date().toISOString(),
+        login_count: (profile.login_count || 0) + 1
+      })
+      .eq('user_id', user.id);
+
+    return profile;
+  } catch (error) {
+    console.error('Ошибка в loadOrCreateProfile:', error);
+    throw error;
+  }
+}
+
+/**
+ * Загружает аватар пользователя в Supabase Storage
+ * @param {File} file - файл изображения
+ * @param {string} userId - ID пользователя
+ * @returns {Promise<string>} - публичный URL загруженного файла
+ */
+export async function uploadAvatar(file, userId) {
+  if (!supa) throw new Error('Supabase не инициализирован');
+  if (!file) throw new Error('Файл не предоставлен');
+  if (!userId) throw new Error('ID пользователя не указан');
+
+  try {
+    // Проверяем размер файла (макс 5MB)
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      throw new Error('Размер файла не должен превышать 5MB');
+    }
+
+    // Проверяем тип файла
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new Error('Поддерживаются только изображения (JPG, PNG, WebP, GIF)');
+    }
+
+    // Генерируем имя файла
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const fileName = `${userId}/avatar-${Date.now()}.${fileExt}`;
+
+    console.log('Загрузка аватара:', fileName);
+
+    // Загружаем файл в Storage
+    const { data, error } = await supa.storage
+      .from('avatars')
+      .upload(fileName, file, {
+        upsert: true,
+        cacheControl: '3600',
+        contentType: file.type
+      });
+
+    if (error) {
+      console.error('Ошибка загрузки в Storage:', error);
+      
+      // Fallback: конвертируем в Base64
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Получаем публичный URL
+    const { data: { publicUrl } } = supa.storage
+      .from('avatars')
+      .getPublicUrl(fileName);
+
+    console.log('Аватар успешно загружен:', publicUrl);
+    return publicUrl;
+
+  } catch (error) {
+    console.error('Ошибка в uploadAvatar:', error);
+    throw error;
+  }
+}
