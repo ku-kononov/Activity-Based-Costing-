@@ -1,594 +1,326 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Профиль пользователя</title>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root{
+      /* Берём палитру из приложения */
+      --primary: var(--blue, #4A89F3);
+      --primary-600: #3E78DA;
+      --success: var(--success, #10b981);
+      --warning: var(--warning, #f59e0b);
+      --danger: var(--danger, #ef4444);
+
+      --bg: var(--background, #f6f7fb);
+      --surface: var(--surface, #ffffff);
+      --surface-1: var(--surface-1, #f4f6fa);
+      --text: var(--text, #1f2937);
+      --muted: var(--muted, #6b7280);
+      --border: var(--border, #e5e7eb);
+
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow-sm: 0 4px 14px rgba(0,0,0,0.06);
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+
+    .page{
+      min-height:100%;
+      display:flex; flex-direction:column;
+      gap:24px; padding:24px;
+    }
+    .container{
+      width:100%; max-width:1200px; margin:0 auto;
+    }
+
+    /* Header с аватаром — оставляем как есть (визуально полируем) */
+    .profile-header{
+      display:none;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .profile-header .header-inner{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px; padding:16px 20px;
+    }
+    .user-block{
+      display:flex; align-items:center; gap:16px; min-width:0;
+    }
+    .avatar-wrapper{
+      position:relative; width:72px; height:72px; border-radius:50%;
+      overflow:hidden; border:2px solid var(--border);
+      background:var(--surface-1); box-shadow:var(--shadow-sm); flex-shrink:0;
+    }
+    .avatar-img{ width:100%; height:100%; object-fit:cover; display:none; }
+    .avatar-placeholder{ width:100%; height:100%; display:grid; place-items:center; color:var(--muted);
+      background:linear-gradient(135deg, rgba(74,137,243,0.08), rgba(74,137,243,0.16)); }
+    .avatar-placeholder i{ width:32px; height:32px; }
+    .avatar-upload-btn{
+      position:absolute; right:6px; bottom:6px; width:28px; height:28px;
+      display:grid; place-items:center; border-radius:50%;
+      background:var(--primary); color:#fff; border:1px solid rgba(255,255,255,0.65);
+      box-shadow:var(--shadow-sm); cursor:pointer; transition:transform .18s ease, filter .18s ease;
+    }
+    .avatar-upload-btn:hover{ transform:translateY(-1px); filter:brightness(1.03); }
+    .avatar-upload-btn i{ width:16px; height:16px; }
+
+    .user-meta{ min-width:0; }
+    .user-meta h1{
+      margin:0 0 2px; font-size:20px; font-weight:800; color:var(--text);
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .user-meta p{
+      margin:0; font-size:13px; color:var(--muted);
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:8px; padding:10px 14px;
+      border-radius:var(--radius-sm); border:1px solid var(--border);
+      background:var(--surface); color:var(--text); font-weight:600; cursor:pointer;
+      transition:transform .12s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .btn:hover{ transform:translateY(-1px); box-shadow:var(--shadow-sm); border-color:var(--primary); }
+    .btn i{ width:18px; height:18px; }
+    .btn-primary{ background:var(--primary); border-color:var(--primary); color:#fff; }
+    .btn-primary:hover{ filter:brightness(1.03); }
+    .btn-success{ background:var(--success); border-color:var(--success); color:#fff; }
+    .btn-warning{ background:var(--warning); border-color:var(--warning); color:#fff; }
+    .btn-ghost{ background:transparent; }
+    .btn-block{ width:100%; }
+
+    /* Карточки */
+    .section{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
+    }
+    .section + .section{ margin-top:8px; }
+
+    .section-header{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; margin-bottom:14px;
+    }
+    .section-title{
+      display:flex; align-items:center; gap:10px; margin:0; font-size:18px; font-weight:800;
+    }
+    .section-title i{ width:22px; height:22px; color:var(--primary); }
+
+    /* Формы на всю ширину, компактно и чисто */
+    .form{ display:grid; gap:14px; }
+    .row{ display:grid; grid-template-columns: repeat(12, 1fr); gap:14px; }
+    .field{ grid-column: span 6; display:grid; gap:6px; min-width:0; }
+    .field.full{ grid-column:1 / -1; }
+    .field label{ font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.2px; }
+    .field input, .field select{
+      width:100%; background:var(--surface-1);
+      border:1px solid var(--border); border-radius:var(--radius-sm);
+      padding:10px 12px; font-size:14px; color:var(--text);
+      transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .field input:focus, .field select:focus{ outline:none; border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(74,137,243,0.12); background:#fff; }
+
+    /* Select: поддержка длинных значений — ширина 100%, однострочно с многоточием, title показывает полное */
+    .select-wrap{ position:relative; }
+    .select-wrap select{
+      appearance:none; -webkit-appearance:none; -moz-appearance:none;
+      padding-right:36px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .select-wrap .chev{
+      position:absolute; right:10px; top:50%; transform:translateY(-50%);
+      pointer-events:none; color:var(--muted);
+    }
+    .select-wrap .chev i{ width:16px; height:16px; }
+
+    /* Сообщения */
+    .message{
+      display:none; margin-top:4px; font-size:13px; border-radius:10px; padding:10px 12px;
+      border:1px solid var(--border); background:var(--surface-1); color:var(--muted);
+    }
+    .message.show{ display:block; }
+    .message.success{ background:#f0fdf4; border-color:#86efac; color:#166534; }
+    .message.error{ background:#fef2f2; border-color:#fca5a5; color:#991b1b; }
+
+    /* Auth карточка */
+    .auth{
+      display:block;
+    }
+    .auth-card{
+      width:100%; max-width:540px; margin:36px auto 0;
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+      padding:22px 22px 18px; box-shadow:var(--shadow);
+    }
+    .auth-logo{ width:56px; height:56px; border-radius:50%; display:grid; place-items:center; color:#fff;
+      background:linear-gradient(135deg, var(--primary), var(--primary-600)); box-shadow:var(--shadow-sm);
+      margin:0 auto 12px; }
+    .auth-logo i{ width:28px; height:28px; }
+    .auth-title{ text-align:center; margin:0 0 6px; font-size:22px; font-weight:800; }
+    .auth-sub{ text-align:center; color:var(--muted); margin:0 0 18px; }
+
+    .tabs{
+      display:grid; grid-template-columns:1fr 1fr; gap:8px;
+      background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius-sm); padding:4px; margin-bottom:14px;
+    }
+    .tab{
+      padding:8px 10px; border:none; border-radius:8px; background:transparent; color:var(--muted); font-weight:700; cursor:pointer;
+      transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+    .tab.active{ background:#fff; color:var(--text); box-shadow:var(--shadow-sm); }
+
+    @media (max-width: 860px){
+      .page{ padding:16px; }
+      .profile-header .header-inner{ flex-direction:column; align-items:stretch; gap:12px; }
+      .user-block{ justify-content:flex-start; }
+    }
+    @media (max-width: 640px){
+      .field{ grid-column:1 / -1; }
+    }
+  </style>
 </head>
 <body>
-
-<div class="profile-app">
-  <!-- Шапка профиля (для авторизованных) -->
-  <header class="profile-header" id="profileHeader" style="display: none;">
-    <div class="header-container">
-      <div class="user-section">
+<div class="page">
+  <!-- Header (аватар — оставлен) -->
+  <header class="profile-header container" id="profileHeader" style="display:none;">
+    <div class="header-inner">
+      <div class="user-block">
         <div class="avatar-wrapper">
-          <img id="headerAvatar" class="avatar-img" alt="Avatar">
-          <div id="headerAvatarPlaceholder" class="avatar-placeholder">
-            <i data-lucide="user"></i>
-          </div>
-          <label for="avatarInput" class="avatar-upload-btn">
-            <i data-lucide="camera"></i>
-          </label>
-          <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+          <img id="headerAvatar" class="avatar-img" alt="avatar">
+          <div id="headerAvatarPlaceholder" class="avatar-placeholder"><i data-lucide="user"></i></div>
+          <label for="avatarInput" class="avatar-upload-btn" title="Изменить аватар"><i data-lucide="camera"></i></label>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none;">
         </div>
-        <div class="user-info">
-          <h1 id="headerName">Загрузка...</h1>
+        <div class="user-meta">
+          <h1 id="headerName">Загрузка…</h1>
           <p id="headerEmail">...</p>
         </div>
       </div>
-      <button class="btn btn-ghost" id="btnSignOut">
-        <i data-lucide="log-out"></i>
-        <span>Выйти</span>
-      </button>
+      <button class="btn btn-ghost" id="btnSignOut"><i data-lucide="log-out"></i><span>Выйти</span></button>
     </div>
   </header>
 
-  <!-- Блок аутентификации -->
-  <div class="auth-container" id="authContainer">
+  <!-- Auth -->
+  <div class="auth container" id="authContainer">
     <div class="auth-card">
-      <div class="auth-logo">
-        <i data-lucide="shield"></i>
-      </div>
+      <div class="auth-logo"><i data-lucide="shield"></i></div>
       <h2 class="auth-title">Добро пожаловать</h2>
-      <p class="auth-subtitle">Войдите или создайте новый аккаунт</p>
-      
-      <div class="auth-tabs">
-        <button class="tab-btn active" data-tab="signin">Вход</button>
-        <button class="tab-btn" data-tab="signup">Регистрация</button>
+      <p class="auth-sub">Войдите или создайте новый аккаунт</p>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="signin">Вход</button>
+        <button class="tab" data-tab="signup">Регистрация</button>
       </div>
 
-      <!-- Форма входа -->
-      <form id="signinForm" class="auth-form">
-        <div class="form-field">
-          <label for="signinEmail">Email</label>
-          <div class="input-wrapper">
-            <i data-lucide="mail"></i>
+      <form id="signinForm" class="form" novalidate>
+        <div class="row">
+          <div class="field full">
+            <label for="signinEmail">Email</label>
             <input type="email" id="signinEmail" placeholder="you@company.com" required>
           </div>
-        </div>
-        <div class="form-field">
-          <label for="signinPassword">Пароль</label>
-          <div class="input-wrapper">
-            <i data-lucide="lock"></i>
+          <div class="field full">
+            <label for="signinPassword">Пароль</label>
             <input type="password" id="signinPassword" placeholder="••••••••" required>
           </div>
+          <div class="field full">
+            <button type="submit" class="btn btn-primary btn-block"><i data-lucide="log-in"></i><span>Войти</span></button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-block">
-          <i data-lucide="log-in"></i>
-          <span>Войти</span>
-        </button>
       </form>
 
-      <!-- Форма регистрации -->
-      <form id="signupForm" class="auth-form" style="display: none;">
-        <div class="form-field">
-          <label for="signupEmail">Email</label>
-          <div class="input-wrapper">
-            <i data-lucide="mail"></i>
+      <form id="signupForm" class="form" style="display:none;" novalidate>
+        <div class="row">
+          <div class="field full">
+            <label for="signupEmail">Email</label>
             <input type="email" id="signupEmail" placeholder="you@company.com" required>
           </div>
-        </div>
-        <div class="form-field">
-          <label for="signupPassword">Пароль</label>
-          <div class="input-wrapper">
-            <i data-lucide="lock"></i>
+          <div class="field full">
+            <label for="signupPassword">Пароль</label>
             <input type="password" id="signupPassword" placeholder="Минимум 6 символов" required minlength="6">
           </div>
+          <div class="field full">
+            <button type="submit" class="btn btn-success btn-block"><i data-lucide="user-plus"></i><span>Создать аккаунт</span></button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-success btn-block">
-          <i data-lucide="user-plus"></i>
-          <span>Создать аккаунт</span>
-        </button>
       </form>
 
-      <div id="authMsg" class="message"></div>
+      <div id="authMsg" class="message" aria-live="polite"></div>
     </div>
   </div>
 
-  <!-- Блок данных профиля -->
-  <div class="profile-container" id="profileContainer" style="display: none;">
-    <!-- Основные данные -->
-    <div class="profile-card">
-      <div class="card-header">
-        <h3>
-          <i data-lucide="user"></i>
-          <span>Основные данные</span>
-        </h3>
+  <!-- Основные данные — на всю ширину -->
+  <section class="section container" id="profileContainer" style="display:none;">
+    <div class="section-header">
+      <h3 class="section-title"><i data-lucide="user"></i><span>Основные данные</span></h3>
+    </div>
+    <form id="profileForm" class="form" novalidate>
+      <div class="row">
+        <div class="field"><label for="lastName">Фамилия</label><input type="text" id="lastName" placeholder="Иванов"></div>
+        <div class="field"><label for="firstName">Имя</label><input type="text" id="firstName" placeholder="Иван"></div>
       </div>
-      <form id="profileForm" class="profile-form">
-        <div class="form-row">
-          <div class="form-field">
-            <label for="lastName">Фамилия</label>
-            <input type="text" id="lastName" placeholder="Иванов">
-          </div>
-          <div class="form-field">
-            <label for="firstName">Имя</label>
-            <input type="text" id="firstName" placeholder="Иван">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label for="jobTitle">Должность</label>
-            <input type="text" id="jobTitle" placeholder="Менеджер">
-          </div>
-          <div class="form-field">
-            <label for="department">Подразделение</label>
-            <select id="department">
-              <option value="">Загрузка...</option>
+      <div class="row">
+        <div class="field"><label for="jobTitle">Должность</label><input type="text" id="jobTitle" placeholder="Менеджер"></div>
+        <div class="field">
+          <label for="department">Подразделение</label>
+          <div class="select-wrap">
+            <select id="department" title="Выберите подразделение">
+              <option value="">Загрузка…</option>
             </select>
+            <span class="chev" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label for="phone">Телефон</label>
-            <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
-          </div>
-          <div class="form-field">
-            <label for="officeLocation">Офис</label>
-            <input type="text" id="officeLocation" placeholder="Москва">
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary">
-          <i data-lucide="save"></i>
-          <span>Сохранить</span>
-        </button>
-        <div id="profileMsg" class="message"></div>
-      </form>
-    </div>
-
-    <!-- Блок безопасности -->
-    <div class="profile-card">
-      <div class="card-header">
-        <h3>
-          <i data-lucide="shield"></i>
-          <span>Безопасность</span>
-        </h3>
       </div>
-      <form id="passwordForm" class="profile-form">
-        <div class="form-row">
-          <div class="form-field">
-            <label for="newPassword">Новый пароль</label>
-            <input type="password" id="newPassword" placeholder="Минимум 6 символов" minlength="6">
-          </div>
-          <div class="form-field">
-            <label for="confirmPassword">Подтверждение пароля</label>
-            <input type="password" id="confirmPassword" placeholder="Повторите пароль">
-          </div>
+      <div class="row">
+        <div class="field"><label for="phone">Телефон</label><input type="tel" id="phone" placeholder="+7 (999) 123-45-67"></div>
+        <div class="field"><label for="officeLocation">Офис</label><input type="text" id="officeLocation" placeholder="Москва"></div>
+      </div>
+      <div class="row">
+        <div class="field full">
+          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i><span>Сохранить</span></button>
         </div>
-        <button type="submit" class="btn btn-warning">
-          <i data-lucide="key"></i>
-          <span>Сменить пароль</span>
-        </button>
-        <div id="passwordMsg" class="message"></div>
-      </form>
+      </div>
+      <div id="profileMsg" class="message" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <!-- Безопасность — ниже и тоже на всю ширину -->
+  <section class="section container" id="securityContainer" style="display:none;">
+    <div class="section-header">
+      <h3 class="section-title"><i data-lucide="shield"></i><span>Безопасность</span></h3>
     </div>
-  </div>
+    <form id="passwordForm" class="form" novalidate>
+      <div class="row">
+        <div class="field"><label for="newPassword">Новый пароль</label><input type="password" id="newPassword" placeholder="Минимум 6 символов" minlength="6"></div>
+        <div class="field"><label for="confirmPassword">Подтверждение пароля</label><input type="password" id="confirmPassword" placeholder="Повторите пароль"></div>
+      </div>
+      <div class="row">
+        <div class="field full">
+          <button type="submit" class="btn btn-warning"><i data-lucide="key"></i><span>Сменить пароль</span></button>
+        </div>
+      </div>
+      <div id="passwordMsg" class="message" aria-live="polite"></div>
+    </form>
+  </section>
 </div>
 
-<style>
-  :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --dark: #1f2937;
-    --gray: #6b7280;
-    --light: #f3f4f6;
-    --white: #ffffff;
-    --radius: 12px;
-    --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
-  }
-
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    color: var(--dark);
-  }
-
-  .profile-app {
-    min-height: 100vh;
-    padding: 20px;
-  }
-
-  /* Шапка профиля */
-  .profile-header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: var(--radius);
-    margin-bottom: 30px;
-    box-shadow: var(--shadow);
-  }
-
-  .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .user-section {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .avatar-wrapper {
-    position: relative;
-    width: 80px;
-    height: 80px;
-  }
-
-  .avatar-img,
-  .avatar-placeholder {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .avatar-img {
-    display: none;
-  }
-
-  .avatar-placeholder {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-  }
-
-  .avatar-placeholder i {
-    width: 35px;
-    height: 35px;
-  }
-
-  .avatar-upload-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 28px;
-    height: 28px;
-    background: var(--primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: white;
-    transition: transform 0.2s;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .avatar-upload-btn:hover {
-    transform: scale(1.1);
-  }
-
-  .avatar-upload-btn i {
-    width: 16px;
-    height: 16px;
-  }
-
-  .user-info h1 {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  .user-info p {
-    color: var(--gray);
-    font-size: 14px;
-  }
-
-  /* Блок аутентификации */
-  .auth-container {
-    max-width: 440px;
-    margin: 100px auto;
-  }
-
-  .auth-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: var(--radius);
-    padding: 40px;
-    box-shadow: var(--shadow);
-  }
-
-  .auth-logo {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-    color: white;
-  }
-
-  .auth-logo i {
-    width: 30px;
-    height: 30px;
-  }
-
-  .auth-title {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .auth-subtitle {
-    text-align: center;
-    color: var(--gray);
-    margin-bottom: 30px;
-  }
-
-  .auth-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-    background: var(--light);
-    padding: 4px;
-    border-radius: 8px;
-  }
-
-  .tab-btn {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: transparent;
-    border-radius: 6px;
-    font-weight: 600;
-    color: var(--gray);
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  .tab-btn.active {
-    background: white;
-    color: var(--primary);
-    box-shadow: var(--shadow-sm);
-  }
-
-  /* Формы */
-  .auth-form,
-  .profile-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .form-field label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--dark);
-  }
-
-  .form-field input,
-  .form-field select {
-    padding: 12px;
-    border: 2px solid var(--light);
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.3s;
-    background: white;
-  }
-
-  .form-field input:focus,
-  .form-field select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
-
-  .input-wrapper {
-    position: relative;
-  }
-
-  .input-wrapper i {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    color: var(--gray);
-  }
-
-  .input-wrapper input {
-    padding-left: 40px;
-    width: 100%;
-  }
-
-  /* Кнопки */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .btn i {
-    width: 18px;
-    height: 18px;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-  }
-
-  .btn-success {
-    background: var(--success);
-    color: white;
-  }
-
-  .btn-success:hover {
-    background: #059669;
-    transform: translateY(-2px);
-  }
-
-  .btn-warning {
-    background: var(--warning);
-    color: white;
-  }
-
-  .btn-warning:hover {
-    background: #d97706;
-    transform: translateY(-2px);
-  }
-
-  .btn-ghost {
-    background: transparent;
-    color: var(--gray);
-    box-shadow: none;
-  }
-
-  .btn-ghost:hover {
-    background: var(--light);
-    color: var(--dark);
-  }
-
-  .btn-block {
-    width: 100%;
-  }
-
-  /* Блок профиля */
-  .profile-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-    gap: 30px;
-  }
-
-  .profile-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: var(--radius);
-    padding: 30px;
-    box-shadow: var(--shadow);
-  }
-
-  .card-header {
-    margin-bottom: 25px;
-  }
-
-  .card-header h3 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 20px;
-    font-weight: 700;
-  }
-
-  .card-header h3 i {
-    width: 24px;
-    height: 24px;
-    color: var(--primary);
-  }
-
-  /* Сообщения */
-  .message {
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    text-align: center;
-    display: none;
-  }
-
-  .message.show {
-    display: block;
-  }
-
-  .message.success {
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #86efac;
-  }
-
-  .message.error {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
-  }
-
-  /* Адаптивность */
-  @media (max-width: 768px) {
-    .header-container {
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .user-section {
-      flex-direction: column;
-    }
-
-    .btn-ghost {
-      width: 100%;
-    }
-
-    .profile-container {
-      grid-template-columns: 1fr;
-    }
-
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-
-<!-- Конфигурация -->
+<!-- ENV -->
 <script>
   window.ENV = {
     SUPABASE_URL: 'https://eqpdepmgriuivevvrulc.supabase.co',
@@ -596,396 +328,248 @@
   };
 </script>
 
-<!-- Загрузка API -->
+<!-- Supabase + API -->
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./js/api.js"></script>
 
-<!-- Главная логика -->
+<!-- Логика (идентификаторы сохранены) -->
 <script type="module">
   import { supabase, loadOrCreateProfile, uploadAvatar, fetchOrgDepartments } from './js/api.js';
 
-  // Проверка инициализации
   if (!supabase) {
-    console.error('Критическая ошибка: Supabase не инициализирован');
-    document.querySelector('#authMsg').textContent = 'Ошибка инициализации системы';
-    document.querySelector('#authMsg').className = 'message show error';
+    const m = document.querySelector('#authMsg');
+    if (m){ m.textContent = 'Ошибка инициализации системы'; m.className = 'message show error'; }
   }
 
-  // Глобальное состояние
   let currentUser = null;
   let currentProfile = null;
 
-  // DOM элементы
-  const elements = {
-    // Контейнеры
-    authContainer: document.getElementById('authContainer'),
-    profileHeader: document.getElementById('profileHeader'),
-    profileContainer: document.getElementById('profileContainer'),
-    
-    // Формы
+  const el = {
+    auth: document.getElementById('authContainer'),
+    header: document.getElementById('profileHeader'),
+    profile: document.getElementById('profileContainer'),
+    security: document.getElementById('securityContainer'),
+
     signinForm: document.getElementById('signinForm'),
     signupForm: document.getElementById('signupForm'),
     profileForm: document.getElementById('profileForm'),
     passwordForm: document.getElementById('passwordForm'),
-    
-    // Поля профиля
+
     firstName: document.getElementById('firstName'),
     lastName: document.getElementById('lastName'),
     jobTitle: document.getElementById('jobTitle'),
     department: document.getElementById('department'),
     phone: document.getElementById('phone'),
     officeLocation: document.getElementById('officeLocation'),
-    
-    // Заголовок
+
     headerName: document.getElementById('headerName'),
     headerEmail: document.getElementById('headerEmail'),
     headerAvatar: document.getElementById('headerAvatar'),
     headerAvatarPlaceholder: document.getElementById('headerAvatarPlaceholder'),
     avatarInput: document.getElementById('avatarInput'),
-    
-    // Кнопки
     btnSignOut: document.getElementById('btnSignOut'),
-    
-    // Сообщения
+
     authMsg: document.getElementById('authMsg'),
     profileMsg: document.getElementById('profileMsg'),
-    passwordMsg: document.getElementById('passwordMsg')
+    passwordMsg: document.getElementById('passwordMsg'),
   };
 
-  // Утилиты для сообщений
-  function setMsg(element, text, type = '') {
-    if (!element) return;
-    element.textContent = text;
-    element.className = text ? `message show ${type}` : 'message';
-    if (text && type === 'success') {
-      setTimeout(() => setMsg(element, ''), 3000);
-    }
+  function setMsg(target, text, type=''){
+    if (!target) return;
+    target.textContent = text || '';
+    target.className = text ? `message show ${type}` : 'message';
+    if (text && type === 'success') setTimeout(()=> setMsg(target,''), 2600);
   }
 
-  // Главный контроллер состояния
-  async function updateUI(session) {
-    console.log('Обновление UI, сессия:', !!session);
-    
+  function updateDeptTitle(){
+    try{
+      const t = el.department.options[el.department.selectedIndex]?.text || '';
+      el.department.title = t; // полный текст всплывающей подсказкой
+    }catch(_){}
+  }
+
+  async function updateUI(session){
     if (session?.user) {
-      // Авторизован
       currentUser = session.user;
-      elements.authContainer.style.display = 'none';
-      elements.profileHeader.style.display = 'block';
-      elements.profileContainer.style.display = 'grid';
-      
+      el.auth.style.display = 'none';
+      el.header.style.display = 'block';
+      el.profile.style.display = 'block';
+      el.security.style.display = 'block';
       await populateProfile(session.user);
       await populateDepartments();
     } else {
-      // Не авторизован
-      currentUser = null;
-      currentProfile = null;
-      elements.authContainer.style.display = 'block';
-      elements.profileHeader.style.display = 'none';
-      elements.profileContainer.style.display = 'none';
+      currentUser = null; currentProfile = null;
+      el.auth.style.display = 'block';
+      el.header.style.display = 'none';
+      el.profile.style.display = 'none';
+      el.security.style.display = 'none';
     }
-    
-    // Обновить иконки
-    if (window.lucide) lucide.createIcons();
+    try{ window.lucide?.createIcons?.(); }catch(_){}
   }
 
-  // Загрузка и заполнение профиля
-  async function populateProfile(user) {
-    try {
-      console.log('Загрузка профиля для:', user.email);
-      
-      // Загружаем или создаем профиль
+  async function populateProfile(user){
+    try{
       currentProfile = await loadOrCreateProfile(user);
-      console.log('Профиль загружен:', currentProfile);
-      
-      // Заполняем поля формы
-      elements.firstName.value = currentProfile.first_name || '';
-      elements.lastName.value = currentProfile.last_name || '';
-      elements.jobTitle.value = currentProfile.job_title || '';
-      elements.department.value = currentProfile.department_name || '';
-      elements.phone.value = currentProfile.phone || '';
-      elements.officeLocation.value = currentProfile.office_location || '';
-      
-      // Обновляем заголовок
-      const fullName = [currentProfile.first_name, currentProfile.last_name]
-        .filter(Boolean).join(' ') || 'Пользователь';
-      elements.headerName.textContent = fullName;
-      elements.headerEmail.textContent = currentProfile.email || user.email;
-      
-      // Обновляем аватар
+      el.firstName.value = currentProfile.first_name || '';
+      el.lastName.value = currentProfile.last_name || '';
+      el.jobTitle.value = currentProfile.job_title || '';
+      el.department.value = currentProfile.department_name || '';
+      el.phone.value = currentProfile.phone || '';
+      el.officeLocation.value = currentProfile.office_location || '';
+
+      const fullName = [currentProfile.first_name, currentProfile.last_name].filter(Boolean).join(' ') || 'Пользователь';
+      el.headerName.textContent = fullName;
+      el.headerEmail.textContent = currentProfile.email || user.email;
+
       if (currentProfile.avatar_url) {
-        elements.headerAvatar.src = currentProfile.avatar_url;
-        elements.headerAvatar.style.display = 'block';
-        elements.headerAvatarPlaceholder.style.display = 'none';
+        el.headerAvatar.src = currentProfile.avatar_url;
+        el.headerAvatar.style.display = 'block';
+        el.headerAvatarPlaceholder.style.display = 'none';
       } else {
-        elements.headerAvatar.style.display = 'none';
-        elements.headerAvatarPlaceholder.style.display = 'flex';
+        el.headerAvatar.style.display = 'none';
+        el.headerAvatarPlaceholder.style.display = 'grid';
       }
-      
-    } catch (error) {
-      console.error('Ошибка загрузки профиля:', error);
-      setMsg(elements.profileMsg, `Ошибка загрузки профиля: ${error.message}`, 'error');
+      updateDeptTitle();
+    }catch(err){
+      console.error(err);
+      setMsg(el.profileMsg, `Ошибка загрузки профиля: ${err.message}`, 'error');
     }
   }
 
-  // Загрузка подразделений
-  async function populateDepartments() {
-    try {
-      const departments = await fetchOrgDepartments();
-      
-      elements.department.innerHTML = '<option value="">Выберите подразделение</option>';
-      departments.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept;
-        option.textContent = dept;
-        elements.department.appendChild(option);
+  async function populateDepartments(){
+    try{
+      const deps = await fetchOrgDepartments();
+      el.department.innerHTML = '<option value="">Выберите подразделение</option>';
+      deps.forEach(d=>{
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d; el.department.appendChild(o);
       });
-      
-      // Восстанавливаем выбранное значение
-      if (currentProfile?.department_name) {
-        elements.department.value = currentProfile.department_name;
-      }
-      
-    } catch (error) {
-      console.error('Ошибка загрузки подразделений:', error);
-      elements.department.innerHTML = '<option value="">Ошибка загрузки</option>';
+      if (currentProfile?.department_name) el.department.value = currentProfile.department_name;
+      updateDeptTitle();
+    }catch(err){
+      console.error(err);
+      el.department.innerHTML = '<option value="">Ошибка загрузки</option>';
+      updateDeptTitle();
     }
   }
 
-  // Переключение табов
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const tab = e.target.dataset.tab;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      
-      if (tab === 'signin') {
-        elements.signinForm.style.display = 'flex';
-        elements.signupForm.style.display = 'none';
-      } else {
-        elements.signinForm.style.display = 'none';
-        elements.signupForm.style.display = 'flex';
-      }
+  // Табы вход/регистрация
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.addEventListener('click', (e)=>{
+      const tab = e.currentTarget.dataset.tab;
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      el.signinForm.style.display = tab==='signin' ? 'grid' : 'none';
+      el.signupForm.style.display = tab==='signup' ? 'grid' : 'none';
     });
   });
 
-  // Обработчик входа
-  elements.signinForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    setMsg(elements.authMsg, '');
-    
-    try {
+  // Вход
+  el.signinForm.addEventListener('submit', async (e)=>{
+    e.preventDefault(); setMsg(el.authMsg,'');
+    try{
       const email = document.getElementById('signinEmail').value.trim();
       const password = document.getElementById('signinPassword').value.trim();
-      
-      if (!email || !password) {
-        throw new Error('Заполните все поля');
-      }
-      
-      setMsg(elements.authMsg, 'Выполняется вход...', 'success');
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
+      if (!email || !password) throw new Error('Заполните все поля');
+      setMsg(el.authMsg,'Выполняется вход…','success');
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      
-      console.log('Вход выполнен:', data.user.email);
-      setMsg(elements.authMsg, 'Вход выполнен успешно!', 'success');
-      elements.signinForm.reset();
-      
-    } catch (error) {
-      console.error('Ошибка входа:', error);
-      setMsg(elements.authMsg, error.message, 'error');
-    }
+      setMsg(el.authMsg,'Вход выполнен!','success');
+      el.signinForm.reset();
+    }catch(err){ setMsg(el.authMsg, err.message, 'error'); }
   });
 
-  // Обработчик регистрации
-  elements.signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    setMsg(elements.authMsg, '');
-    
-    try {
+  // Регистрация
+  el.signupForm.addEventListener('submit', async (e)=>{
+    e.preventDefault(); setMsg(el.authMsg,'');
+    try{
       const email = document.getElementById('signupEmail').value.trim();
       const password = document.getElementById('signupPassword').value.trim();
-      
-      if (!email || !password) {
-        throw new Error('Заполните все поля');
-      }
-      
-      if (password.length < 6) {
-        throw new Error('Пароль должен быть не менее 6 символов');
-      }
-      
-      setMsg(elements.authMsg, 'Создание аккаунта...', 'success');
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password
-      });
-      
+      if (!email || !password) throw new Error('Заполните все поля');
+      if (password.length < 6) throw new Error('Пароль должен быть не менее 6 символов');
+      setMsg(el.authMsg,'Создание аккаунта…','success');
+      const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
-      
-      console.log('Регистрация выполнена:', data);
-      setMsg(elements.authMsg, 'Регистрация успешна! Проверьте email для подтверждения.', 'success');
-      elements.signupForm.reset();
-      
-    } catch (error) {
-      console.error('Ошибка регистрации:', error);
-      setMsg(elements.authMsg, error.message, 'error');
-    }
+      setMsg(el.authMsg,'Регистрация успешна! Проверьте почту.','success');
+      el.signupForm.reset();
+    }catch(err){ setMsg(el.authMsg, err.message, 'error'); }
   });
 
-  // Обработчик выхода
-  elements.btnSignOut.addEventListener('click', async () => {
-    try {
+  // Выход
+  el.btnSignOut.addEventListener('click', async ()=>{
+    try{
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      console.log('Выход выполнен');
-      setMsg(elements.authMsg, 'Вы вышли из системы', 'success');
-      
-    } catch (error) {
-      console.error('Ошибка выхода:', error);
-    }
+      setMsg(el.authMsg, 'Вы вышли из системы', 'success');
+    }catch(err){ console.error(err); }
   });
 
   // Сохранение профиля
-  elements.profileForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    setMsg(elements.profileMsg, '');
-    
-    try {
-      setMsg(elements.profileMsg, 'Сохранение...', 'success');
-      
+  el.profileForm.addEventListener('submit', async (e)=>{
+    e.preventDefault(); setMsg(el.profileMsg,'');
+    try{
       const updates = {
-        first_name: elements.firstName.value.trim(),
-        last_name: elements.lastName.value.trim(),
-        job_title: elements.jobTitle.value.trim(),
-        department_name: elements.department.value || null,
-        phone: elements.phone.value.trim(),
-        office_location: elements.officeLocation.value.trim(),
+        first_name: el.firstName.value.trim(),
+        last_name: el.lastName.value.trim(),
+        job_title: el.jobTitle.value.trim(),
+        department_name: el.department.value || null,
+        phone: el.phone.value.trim(),
+        office_location: el.officeLocation.value.trim(),
         updated_at: new Date().toISOString()
       };
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('user_id', currentUser.id)
-        .select()
-        .single();
-      
+      const { data, error } = await supabase.from('profiles').update(updates).eq('user_id', currentUser.id).select().single();
       if (error) throw error;
-      
       currentProfile = data;
-      
-      // Обновляем заголовок
-      const fullName = [data.first_name, data.last_name]
-        .filter(Boolean).join(' ') || 'Пользователь';
-      elements.headerName.textContent = fullName;
-      
-      setMsg(elements.profileMsg, 'Профиль сохранен!', 'success');
-      
-    } catch (error) {
-      console.error('Ошибка сохранения:', error);
-      setMsg(elements.profileMsg, error.message, 'error');
-    }
+      const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || 'Пользователь';
+      el.headerName.textContent = fullName;
+      setMsg(el.profileMsg,'Профиль сохранён!','success');
+      updateDeptTitle();
+    }catch(err){ setMsg(el.profileMsg, err.message, 'error'); }
   });
 
   // Смена пароля
-  elements.passwordForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    setMsg(elements.passwordMsg, '');
-    
-    try {
-      const newPassword = document.getElementById('newPassword').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-      
-      if (!newPassword || newPassword.length < 6) {
-        throw new Error('Пароль должен быть не менее 6 символов');
-      }
-      
-      if (newPassword !== confirmPassword) {
-        throw new Error('Пароли не совпадают');
-      }
-      
-      setMsg(elements.passwordMsg, 'Изменение пароля...', 'success');
-      
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      
+  el.passwordForm.addEventListener('submit', async (e)=>{
+    e.preventDefault(); setMsg(el.passwordMsg,'');
+    try{
+      const np = document.getElementById('newPassword').value;
+      const cp = document.getElementById('confirmPassword').value;
+      if (!np || np.length < 6) throw new Error('Пароль должен быть не менее 6 символов');
+      if (np !== cp) throw new Error('Пароли не совпадают');
+      setMsg(el.passwordMsg,'Изменяем пароль…','success');
+      const { error } = await supabase.auth.updateUser({ password: np });
       if (error) throw error;
-      
-      elements.passwordForm.reset();
-      setMsg(elements.passwordMsg, 'Пароль успешно изменен!', 'success');
-      
-    } catch (error) {
-      console.error('Ошибка смены пароля:', error);
-      setMsg(elements.passwordMsg, error.message, 'error');
-    }
+      el.passwordForm.reset();
+      setMsg(el.passwordMsg,'Пароль обновлён!','success');
+    }catch(err){ setMsg(el.passwordMsg, err.message, 'error'); }
   });
 
-  // Загрузка аватара
-  elements.avatarInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    try {
-      setMsg(elements.profileMsg, 'Загрузка аватара...', 'success');
-      
-      // Загружаем файл
-      const avatarUrl = await uploadAvatar(file, currentUser.id);
-      
-      // Обновляем профиль
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({
-          avatar_url: avatarUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', currentUser.id)
-        .select()
-        .single();
-      
+  // Аватар
+  el.avatarInput.addEventListener('change', async (e)=>{
+    const file = e.target.files?.[0]; if (!file) return;
+    try{
+      setMsg(el.profileMsg,'Загрузка аватара…','success');
+      const url = await uploadAvatar(file, currentUser.id);
+      const { data, error } = await supabase.from('profiles').update({ avatar_url:url, updated_at:new Date().toISOString() }).eq('user_id', currentUser.id).select().single();
       if (error) throw error;
-      
       currentProfile = data;
-      
-      // Обновляем UI
-      elements.headerAvatar.src = avatarUrl;
-      elements.headerAvatar.style.display = 'block';
-      elements.headerAvatarPlaceholder.style.display = 'none';
-      
-      setMsg(elements.profileMsg, 'Аватар обновлен!', 'success');
-      
-    } catch (error) {
-      console.error('Ошибка загрузки аватара:', error);
-      setMsg(elements.profileMsg, error.message, 'error');
-    }
-    
-    // Очищаем input
+      el.headerAvatar.src = url;
+      el.headerAvatar.style.display = 'block';
+      el.headerAvatarPlaceholder.style.display = 'none';
+      setMsg(el.profileMsg,'Аватар обновлён!','success');
+    }catch(err){ setMsg(el.profileMsg, err.message, 'error'); }
     e.target.value = '';
   });
 
-  // Инициализация
-  async function init() {
-    console.log('Инициализация профиля...');
-    
-    // Проверяем текущую сессию
-    const { data: { session } } = await supabase.auth.getSession();
-    await updateUI(session);
-    
-    // Подписываемся на изменения авторизации
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      await updateUI(session);
-    });
-  }
+  // Обновление title при смене подразделения (для длинных значений)
+  el.department.addEventListener('change', updateDeptTitle);
 
-  // Запускаем приложение
+  // Init
+  async function init(){
+    const { data:{ session } } = await supabase.auth.getSession();
+    await updateUI(session);
+    supabase.auth.onAuthStateChange(async (_event, s)=>{ await updateUI(s); });
+  }
   init().catch(console.error);
 </script>
-
 </body>
 </html>
