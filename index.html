@@ -7,26 +7,25 @@
   <meta name="description" content="Веб‑приложение Лада‑Имидж: учёт затрат процессов, PnL по ABC, оргструктура и аналитика." />
   <meta name="theme-color" content="#ffffff"/>
 
-  <!-- Fonts: Inter -->
+  <!-- Fonts: Inter + Space Grotesk for branding -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet"/>
 
   <!-- Styles -->
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
   <header class="main-header" role="banner">
-    <button id="sidebarToggle" class="icon-button" aria-label="Свернуть/развернуть меню">
-      <i data-lucide="panel-left-close" aria-hidden="true"></i>
-    </button>
-
     <div class="title-container">
       <i data-lucide="land-plot" class="main-icon" aria-hidden="true"></i>
-      <h1 class="page-title">Ризома - платформа для бизнес-анализа. Лада-Имидж</h1>
+      <h1 class="page-title">
+        <span class="product-name">Ризома — платформа для бизнес-анализа</span>
+      </h1>
     </div>
 
     <div class="user-area">
+      <span class="company-badge" aria-label="Компания">Лада‑Имидж</span>
       <button id="userMenuButton" class="avatar-button" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu">
         <i data-lucide="user" class="avatar-icon" aria-hidden="true"></i>
         <i data-lucide="chevron-down" class="chevron" aria-hidden="true"></i>
@@ -44,6 +43,11 @@
 
   <div class="layout">
     <aside class="sidebar" aria-label="Навигация">
+      <div class="sidebar-top">
+        <button id="sidebarToggle" class="sidebar-toggle" aria-label="Свернуть/развернуть меню">
+          <i data-lucide="panel-left-close" aria-hidden="true"></i>
+        </button>
+      </div>
       <nav id="main-nav" class="nav" role="navigation">
         <!-- Главная -->
         <a class="nav-item nav-link active" href="#!/home" data-route="home" title="Главная" aria-current="page">
@@ -52,17 +56,17 @@
         </a>
 
         <!-- Бизнес-архитектура -->
-        <div class="nav-group" data-group="ba">
+        <div class="nav-group is-open" data-group="ba">
           <div class="nav-group-row">
             <a class="nav-item nav-link nav-group-link" href="#!/pcf" data-route="pcf" title="Бизнес-архитектура">
               <i data-lucide="orbit" aria-hidden="true"></i>
               <span>Бизнес-архитектура</span>
             </a>
-            <button class="nav-chevron" type="button" aria-label="Развернуть" aria-expanded="false" aria-controls="submenu-ba">
+            <button class="nav-chevron" type="button" aria-label="Свернуть" aria-expanded="true" aria-controls="submenu-ba">
               <i data-lucide="chevron-down" aria-hidden="true"></i>
             </button>
           </div>
-          <div id="submenu-ba" class="nav-submenu" aria-hidden="true" style="max-height:0;">
+          <div id="submenu-ba" class="nav-submenu" aria-hidden="false" style="max-height:none; opacity:1;">
             <a class="nav-item nav-subitem nav-link" href="#!/pcf" data-route="pcf" title="Каталог бизнес-процессов">
               <i data-lucide="waypoints" aria-hidden="true"></i>
               <span>Бизнес-функции</span>
@@ -79,17 +83,17 @@
         </div>
 
         <!-- Портал данных IBP -->
-        <div class="nav-group" data-group="ibp">
+        <div class="nav-group is-open" data-group="ibp">
           <div class="nav-group-row">
             <a class="nav-item nav-link nav-group-link" href="#!/ibp/financial" data-route="ibp/financial" title="Портал данных IBP">
               <i data-lucide="database" aria-hidden="true"></i>
               <span>Портал данных IBP</span>
             </a>
-            <button class="nav-chevron" type="button" aria-label="Развернуть" aria-expanded="false" aria-controls="submenu-ibp">
+            <button class="nav-chevron" type="button" aria-label="Свернуть" aria-expanded="true" aria-controls="submenu-ibp">
               <i data-lucide="chevron-down" aria-hidden="true"></i>
             </button>
           </div>
-          <div id="submenu-ibp" class="nav-submenu" aria-hidden="true" style="max-height:0;">
+          <div id="submenu-ibp" class="nav-submenu" aria-hidden="false" style="max-height:none; opacity:1;">
             <a class="nav-item nav-subitem nav-link" href="#!/ibp/financial" data-route="ibp/financial" title="Финансовые планы">
               <i data-lucide="chart-candlestick" aria-hidden="true"></i>
               <span>Финансовые планы</span>
