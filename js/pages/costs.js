@@ -192,9 +192,12 @@ async function prepareFTEData() {
     if (!p) return;
     let total = 0;
     Object.keys(row).forEach((k) => {
-      if (k.startsWith('ORG-')) total += Number(String(row[k] || '0').replace(',', '.'));
+      if (k.startsWith('ORG-')) {
+        const v = Number(String(row[k] || '0').replace(',', '.'));
+        if (Number.isFinite(v) && v >= 0) total += v;
+      }
     });
-    p.fte += total;
+    if (Number.isFinite(total) && total >= 0) p.fte += total;
   });
 
   // Дерево подразделений
@@ -219,7 +222,7 @@ async function prepareFTEData() {
       const dept = departments[k];
       if (!dept) return;
       const v = Number(String(row[k] || '0').replace(',', '.'));
-      if (v > 0) {
+      if (Number.isFinite(v) && v > 0) {
         dept.directFte += v;
         const found = dept.processes.find((x) => x.code === proc.code);
         if (found) found.fte += v;
@@ -519,7 +522,11 @@ async function createFteWidget(mountEl) {
   try {
     const { processFTE } = await prepareFTEData();
     const totals = Object.values(processFTE).reduce(
-      (acc, p) => ((acc[p.group] = (acc[p.group] || 0) + p.fte), acc),
+      (acc, p) => {
+        const fte = Number.isFinite(p.fte) && p.fte >= 0 ? p.fte : 0;
+        acc[p.group] = (acc[p.group] || 0) + fte;
+        return acc;
+      },
       { core: 0, management: 0, enablement: 0 }
     );
     const box = (label, v, color) => `
@@ -618,8 +625,10 @@ async function createVaWidget(mountEl) {
 
   try {
     const res = await prepareVaBreakdown();
-    const { va, nva } = res.totals;
+    const { va, nva, unk } = res.totals;
+    // Исключаем UNK из расчета процентов, так как это неопределенные процессы
     const total = (va || 0) + (nva || 0);
+    const totalWithUnk = total + (unk || 0);
     const pct = (v) => total > 0 ? `${fmt((v / total) * 100, 1)}%` : '0.0%';
 
     const box = (label, v) => `
