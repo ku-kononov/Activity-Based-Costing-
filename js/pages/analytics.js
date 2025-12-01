@@ -73,6 +73,13 @@ const EXACT = {
   assetOps: [
     'доходы расходы от операций с основными средствами'
   ],
+  cogs: [
+    'себестоимость продаж',
+    'себестоимость реализованной продукции работ услуг',
+    'себестоимость реализованной продукции работ и услуг',
+    'себестоимость реализованной продукции',
+    'себестоимость'
+  ],
 };
 
 // ====== Утилиты ======
@@ -203,6 +210,9 @@ function isProductionOrLogistics(labelN) {
   );
 }
 function classifyOpexLabel(L, hasCommAgg, hasAdminAgg) {
+  // Амортизацию не относим к OPEX‑корзинам, она идёт в D&A
+  if (L.startsWith('амортизация')) return null;
+
   if (isProductionOrLogistics(L)) return null; // это COGS, не OPEX
 
   if (hasCommAgg && L === norm('расходы по продаже продукции')) return 'commercial';
@@ -335,14 +345,27 @@ function periodIndices(state) {
   const mi = Math.max(0, (state.month || 1) - 1);
   return [mi];
 }
+function prevPeriodIndices(state) {
+  if (state.periodType === 'year') return []; // в текущей модели нет предыдущего года
+  if (state.periodType === 'quarter') {
+    if (state.quarter <= 1) return [];
+    const prevStart = (state.quarter - 2) * 3;
+    return [prevStart, prevStart + 1, prevStart + 2];
+  }
+  // month
+  const mi = Math.max(0, (state.month || 1) - 1);
+  if (mi === 0) return [];
+  return [mi - 1];
+}
+
 function baselineSumForPeriod(arr, state) {
   const idxs = periodIndices(state);
-  const len = idxs.length;
+  const len = idxs.length || 1;
 
   if (state.periodType === 'month') {
     const i = idxs[0];
     const base = rollingAvg(arr, i, 3) || nonZeroAvg(arr.slice(0, i)) || nonZeroAvg(arr);
-    return base; // месячное
+    return base; // месячное значение
   }
   if (state.periodType === 'quarter') {
     const qStart = (state.quarter - 1) * 3;
@@ -351,7 +374,7 @@ function baselineSumForPeriod(arr, state) {
     const avg = nonZeroAvg(arr.slice(0, qStart)) || nonZeroAvg(arr);
     return avg * len;
   }
-  // year
+  // year — берём среднее за доступные месяцы, умножаем на число месяцев
   const avg = nonZeroAvg(arr);
   return avg * len;
 }
@@ -555,6 +578,7 @@ function calculateMetrics(pnlData, periodKeys, _prevPeriodKeys, state) {
   // ----- строки (фоллбеки по синонимам) -----
   const rowRevenue     = findRowByAny(pnlData, EXACT.revenue);
   const rowGross       = findRowByAny(pnlData, EXACT.grossProfit);
+  const rowCogs        = findRowByAny(pnlData, EXACT.cogs);
   const rowOp          = findRowByAny(pnlData, EXACT.operatingProfit);
   const rowNet         = findRowByAny(pnlData, EXACT.netProfit);
   const rowEbitda      = findRowByAny(pnlData, EXACT.ebitda);
@@ -562,9 +586,28 @@ function calculateMetrics(pnlData, periodKeys, _prevPeriodKeys, state) {
   const rowNetInterest = findRowByAny(pnlData, EXACT.netInterest);
   const rowIncomeTax   = findRowByAny(pnlData, EXACT.incomeTax);
 
-  // ----- суммы за период -----
+  // ----- суммы за период (Revenue / Gross / COGS) -----
   const revenue         = sumRowPeriods(rowRevenue, periodKeys);
-  const gross           = sumRowPeriods(rowGross, periodKeys);
+  let gross = 0;
+  let cogs  = 0;
+
+  if (rowCogs) {
+    cogs = sumRowPeriods(rowCogs, periodKeys);
+  }
+  if (rowGross) {
+    gross = sumRowPeriods(rowGross, periodKeys);
+  } else if (revenue && cogs) {
+    gross = revenue - cogs;
+  }
+  // Если ни валовой прибыли, ни себестоимости нет, оставляем 0 и сигнализируем в консоль
+  if (!rowGross && !rowCogs && revenue) {
+    console.warn('[PnL] Не найдены строки Gross Profit и COGS — валовая маржа не может быть рассчитана корректно');
+  }
+
+  if (!cogs && revenue && gross) {
+    cogs = revenue - gross;
+  }
+
   const netProfit       = sumRowPeriods(rowNet, periodKeys);
   let   depr            = sumRowPeriods(rowDeprTotal, periodKeys);
 
@@ -586,54 +629,82 @@ function calculateMetrics(pnlData, periodKeys, _prevPeriodKeys, state) {
 
   // ----- месячные ряды -----
   const sRevenue = monthlySeries(rowRevenue);
-  const sGross   = monthlySeries(rowGross);
-  const sNet     = monthlySeries(rowNet);
-  const sOpex    = monthlyOpexSeries(pnlData);
+  let   sGross;
+  if (rowGross) {
+    sGross = monthlySeries(rowGross);
+  } else if (rowCogs) {
+    const sCogs = monthlySeries(rowCogs);
+    sGross = sRevenue.map((r, i) => r - (sCogs[i] || 0));
+  } else {
+    sGross = new Array(12).fill(0);
+  }
+  const sNet   = monthlySeries(rowNet);
+  const sOpex  = monthlyOpexSeries(pnlData);
 
   // Амортизация (месячно)
   const sDepr = rowDeprTotal
     ? monthlySeries(rowDeprTotal)
     : monthlySumWhere(pnlData, (r) => norm(r[LABEL_FIELD]).startsWith('амортизация'));
 
-  // EBITDA (месячно): строка или Gross − OPEX (проксирование при отсутствии строки)
+  // OP по строке (если есть)
+  const sOpRow = rowOp ? monthlySeries(rowOp) : null;
+
+  // EBITDA (месячно):
+  // 1) если есть отдельная строка EBITDA — используем её;
+  // 2) иначе, если есть OP и D&A — EBITDA = OP + D&A;
+  // 3) иначе грубый прокси: Gross − OPEX.
+  let sEbitda;
   const sEbitdaRow = rowEbitda ? monthlySeries(rowEbitda) : null;
-  const sEbitda    = (sEbitdaRow && sEbitdaRow.some(v => v !== 0)) ? sEbitdaRow : sGross.map((g, i) => g - (sOpex[i] || 0));
+  const hasEbitdaRow = sEbitdaRow && sEbitdaRow.some(v => v !== 0);
+  const hasOpRow     = sOpRow && sOpRow.some(v => v !== 0);
+  const hasDepr      = sDepr && sDepr.some(v => v !== 0);
+
+  if (hasEbitdaRow) {
+    sEbitda = sEbitdaRow;
+  } else if (hasOpRow && hasDepr) {
+    sEbitda = sOpRow.map((op, i) => op + (sDepr[i] || 0));
+  } else {
+    // fallback: считаем EBITDA как вклад маржи после OPEX без явного деления на фикс/переменные
+    sEbitda = sGross.map((g, i) => g - (sOpex[i] || 0));
+  }
 
   // OP (месячно): строка или EBITDA − D&A
-  const sOpRow = rowOp ? monthlySeries(rowOp) : null;
   const sOpEst = sEbitda.map((e, i) => e - (sDepr[i] || 0));
-  const sOp    = (sOpRow && sOpRow.some(v => v !== 0)) ? sOpRow : sOpEst;
+  const sOp    = hasOpRow ? sOpRow : sOpEst;
 
   // Периодные индексы и бейзлайн
-  const idxs = periodIndices(state);
-  const baseRevSum = baselineSumForPeriod(sRevenue, state);
-  const baseOpSum  = baselineSumForPeriod(sOp, state);
-  const baseNetSum = baselineSumForPeriod(sNet, state);
-  const baseEbitdaSum = baselineSumForPeriod(sEbitda, state);
+  const idxs    = periodIndices(state);
+  const prevIdx = prevPeriodIndices(state);
+  const hasPrev = prevIdx.length > 0;
+
+  const baseRevSum    = hasPrev ? sumByIdx(sRevenue, prevIdx) : baselineSumForPeriod(sRevenue, state);
+  const baseOpSum     = hasPrev ? sumByIdx(sOp, prevIdx)      : baselineSumForPeriod(sOp, state);
+  const baseNetSum    = hasPrev ? sumByIdx(sNet, prevIdx)     : baselineSumForPeriod(sNet, state);
+  const baseEbitdaSum = hasPrev ? sumByIdx(sEbitda, prevIdx)  : baselineSumForPeriod(sEbitda, state);
 
   // Согласованные суммы за период для мостика
   const curGrossSum = sumByIdx(sGross, idxs);
-  const baseGrossSum = baselineSumForPeriod(sGross, state);
+  const baseGrossSum = hasPrev ? sumByIdx(sGross, prevIdx) : baselineSumForPeriod(sGross, state);
 
   const curOpexSum = sumByIdx(sOpex, idxs);
-  const baseOpexSum = baselineSumForPeriod(sOpex, state);
+  const baseOpexSum = hasPrev ? sumByIdx(sOpex, prevIdx) : baselineSumForPeriod(sOpex, state);
 
   const curDeprSum = sumByIdx(sDepr, idxs);
-  const baseDeprSum = baselineSumForPeriod(sDepr, state);
+  const baseDeprSum = hasPrev ? sumByIdx(sDepr, prevIdx) : baselineSumForPeriod(sDepr, state);
 
   const sOtherOp = monthlySumWhere(pnlData, (r) => {
     const L = norm(r[LABEL_FIELD]);
     return EXACT.otherOperating.some(s => eq(L, s)) || EXACT.assetOps.some(s => eq(L, s));
   });
   const curOtherOpSum = sumByIdx(sOtherOp, idxs);
-  const baseOtherOpSum = baselineSumForPeriod(sOtherOp, state);
+  const baseOtherOpSum = hasPrev ? sumByIdx(sOtherOp, prevIdx) : baselineSumForPeriod(sOtherOp, state);
 
   const sInterest = rowNetInterest ? monthlySeries(rowNetInterest) : new Array(12).fill(0);
   const sTax      = rowIncomeTax   ? monthlySeries(rowIncomeTax)   : new Array(12).fill(0);
   const curIntSum = sumByIdx(sInterest, idxs);
   const curTaxSum = sumByIdx(sTax, idxs);
-  const baseIntSum = baselineSumForPeriod(sInterest, state);
-  const baseTaxSum = baselineSumForPeriod(sTax, state);
+  const baseIntSum = hasPrev ? sumByIdx(sInterest, prevIdx) : baselineSumForPeriod(sInterest, state);
+  const baseTaxSum = hasPrev ? sumByIdx(sTax, prevIdx)      : baselineSumForPeriod(sTax, state);
 
   // EBITDA / OP / D&A суммы за период (согласованные)
   let ebitda = sumByIdx(sEbitda, idxs);
@@ -647,28 +718,38 @@ function calculateMetrics(pnlData, periodKeys, _prevPeriodKeys, state) {
   const ebitdaM = ebitda / UNIT_DIVISOR;
   const netMargin = revenue ? (netProfit / revenue) * 100 : 0;
 
-  // KPI тренды vs база (в тех же единицах)
-  const baseRevForKpiM = baseRevSum / UNIT_DIVISOR;
-  const baseOpForKpiM  = baseOpSum  / UNIT_DIVISOR;
-  const baseNetForKpiM = baseNetSum / UNIT_DIVISOR;
+  // KPI тренды vs предыдущий период (если он есть)
+  const baseRevForKpiM = baseRevSum    / UNIT_DIVISOR;
+  const baseOpForKpiM  = baseOpSum     / UNIT_DIVISOR;
+  const baseNetForKpiM = baseNetSum    / UNIT_DIVISOR;
   const baseNetMargin  = baseRevSum ? (baseNetSum / baseRevSum) * 100 : 0;
 
   const trendVsBase = (cur, base) => {
-    const c = Number(cur) || 0, b = Number(base) || 0;
+    const c = Number(cur) || 0;
+    const b = Number(base) || 0;
+    if (!Number.isFinite(b) || Math.abs(b) < 1e-6) {
+      return { trend: 0, trendAbs: 0 };
+    }
     const tAbs = c - b;
-    const tPct = b ? (tAbs / Math.abs(b)) * 100 : (c ? 100 : 0);
+    const tPct = (tAbs / Math.abs(b)) * 100;
     return { trend: tPct, trendAbs: tAbs };
   };
 
-  // ===== Safety Margin и BE (исправлено)
-  // Используем классическую модель: CMR = Gross / Revenue; Fixed = весь OPEX; BE = Fixed / CMR
+  // ===== Safety Margin и BE
+  // Классическая модель: CMR = Gross / Revenue; Fixed ≈ OPEX + D&A за период; BE = Fixed / CMR
   const cmr = revenue > 0 ? (gross / revenue) : 0; // доля валовой маржи
-  const fixedCosts = totalOpex; // приближение: OPEX считаем фиксированным для BE
-  const beRevenue = cmr > 0 ? (fixedCosts / cmr) : 0;
+  const fixedCosts = totalOpex + depr; // приближение: фиксированные расходы
+  let beRevenue = 0;
+  if (cmr > 0 && fixedCosts > 0) {
+    beRevenue = fixedCosts / cmr;
+  }
 
   const safetyAbs = revenue - beRevenue;
-  // Клиппим Safety% в адекватный диапазон [-100; 100]
-  const safetyPct = revenue > 0 ? clamp((safetyAbs / revenue) * 100, -100, 100) : 0;
+  let safetyPct = 0;
+  if (revenue > 0 && Number.isFinite(safetyAbs)) {
+    // Клиппим Safety% в адекватный диапазон [-100; 100]
+    safetyPct = clamp((safetyAbs / revenue) * 100, -100, 100);
+  }
 
   // ===== Операционный рычаг (устойчивые фоллбеки)
   const revChangePct = baseRevSum ? ((revenue - baseRevSum) / Math.abs(baseRevSum)) * 100 : 0;
@@ -693,8 +774,8 @@ function calculateMetrics(pnlData, periodKeys, _prevPeriodKeys, state) {
   const opexMoM    = seriesMoMPercent(sOpex);
 
   // ----- Водопад (база периода → текущий период) -----
-  const startM = (baseNetSum) / UNIT_DIVISOR;
-  const endM   = netProfit / UNIT_DIVISOR;
+  const startM = baseNetSum / UNIT_DIVISOR; // Net Profit предыдущего периода
+  const endM   = netProfit / UNIT_DIVISOR;  // Net Profit текущего периода
 
   const dGrossM    = (curGrossSum - baseGrossSum) / UNIT_DIVISOR;
   const dOpexM     = -((curOpexSum - baseOpexSum) / UNIT_DIVISOR);
@@ -738,10 +819,10 @@ function calculateMetrics(pnlData, periodKeys, _prevPeriodKeys, state) {
 
   return {
     kpi: {
-      revenue:   { value: revM,     unit: 'млн ₽', ...trendVsBase(revM, baseRevForKpiM),                 vsText: 'vs баз.' },
-      ebitda:    { value: ebitdaM,  unit: 'млн ₽', ...trendVsBase(ebitdaM, (baseEbitdaSum/UNIT_DIVISOR)), vsText: 'vs баз.' },
-      netProfit: { value: netM,     unit: 'млн ₽', ...trendVsBase(netM, baseNetForKpiM),                 vsText: 'vs баз.' },
-      netMargin: { value: netMargin,unit: '%',     ...trendVsBase(netMargin, baseNetMargin),             vsText: 'vs баз.' },
+      revenue:   { value: revM,     unit: 'млн ₽', ...trendVsBase(revM, baseRevForKpiM),                 vsText: hasPrev ? (state.periodType === 'quarter' ? 'vs пред. квартал' : state.periodType === 'month' ? 'vs пред. месяц' : 'vs база') : '' },
+      ebitda:    { value: ebitdaM,  unit: 'млн ₽', ...trendVsBase(ebitdaM, (baseEbitdaSum/UNIT_DIVISOR)), vsText: hasPrev ? (state.periodType === 'quarter' ? 'vs пред. квартал' : state.periodType === 'month' ? 'vs пред. месяц' : 'vs база') : '' },
+      netProfit: { value: netM,     unit: 'млн ₽', ...trendVsBase(netM, baseNetForKpiM),                 vsText: hasPrev ? (state.periodType === 'quarter' ? 'vs пред. квартал' : state.periodType === 'month' ? 'vs пред. месяц' : 'vs база') : '' },
+      netMargin: { value: netMargin,unit: '%',     ...trendVsBase(netMargin, baseNetMargin),             vsText: hasPrev ? (state.periodType === 'quarter' ? 'vs пред. квартал' : state.periodType === 'month' ? 'vs пред. месяц' : 'vs база') : '' },
     },
     charts: {
       profitabilityTrend: {
@@ -794,8 +875,8 @@ function calculateMetrics(pnlData, periodKeys, _prevPeriodKeys, state) {
       },
     },
     breakdown: {
-      revenue, gross, cogs: revenue - gross, totalOpex, comm, admin, it, rent_utils, repairs, transport, other,
-      ebitda, operatingProfit, netProfit, cmr, fixedCosts, fixedEff: totalOpex, variableOpex: 0,
+      revenue, gross, cogs, totalOpex, comm, admin, it, rent_utils, repairs, transport, other,
+      ebitda, operatingProfit, netProfit, cmr, fixedCosts, fixedEff: fixedCosts, variableOpex: 0,
       beRevenue, safetyAbs, safetyPct,
       otherOp, netInterest, incomeTax, depr
     }
@@ -899,7 +980,7 @@ function createPnlCardHTML(breakdown, title = 'Расшифровка PnL и OPE
   const toM = (v) => v / UNIT_DIVISOR;
   const rows = [
     { label: 'Выручка', val: toM(breakdown.revenue), cls: 'strong' },
-    { label: 'Себестоимость (COGS)', val: toM(breakdown.revenue - breakdown.gross), cls: 'muted' },
+    { label: 'Себестоимость (COGS)', val: toM(breakdown.cogs), cls: 'muted' },
     { label: 'Валовая прибыль', val: toM(breakdown.gross), cls: 'subtotal' },
 
     { label: 'Коммерческие', val: toM(breakdown.comm) },
