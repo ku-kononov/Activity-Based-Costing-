@@ -1562,17 +1562,17 @@ function renderStaticCard(el, { icon, title, subtitle, body = '' }, onClick) {
 }
 
 async function initMetricCards() {
-  // 1) Стоимость процессов (Total Activity Cost)
+  // 1) Затраты процессов (Total Activity Cost)
   const tac = document.getElementById('card-tac');
   if (tac) {
     renderStaticCard(
       tac,
-      { icon: 'coins', title: 'Стоимость процессов', subtitle: 'Total Activity Cost' },
+      { icon: 'coins', title: 'Анализ затрат процессов', subtitle: 'Total Activity Cost' },
       () => showMetricModal({
         icon: 'coins',
-        title: 'Стоимость процессов',
+        title: 'Затраты процессов',
         subtitle: 'Total Activity Cost',
-        html: `<p>Итоговая стоимость процессов за период по ABC. На детальном экране отобразим:</p>
+        html: `<p>Итоговые затраты процессов за период по ABC. На детальном экране отобразим:</p>
                <ul>
                  <li>Топ‑10 самых дорогих процессов</li>
                  <li>Динамика по месяцам</li>
@@ -1649,12 +1649,12 @@ export async function renderCostsPage(container) {
       </div>
 
       <div class="analytics-grid analytics-grid--1-1">
-        <!-- Стоимость процессов -->
+        <!-- Затраты процессов -->
         <div class="analytics-chart clickable-card" id="card-tac">
           <div class="analytics-chart__header">
             <i data-lucide="coins"></i>
             <div class="analytics-chart__title-block">
-              <h3 class="analytics-chart__title">Стоимость процессов</h3>
+              <h3 class="analytics-chart__title">Затраты процессов</h3>
               <p class="analytics-header__subtitle">Total Activity Cost</p>
             </div>
           </div>
