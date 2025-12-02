@@ -6,50 +6,70 @@ const GROUP_COLORS = { core: '#60a5fa', management: '#fbbf24', enablement: '#34d
 
 let __homeStylesInjected = false;
 function ensureHomeStyles() {
-  if (__homeStylesInjected) return;
-  const css = `
-    .home-block-title { color: var(--blue) !important; margin: 0 0 6px 0 !important; }
-    .home-block-title .home-block-icon { color: var(--blue) !important; }
-    .home-block-subtitle { color: var(--muted) !important; margin: 2px 0 12px 42px !important; font-weight: 600; font-size: 13px; letter-spacing: .2px; }
-    
-    .metrics-list { display: flex; flex-direction: column; gap: 4px; }
-    .metric-row { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--divider); }
-    .metric-row:last-child { border-bottom: none; }
-    .metric-label { font-size: 12px; text-transform: uppercase; letter-spacing: .3px; color: var(--muted); font-weight: 700; }
-    .metric-value { font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 800; color: var(--blue); }
-    
-    .metric-value.management { color: ${GROUP_COLORS.management} !important; }
-    .metric-value.core { color: ${GROUP_COLORS.core} !important; }
-    .metric-value.enablement { color: ${GROUP_COLORS.enablement} !important; }
+   if (__homeStylesInjected) return;
+   const css = `
+     .home-block-title { color: var(--blue) !important; margin: 0 0 6px 0 !important; }
+     .home-block-title .home-block-icon { color: var(--blue) !important; }
+     .home-block-subtitle { color: var(--muted) !important; margin: 2px 0 12px 42px !important; font-weight: 600; font-size: 13px; letter-spacing: .2px; }
 
-    .module-chart-container { display: flex; align-items: center; gap: 12px; height: 110px; }
-    .donut-wrapper { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
-    .donut-canvas { width: 100%; height: 100%; }
-    
-    .chart-legend { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; justify-content: center; }
-    .legend-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; font-size: 12px; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .legend-label { font-weight: 600; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-    .legend-val { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 14px; white-space: nowrap; }
+     .metrics-list { display: flex; flex-direction: column; gap: 8px; }
+     .metric-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: transform 0.2s ease; }
+     .metric-row:hover { transform: translateY(-2px); }
+     .metric-icon { width: 32px; height: 32px; flex-shrink: 0; }
+     .metric-content { flex: 1; }
+     .metric-label { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+     .metric-value { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 800; color: var(--blue); }
 
-    .module-card .module-header { padding: 16px 18px; }
-    .module-card .module-title { font-size: 1.1em; }
-    .module-card .module-body { padding: 14px 18px; }
-    .module-body .module-text { margin: 0; color: var(--muted); font-weight: 600; font-size: 13px; }
-  `;
-  const s = document.createElement('style');
-  s.id = 'home-local-styles';
-  s.textContent = css;
-  document.head.appendChild(s);
-  
-  if (!document.getElementById('chart-js')) {
-    const script = document.createElement('script');
-    script.id = 'chart-js';
-    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-    document.head.appendChild(script);
-  }
-  __homeStylesInjected = true;
-}
+     .metric-value.management { color: ${GROUP_COLORS.management} !important; }
+     .metric-value.core { color: ${GROUP_COLORS.core} !important; }
+     .metric-value.enablement { color: ${GROUP_COLORS.enablement} !important; }
+
+     .company-metrics { display: flex; justify-content: space-between; gap: 16px; }
+     .company-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: transform 0.2s ease; flex: 1; }
+     .company-item:hover { transform: translateY(-2px); }
+     .company-metric-icon { width: 24px; height: 24px; flex-shrink: 0; }
+     .company-metric-label { font-size: 14px; color: var(--muted); font-weight: 600; }
+     .company-metric-value { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 800; color: var(--blue); }
+
+     .module-chart-container { display: flex; align-items: center; gap: 16px; height: 120px; }
+     .donut-wrapper { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+     .donut-canvas { width: 100%; height: 100%; }
+
+     .chart-legend { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; justify-content: center; }
+     .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+     .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+     .legend-label { font-weight: 600; color: var(--muted); flex: 1; font-size: 14px; }
+     .legend-val { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 17px; }
+
+     .module-card .module-header { padding: 16px 18px 4px; border-bottom: none; }
+     .module-card .module-title { font-size: 1.1em; margin-bottom: -16px; }
+     .module-card { min-height: 180px; }
+     .module-card[data-group="ba"] { min-height: 160px; }
+     .module-card[data-group="ibp"] { min-height: 200px; }
+     .module-card .module-body { padding: 0px 18px; }
+     .module-card[data-group="ibp"] .module-body { padding: 14px 18px; }
+     .module-body .module-text { margin: 0; color: var(--muted); font-weight: 600; font-size: 13px; }
+
+     .company-metric-row { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: transform 0.2s ease; }
+     .company-metric-row:hover { transform: translateY(-2px); }
+     .company-metric-top { display: flex; align-items: center; gap: 8px; }
+     .company-metric-icon { width: 24px; height: 24px; flex-shrink: 0; }
+     .company-metric-label { font-size: 14px; color: var(--muted); font-weight: 600; }
+     .company-metric-value { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 800; color: var(--blue); }
+   `;
+   const s = document.createElement('style');
+   s.id = 'home-local-styles';
+   s.textContent = css;
+   document.head.appendChild(s);
+
+   if (!document.getElementById('chart-js')) {
+     const script = document.createElement('script');
+     script.id = 'chart-js';
+     script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+     document.head.appendChild(script);
+   }
+   __homeStylesInjected = true;
+ }
 
 function toNum(v) {
   if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
@@ -128,40 +148,59 @@ function metricId(moduleTitle, label) {
 }
 
 function createChartHTML(module) {
-  const { labels, values, colors } = module.chartData;
-  const legendHTML = labels.map((label, i) => `
-    <div class="legend-item">
-      <span class="legend-dot" style="background-color: ${colors[i]}"></span>
-      <span class="legend-label">${label}</span>
-      <span class="legend-val" style="color: ${colors[i]}">${values[i]} FTE</span>
-    </div>
-  `).join('');
+   const { labels, values, colors } = module.chartData;
+   const isProcesses = module.key === 'processes';
+   const isCosts = module.key === 'costs';
+   const header = isProcesses ? '<h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center;">Группы процессов</h4>' :
+                 isCosts ? '<h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center;">Мера включённости в процессы</h4>' : '';
+   const unit = isProcesses ? '' : ' FTE';
+   const legendHTML = labels.map((label, i) => `
+     <div class="legend-item">
+       <span class="legend-dot" style="background-color: ${colors[i]}"></span>
+       <span class="legend-label">${label}</span>
+       <span class="legend-val" style="color: ${colors[i]}">${values[i]}${unit}</span>
+     </div>
+   `).join('');
 
-  return `
-    <div class="module-chart-container">
-      <div class="donut-wrapper">
-        <canvas id="${module.chartId}" class="donut-canvas"></canvas>
-      </div>
-      <div class="chart-legend">${legendHTML}</div>
-    </div>
-  `;
-}
+   const paddingTop = '';
+   return `
+     ${header}
+     <div class="module-chart-container" style="${paddingTop}">
+       <div class="donut-wrapper">
+         <canvas id="${module.chartId}" class="donut-canvas"></canvas>
+       </div>
+       <div class="chart-legend">${legendHTML}</div>
+     </div>
+   `;
+ }
 
 function createMetricsHTML(module) {
-  if (module.chartId && module.chartData) return createChartHTML(module);
-  if (!module.metrics?.length) return module.text ? `<p class="module-text">${module.text}</p>` : '<div class="module-placeholder">Скоро здесь появятся данные</div>';
-  const idBase = module.title;
-  return `
-    <div class="metrics-list">
-      ${module.metrics.map(m => `
-        <div class="metric-row">
-          <div class="metric-label">${m.label}</div>
-          <div class="metric-value ${m.className || ''}" id="${metricId(idBase, m.label)}">${m.value}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
+   if (module.chartId && module.chartData) return createChartHTML(module);
+   if (!module.metrics?.length) return module.text ? `<p class="module-text">${module.text}</p>` : '<div class="module-placeholder">Скоро здесь появятся данные</div>';
+   const idBase = module.title;
+   const isCompany = module.key === 'company';
+   if (isCompany) {
+     const content = module.metrics.map(m => `
+       <div class="company-item">
+         ${m.icon ? `<i data-lucide="${m.icon}" class="company-metric-icon" style="color: var(--blue)"></i>` : ''}
+         <div class="company-metric-label">${m.label}</div>
+         <div class="company-metric-value ${m.className || ''}" id="${metricId(idBase, m.label)}">${m.value}</div>
+       </div>
+     `).join('');
+     return `<div class="company-metrics">${content}</div>`;
+   } else {
+     const content = module.metrics.map(m => `
+       <div class="metric-row">
+         ${m.icon ? `<i data-lucide="${m.icon}" class="metric-icon" style="color: var(--blue)"></i>` : ''}
+         <div class="metric-content">
+           <div class="metric-label">${m.label}</div>
+           <div class="metric-value ${m.className || ''}" id="${metricId(idBase, m.label)}">${m.value}</div>
+         </div>
+       </div>
+     `).join('');
+     return `<div class="metrics-list">${content}</div>`;
+   }
+ }
 
 function createModuleHTML(module, index, groupKey) {
   return `
@@ -188,34 +227,46 @@ function createBlockHTML({ title, subtitle, icon, modules, color = 'var(--blue)'
 }
 
 function initDonutChart(canvasId, data) {
-  const checkChart = setInterval(() => {
-    if (window.Chart) {
-      clearInterval(checkChart);
-      renderChart();
-    }
-  }, 100);
-  setTimeout(() => clearInterval(checkChart), 5000);
+   const checkChart = setInterval(() => {
+     if (window.Chart) {
+       clearInterval(checkChart);
+       renderChart();
+     }
+   }, 100);
+   setTimeout(() => clearInterval(checkChart), 5000);
 
-  function renderChart() {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
-    if (ctx.chartInstance) ctx.chartInstance.destroy();
-    ctx.chartInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: data.labels,
-        datasets: [{ data: data.values, backgroundColor: data.colors, borderWidth: 0, hoverOffset: 4 }]
-      },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        cutout: '70%', 
-        plugins: { legend: { display: false }, tooltip: { enabled: false } }, 
-        animation: { animateScale: true, animateRotate: true } 
-      }
-    });
-  }
-}
+   function renderChart() {
+     const ctx = document.getElementById(canvasId);
+     if (!ctx) return;
+     if (ctx.chartInstance) ctx.chartInstance.destroy();
+
+     // Create gradients for segments
+     const gradients = data.colors.map(color => {
+       const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 100);
+       gradient.addColorStop(0, color);
+       gradient.addColorStop(1, color.replace(')', ', 0.8)').replace('rgb', 'rgba'));
+       return gradient;
+     });
+
+     const isProcesses = canvasId === 'processes-donut-home';
+     const cutout = isProcesses ? '0%' : '50%';
+
+     ctx.chartInstance = new Chart(ctx, {
+       type: 'doughnut',
+       data: {
+         labels: data.labels,
+         datasets: [{ data: data.values, backgroundColor: gradients, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', hoverOffset: 6 }]
+       },
+       options: {
+         responsive: true,
+         maintainAspectRatio: false,
+         cutout: cutout,
+         plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: 'rgba(0,0,0,0.9)', titleColor: '#fff', bodyColor: '#fff', cornerRadius: 8, padding: 12 } },
+         animation: { animateScale: true, animateRotate: true, duration: 1500, easing: 'easeOutQuart' }
+       }
+     });
+   }
+ }
 
 export async function renderHomePage(container) {
   // Меняем заголовок приложения в DOM (если элемент существует)
@@ -224,20 +275,22 @@ export async function renderHomePage(container) {
 
   ensureHomeStyles();
 
-  let fteData = { labels: ['Основные', 'Управление', 'Обеспечение'], values: [0, 0, 0], colors: [GROUP_COLORS.core, GROUP_COLORS.management, GROUP_COLORS.enablement] };
+  let fteData = { labels: ['Основные', 'Управление', 'Обеспечение'], values: [48.2, 5.5, 14.3], colors: [GROUP_COLORS.core, GROUP_COLORS.management, GROUP_COLORS.enablement] };
   try {
     const realFte = await fetchFTEStats();
     if (realFte) fteData = realFte;
   } catch (e) { console.warn(e); }
 
   const BA_MODULES = [
-    { key: 'company', title: 'Компания', icon: 'ship', color: 'var(--blue)', link: () => navigate('org'), metrics: [{ label: 'Сотрудники', value: '...' }, { label: 'Подразделения', value: '...' }] },
-    { key: 'processes', title: 'Процессы', icon: 'waypoints', color: 'var(--blue)', link: () => navigate('pcf'), metrics: [
-        { label: 'Управление', value: '2', className: 'management' }, 
-        { label: 'Основные', value: '5', className: 'core' }, 
-        { label: 'Обеспечение', value: '6', className: 'enablement' }
-      ] 
-    },
+    { key: 'company', title: 'Компания', icon: 'ship', color: 'var(--blue)', link: () => navigate('org'), metrics: [
+        { label: 'Сотрудники', value: '...', icon: 'users' },
+        { label: 'Подразделения', value: '...', icon: 'building-2' }
+      ] },
+    { key: 'processes', title: 'Процессы', icon: 'waypoints', color: 'var(--blue)', link: () => navigate('pcf'), chartId: 'processes-donut-home', chartData: {
+        labels: ['Управление', 'Основные', 'Обеспечение'],
+        values: [2, 5, 6],
+        colors: [GROUP_COLORS.management, GROUP_COLORS.core, GROUP_COLORS.enablement]
+      } },
     { key: 'costs', title: 'Затраты процессов', icon: 'chart-pie', color: 'var(--blue)', link: () => navigate('costs'), chartId: 'costs-donut-home', chartData: fteData },
   ];
 
@@ -250,6 +303,8 @@ export async function renderHomePage(container) {
 
   if (fteData && fteData.values.some(v => v > 0)) initDonutChart('costs-donut-home', fteData);
   else { const wrap = document.querySelector('#costs-donut-home')?.closest('.module-chart-container'); if (wrap) wrap.parentElement.innerHTML = '<div class="module-placeholder">Нет данных для отображения</div>'; }
+
+  initDonutChart('processes-donut-home', { labels: ['Управление', 'Основные', 'Обеспечение'], values: [2, 5, 6], colors: [GROUP_COLORS.management, GROUP_COLORS.core, GROUP_COLORS.enablement] });
 
   container.querySelectorAll('.module-card').forEach((card) => {
     const group = card.getAttribute('data-group');
