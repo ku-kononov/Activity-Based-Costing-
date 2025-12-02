@@ -91,24 +91,12 @@ export async function fetchOrgDepartments() {
 /** Статистика для раздела "Компания" */
 export async function fetchOrgStats() {
   if (!supa) throw new Error('Supabase не инициализирован.');
-  const ROOT_DEPT_ID = 'ORG-001';
 
-  const [rootRes, childrenRes] = await Promise.all([
-    supa.from('BOLT_orgchat').select('"number of employees"').eq('Department ID', ROOT_DEPT_ID).limit(1),
-    supa.from('BOLT_orgchat').select('"number of employees"').eq('Parent Department ID', ROOT_DEPT_ID)
-  ]);
+  const allRows = await fetchData('BOLT_orgchat', '"Department ID", "number of employees"');
+  const total_departments = allRows.length;
+  const total_employees = allRows.reduce((sum, r) => sum + Number(r?.['number of employees'] || 0), 0);
 
-  if (rootRes.error) throw new Error(`Не удалось получить данные по генеральной дирекции: ${rootRes.error.message}`);
-  if (childrenRes.error) throw new Error(`Не удалось получить данные по подразделениям: ${childrenRes.error.message}`);
-
-  const rootRow = (rootRes.data && rootRes.data[0]) || null;
-  const rootEmployees = rootRow ? Number(rootRow['number of employees'] || 0) : 0;
-
-  const childrenRows = childrenRes.data || [];
-  const total_departments = childrenRows.length;
-  const childrenEmployees = childrenRows.reduce((sum, r) => sum + Number(r?.['number of employees'] || 0), 0);
-
-  return { total_employees: rootEmployees + childrenEmployees, total_departments };
+  return { total_employees, total_departments };
 }
 
 /** Получить названия подразделений по списку кодов */
