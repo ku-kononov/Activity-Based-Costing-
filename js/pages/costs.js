@@ -57,7 +57,7 @@ function injectCostStyles() {
     .fte-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; }
     .fte-summary-item { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 14px; border-top: 4px solid var(--item-color); background: var(--bg); border-radius: 10px; }
     .fte-summary-value { font-size: 26px; font-weight: 800; color: var(--item-color); line-height: 1.1; font-variant-numeric: tabular-nums; }
-    .fte-summary-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 6px; }
+    .fte-summary-label { font-size: 13px; font-weight: 600; color: var(--item-color); margin-top: 6px; }
 
     /* === Общая модалка === */
     .metric-modal-overlay { position: fixed; inset: 0; z-index: 1050; background: rgba(17,24,39,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
@@ -129,14 +129,15 @@ function injectCostStyles() {
     .va-mini { padding: 12px 8px 16px; }
     .va-mini-cards { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px; }
     .va-mini-item {
-      background: var(--surface);
+      background: var(--bg);
       border:1px solid var(--border);
       border-radius: 10px;
       padding: 14px;
       display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center;
+      border-top: 4px solid var(--item-color);
     }
-    .va-mini-value { font-size: 24px; font-weight: 800; color: var(--muted); line-height:1.1; font-variant-numeric: tabular-nums; }
-    .va-mini-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+    .va-mini-value { font-size: 24px; font-weight: 800; color: var(--blue); line-height:1.1; font-variant-numeric: tabular-nums; }
+    .va-mini-label { font-size: 13px; font-weight: 600; color: var(--blue); }
 
     /* VA modal layout */
     .va-modal-grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; align-items:stretch; }
@@ -152,6 +153,32 @@ function injectCostStyles() {
     }
     .va-explainer { font-size: 13.5px; line-height: 1.6; }
     .va-chart-container { align-items: center; justify-content: center; }
+
+    /* === Tabs for RPSC modal === */
+    .tabs { display: flex; flex-direction: column; }
+    .tab-buttons { display: flex; border-bottom: 1px solid var(--border); }
+    .tab-button { padding: 12px 16px; border: none; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; }
+    .tab-button.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-content { padding: 16px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* RPSC specific */
+    .rpsc-widget-body, .spcr-widget-body, .rpse-widget-body { padding: 12px 8px 16px; }
+    .rpsc-summary, .spcr-summary, .rpse-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; }
+    .rpsc-summary-item, .spcr-summary-item, .rpse-summary-item { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 14px; border-top: 4px solid var(--blue); background: var(--bg); border-radius: 10px; }
+    .rpsc-summary-value, .spcr-summary-value, .rpse-summary-value { font-size: 24px; font-weight: 800; color: var(--blue); line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .rpsc-summary-label, .spcr-summary-label { font-size: 13px; font-weight: 600; color: var(--blue); margin-top: 6px; }
+    .rpse-summary-label { font-size: 13px; font-weight: 600; color: var(--blue); margin-top: 6px; }
+
+    .rpsc-modules { display: flex; flex-direction: column; gap: 20px; }
+    .rpsc-module { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .rpsc-module h4 { margin: 0 0 12px; font-size: 16px; font-weight: 700; color: var(--text); }
+    .rpsc-period, .costs-period-selector { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-weight: 600; }
+    .rpsc-period label, .costs-period-selector label { color: var(--blue); }
+    .costs-period-selector { margin-bottom: 0; margin-left: auto; }
+    .rpsc-period select, .costs-period-selector select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 14px; }
+    .mono { font-variant-numeric: tabular-nums; }
   `;
   const styleEl = document.createElement('style');
   styleEl.id = 'costs-page-styles';
@@ -391,6 +418,12 @@ FTE (Full-Time Equivalent﻿) — это показатель, обознача�
           </div>
         </div>
         <div class="metric-modal__body">
+          <div class="rpsc-period">
+            <label>Период:</label>
+            <select id="ftePeriodSelect">
+              <option value="H1_2025">H1 2025</option>
+            </select>
+          </div>
           <div class="fte-top">
             <p class="fte-desc">FTE — это эквивалент полной занятости, показывающий, сколько человеко‑часов тратится на выполнение бизнес‑процесса или работу подразделения.</p>
             <div class="fte-controls">
@@ -632,7 +665,7 @@ async function createVaWidget(mountEl) {
     const pct = (v) => total > 0 ? `${fmt((v / total) * 100, 1)}%` : '0.0%';
 
     const box = (label, v) => `
-      <div class="va-mini-item">
+      <div class="va-mini-item" style="--item-color: var(--blue)">
         <div class="va-mini-value">${fmt(v, 1)} FTE</div>
         <div class="va-mini-label">${label} • ${pct(v)}</div>
       </div>`;
@@ -665,6 +698,12 @@ function showVaModal(prepared) {
           </div>
         </div>
         <div class="metric-modal__body">
+          <div class="rpsc-period">
+            <label>Период:</label>
+            <select id="vaPeriodSelect">
+              <option value="H1_2025">H1 2025</option>
+            </select>
+          </div>
           <div class="va-modal-grid">
             <div class="va-chart-container">
               <canvas id="vaDonut" style="max-height: 280px;"></canvas>
@@ -745,6 +784,735 @@ function showVaModal(prepared) {
   document.getElementById('vaTopNva').innerHTML = toRows(topNva, '#4B5563');
 }
 
+// ========== RPSC Widget ==========
+async function createRpscWidget(mountEl) {
+  const el = mountEl || document.getElementById('card-rpsc');
+  if (!el) return;
+
+  el.classList.add('clickable-card', 'rpsc-widget');
+  el.innerHTML = `
+    <div class="analytics-chart__header">
+      <i data-lucide="trending-up"></i>
+      <div class="analytics-chart__title-block">
+        <h3 class="analytics-chart__title">Эффективность процессов продаж</h3>
+        <p class="analytics-header__subtitle">Revenue per Sales Cost (RPSC)</p>
+      </div>
+    </div>
+    <div class="rpsc-widget-body">
+      <div class="rpsc-summary" id="rpscSummary">Загрузка...</div>
+    </div>
+  `;
+  refreshIcons();
+
+  try {
+    const data = await fetchData('BOLT_SPCR_H1_2025', '*');
+    const frontOffice = data.filter(row => (row.sales || '').toLowerCase().includes('front') || (row.segment || '').toLowerCase().includes('front'));
+    const backOffice = data.filter(row => (row.sales || '').toLowerCase().includes('back') || (row.segment || '').toLowerCase().includes('back'));
+
+    const calcTotalRpsc = (rows) => {
+      let totalRev = 0, totalCost = 0;
+      rows.forEach(row => {
+        totalRev += Number(row.REVENUE_H1_2025 || 0);
+        totalCost += Number(row.Costs || 0);
+      });
+      return totalCost > 0 ? totalRev / totalCost : 0;
+    };
+
+    const frontRpsc = calcTotalRpsc(frontOffice);
+    const backRpsc = calcTotalRpsc(backOffice);
+
+    const box = (label, v) => `
+      <div class="rpsc-summary-item">
+        <div class="rpsc-summary-value">${fmt(v, 2)}</div>
+        <div class="rpsc-summary-label">${label}</div>
+      </div>`;
+
+    document.getElementById('rpscSummary').innerHTML = `
+      ${box('Фронт-офис', frontRpsc)}
+      ${box('Бэк-офис', backRpsc)}
+    `;
+  } catch (e) {
+    const box = document.getElementById('rpscSummary');
+    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных</span>`;
+  }
+
+  el.addEventListener('click', () => showRpscModal());
+}
+
+// ========== SPCR Widget ==========
+async function createSpcrWidget(mountEl) {
+  const el = mountEl || document.getElementById('card-spcr');
+  if (!el) return;
+
+  el.classList.add('clickable-card', 'spcr-widget');
+  el.innerHTML = `
+    <div class="analytics-chart__header">
+      <i data-lucide="percent"></i>
+      <div class="analytics-chart__title-block">
+        <h3 class="analytics-chart__title">Доля затрат процессов продаж в выручке</h3>
+        <p class="analytics-header__subtitle">Sales Process Cost Ratio (SPCR)</p>
+      </div>
+    </div>
+    <div class="spcr-widget-body">
+      <div class="spcr-summary" id="spcrSummary">Загрузка...</div>
+    </div>
+  `;
+  refreshIcons();
+
+  try {
+    const data = await fetchData('BOLT_SPCR_H1_2025', '*');
+    const frontOffice = data.filter(row => (row.sales || '').toLowerCase().includes('front') || (row.segment || '').toLowerCase().includes('front'));
+    const backOffice = data.filter(row => (row.sales || '').toLowerCase().includes('back') || (row.segment || '').toLowerCase().includes('back'));
+
+    const calcTotalSpcr = (rows) => {
+      let totalRev = 0, totalCost = 0;
+      rows.forEach(row => {
+        totalRev += Number(row.REVENUE_H1_2025 || 0);
+        totalCost += Number(row.Costs || 0);
+      });
+      return totalRev > 0 ? (totalCost / totalRev) * 100 : 0;
+    };
+
+    const frontSpcr = calcTotalSpcr(frontOffice);
+    const backSpcr = calcTotalSpcr(backOffice);
+
+    const box = (label, v) => `
+      <div class="spcr-summary-item">
+        <div class="spcr-summary-value">${fmt(v, 1)}%</div>
+        <div class="spcr-summary-label">${label}</div>
+      </div>`;
+
+    document.getElementById('spcrSummary').innerHTML = `
+      ${box('Фронт-офис', frontSpcr)}
+      ${box('Бэк-офис', backSpcr)}
+    `;
+  } catch (e) {
+    const box = document.getElementById('spcrSummary');
+    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных</span>`;
+  }
+
+  el.addEventListener('click', () => showSpcrModal());
+}
+
+// ========== RPSE Widget ==========
+async function createRpseWidget(mountEl) {
+  const el = mountEl || document.getElementById('card-rcd');
+  if (!el) return;
+
+  el.classList.add('clickable-card', 'rpse-widget');
+  el.innerHTML = `
+    <div class="analytics-chart__header">
+      <i data-lucide="user"></i>
+      <div class="analytics-chart__title-block">
+        <h3 class="analytics-chart__title">Выручка на одного сотрудника отдела продаж</h3>
+        <p class="analytics-header__subtitle">Revenue per Sales Employee</p>
+      </div>
+    </div>
+    <div class="rpse-widget-body">
+      <div class="rpse-summary" id="rpseSummary">Загрузка...</div>
+    </div>
+  `;
+  refreshIcons();
+
+  try {
+    const data = await fetchData('BOLT_SPCR_H1_2025', '*');
+    const frontOffice = data.filter(row => (row.sales || '').toLowerCase().includes('front') || (row.segment || '').toLowerCase().includes('front'));
+    const backOffice = data.filter(row => (row.sales || '').toLowerCase().includes('back') || (row.segment || '').toLowerCase().includes('back'));
+
+    const calcTotalRpse = (rows) => {
+      let totalRev = 0, totalEmp = 0;
+      rows.forEach(row => {
+        totalRev += Number(row.REVENUE_H1_2025 || 0);
+        totalEmp += Number(row['number of employees'] || 0);
+      });
+      return totalEmp > 0 ? (totalRev / 1000) / totalEmp : 0; // в тыс. руб. на сотрудника
+    };
+
+    const frontRpse = calcTotalRpse(frontOffice);
+    const backRpse = calcTotalRpse(backOffice);
+
+    const box = (label, v) => `
+      <div class="rpse-summary-item">
+        <div class="rpse-summary-value">${fmt(v, 0)} <span style="color: var(--blue)">тыс. руб.</span></div>
+        <div class="rpse-summary-label">${label}</div>
+      </div>`;
+
+    document.getElementById('rpseSummary').innerHTML = `
+      ${box('Фронт-офис', frontRpse)}
+      ${box('Бэк-офис', backRpse)}
+    `;
+  } catch (e) {
+    const box = document.getElementById('rpseSummary');
+    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных</span>`;
+  }
+
+  el.addEventListener('click', () => showRpseModal());
+}
+
+// ========== RPSC Modal ==========
+async function showRpscModal() {
+  const id = 'rpsc-modal-overlay';
+  document.getElementById(id)?.remove();
+
+  const tpl = `
+    <div class="metric-modal-overlay" id="${id}">
+      <div class="metric-modal" style="width: min(96vw, 1000px);">
+        <div class="metric-modal__header">
+          <i data-lucide="trending-up" class="title--blue"></i>
+          <div class="metric-modal__title title--blue">Эффективность процессов продаж</div>
+          <div class="metric-modal__subtitle">Revenue per Sales Cost (RPSC)</div>
+          <div class="metric-modal__actions">
+            <button class="metric-close" id="rpscClose" aria-label="Закрыть"><i data-lucide="x"></i></button>
+          </div>
+        </div>
+        <div class="metric-modal__body">
+          <div class="rpsc-period">
+            <label>Период:</label>
+            <select id="rpscPeriodSelect">
+              <option value="H1_2025">H1 2025</option>
+            </select>
+          </div>
+          <div class="tabs">
+            <div class="tab-buttons">
+              <button class="tab-button active" data-tab="departments">Подразделения</button>
+              <button class="tab-button" data-tab="processes">Процессы</button>
+            </div>
+            <div class="tab-content">
+              <div class="tab-pane active" id="tab-departments">
+                <div class="rpsc-modules" id="rpscModules"></div>
+              </div>
+              <div class="tab-pane" id="tab-processes">
+                <p>Раздел "Процессы" в разработке. Данные будут добавлены позже.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', tpl);
+  refreshIcons();
+
+  const overlay = document.getElementById(id);
+  const btnClose = document.getElementById('rpscClose');
+  const tabButtons = overlay.querySelectorAll('.tab-button');
+  const tabPanes = overlay.querySelectorAll('.tab-pane');
+
+  function open() { setTimeout(() => overlay.classList.add('is-open'), 10); }
+  function close() { overlay.classList.remove('is-open'); setTimeout(() => overlay.remove(), 180); }
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  btnClose.addEventListener('click', close);
+
+  // Tab switching
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      overlay.querySelector(`#tab-${tab}`).classList.add('active');
+    });
+  });
+
+  // Load data for departments
+  try {
+    const data = await fetchData('BOLT_SPCR_H1_2025', '*');
+    const frontOffice = data.filter(row => (row.sales || '').toLowerCase().includes('front') || (row.segment || '').toLowerCase().includes('front'));
+    const backOffice = data.filter(row => (row.sales || '').toLowerCase().includes('back') || (row.segment || '').toLowerCase().includes('back'));
+
+    const renderChart = (title, rows) => {
+      const container = document.createElement('div');
+      container.className = 'rpsc-module';
+      container.innerHTML = `<h4>${title}</h4><canvas style="max-height: 300px;"></canvas>`;
+      const canvas = container.querySelector('canvas');
+      const labels = rows.map(row => row.segment || '-');
+      const data = rows.map(row => {
+        const costs = Number(row.Costs || 0);
+        const revenue = Number(row.REVENUE_H1_2025 || 0);
+        return costs > 0 ? revenue / costs : 0;
+      });
+      if (window.Chart) {
+        new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'RPSC',
+              data,
+              backgroundColor: 'rgba(74, 137, 243, 0.8)',
+              borderColor: cssVar('--blue', '#4A89F3'),
+              borderWidth: 2,
+              borderRadius: 6,
+              borderSkipped: false,
+              hoverBackgroundColor: 'rgba(74, 137, 243, 1)',
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 1200,
+              easing: 'easeOutQuart',
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(0,0,0,0.9)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: {
+                  title: (c) => `Сегмент: ${c[0].label}`,
+                  label: (c) => {
+                    const row = rows[c.dataIndex];
+                    const costs = Number(row.Costs || 0);
+                    const revenue = Number(row.REVENUE_H1_2025 || 0);
+                    const rpsc = costs > 0 ? revenue / costs : 0;
+                    return [
+                      `RPSC: ${fmt(rpsc, 2)}`,
+                      `Выручка: ${fmt(revenue, 0)} ₽`,
+                      `Затраты: ${fmt(costs, 0)} ₽`
+                    ];
+                  }
+                }
+              },
+              datalabels: {
+                anchor: 'end',
+                align: 'right',
+                color: cssVar('--text', '#333'),
+                font: { size: 12, weight: 'bold' },
+                formatter: (value) => fmt(value, 2)
+              }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Revenue per Sales Cost (RPSC)',
+                  color: cssVar('--text', '#333'),
+                  font: { size: 14, weight: 'bold' },
+                  padding: { top: 10 }
+                },
+                grid: { color: 'rgba(0,0,0,0.1)', lineWidth: 1 },
+                ticks: {
+                  color: cssVar('--text', '#333'),
+                  font: { size: 12 },
+                  padding: 10,
+                  callback: (value) => fmt(value, 2)
+                },
+                border: { color: cssVar('--border', '#ddd'), width: 2 }
+              },
+              y: {
+                grid: { display: false },
+                ticks: {
+                  color: cssVar('--text', '#333'),
+                  font: { size: 12 },
+                  padding: 10
+                },
+                border: { color: cssVar('--border', '#ddd'), width: 2 }
+              }
+            },
+            layout: {
+              padding: { left: 10, right: 10, top: 20, bottom: 10 }
+            }
+          }
+        });
+      }
+      return container;
+    };
+
+    const rpscModules = document.getElementById('rpscModules');
+    rpscModules.innerHTML = '';
+    rpscModules.appendChild(renderChart('Фронт-офис', frontOffice));
+    rpscModules.appendChild(renderChart('Бэк-офис', backOffice));
+  } catch (e) {
+    document.getElementById('rpscModules').innerHTML = `<p style="color:var(--muted)">Ошибка загрузки данных: ${e.message}</p>`;
+  }
+
+  open();
+}
+
+// ========== SPCR Modal ==========
+async function showSpcrModal() {
+  const id = 'spcr-modal-overlay';
+  document.getElementById(id)?.remove();
+
+  const tpl = `
+    <div class="metric-modal-overlay" id="${id}">
+      <div class="metric-modal" style="width: min(96vw, 1000px);">
+        <div class="metric-modal__header">
+          <i data-lucide="percent" class="title--blue"></i>
+          <div class="metric-modal__title title--blue">Доля затрат процессов продаж в выручке</div>
+          <div class="metric-modal__subtitle">Sales Process Cost Ratio (SPCR)</div>
+          <div class="metric-modal__actions">
+            <button class="metric-close" id="spcrClose" aria-label="Закрыть"><i data-lucide="x"></i></button>
+          </div>
+        </div>
+        <div class="metric-modal__body">
+          <div class="rpsc-period">
+            <label>Период:</label>
+            <select id="spcrPeriodSelect">
+              <option value="H1_2025">H1 2025</option>
+            </select>
+          </div>
+          <div class="tabs">
+            <div class="tab-buttons">
+              <button class="tab-button active" data-tab="departments">Подразделения</button>
+              <button class="tab-button" data-tab="processes">Процессы</button>
+            </div>
+            <div class="tab-content">
+              <div class="tab-pane active" id="tab-departments-spcr">
+                <div class="rpsc-modules" id="spcrModules"></div>
+              </div>
+              <div class="tab-pane" id="tab-processes-spcr">
+                <p>Раздел "Процессы" в разработке. Данные будут добавлены позже.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', tpl);
+  refreshIcons();
+
+  const overlay = document.getElementById(id);
+  const btnClose = document.getElementById('spcrClose');
+  const tabButtons = overlay.querySelectorAll('.tab-button');
+  const tabPanes = overlay.querySelectorAll('.tab-pane');
+
+  function open() { setTimeout(() => overlay.classList.add('is-open'), 10); }
+  function close() { overlay.classList.remove('is-open'); setTimeout(() => overlay.remove(), 180); }
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  btnClose.addEventListener('click', close);
+
+  // Tab switching
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      overlay.querySelector(`#tab-${tab}-spcr`).classList.add('active');
+    });
+  });
+
+  // Load data for departments
+  try {
+    const data = await fetchData('BOLT_SPCR_H1_2025', '*');
+    const frontOffice = data.filter(row => (row.sales || '').toLowerCase().includes('front') || (row.segment || '').toLowerCase().includes('front'));
+    const backOffice = data.filter(row => (row.sales || '').toLowerCase().includes('back') || (row.segment || '').toLowerCase().includes('back'));
+
+    const renderChart = (title, rows) => {
+      const container = document.createElement('div');
+      container.className = 'rpsc-module';
+      container.innerHTML = `<h4>${title}</h4><canvas style="max-height: 300px;"></canvas>`;
+      const canvas = container.querySelector('canvas');
+      const labels = rows.map(row => row.segment || '-');
+      const data = rows.map(row => {
+        const costs = Number(row.Costs || 0);
+        const revenue = Number(row.REVENUE_H1_2025 || 0);
+        return revenue > 0 ? (costs / revenue) * 100 : 0;
+      });
+      if (window.Chart) {
+        new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'SPCR',
+              data,
+              backgroundColor: 'rgba(74, 137, 243, 0.8)',
+              borderColor: cssVar('--blue', '#4A89F3'),
+              borderWidth: 2,
+              borderRadius: 6,
+              borderSkipped: false,
+              hoverBackgroundColor: 'rgba(74, 137, 243, 1)',
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 1200,
+              easing: 'easeOutQuart',
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(0,0,0,0.9)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: {
+                  title: (c) => `Сегмент: ${c[0].label}`,
+                  label: (c) => {
+                    const row = rows[c.dataIndex];
+                    const costs = Number(row.Costs || 0);
+                    const revenue = Number(row.REVENUE_H1_2025 || 0);
+                    const spcr = revenue > 0 ? (costs / revenue) * 100 : 0;
+                    return [
+                      `SPCR: ${fmt(spcr, 1)}%`,
+                      `Выручка: ${fmt(revenue, 0)} ₽`,
+                      `Затраты: ${fmt(costs, 0)} ₽`
+                    ];
+                  }
+                }
+              },
+              datalabels: {
+                anchor: 'end',
+                align: 'right',
+                color: cssVar('--text', '#333'),
+                font: { size: 12, weight: 'bold' },
+                formatter: (value) => `${fmt(value, 1)}%`
+              }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Sales Process Cost Ratio (SPCR, %)',
+                  color: cssVar('--text', '#333'),
+                  font: { size: 14, weight: 'bold' },
+                  padding: { top: 10 }
+                },
+                grid: { color: 'rgba(0,0,0,0.1)', lineWidth: 1 },
+                ticks: {
+                  color: cssVar('--text', '#333'),
+                  font: { size: 12 },
+                  padding: 10,
+                  callback: (value) => `${fmt(value, 1)}%`
+                },
+                border: { color: cssVar('--border', '#ddd'), width: 2 }
+              },
+              y: {
+                grid: { display: false },
+                ticks: {
+                  color: cssVar('--text', '#333'),
+                  font: { size: 12 },
+                  padding: 10
+                },
+                border: { color: cssVar('--border', '#ddd'), width: 2 }
+              }
+            },
+            layout: {
+              padding: { left: 10, right: 10, top: 20, bottom: 10 }
+            }
+          }
+        });
+      }
+      return container;
+    };
+
+    const spcrModules = document.getElementById('spcrModules');
+    spcrModules.innerHTML = '';
+    spcrModules.appendChild(renderChart('Фронт-офис', frontOffice));
+    spcrModules.appendChild(renderChart('Бэк-офис', backOffice));
+  } catch (e) {
+    document.getElementById('spcrModules').innerHTML = `<p style="color:var(--muted)">Ошибка загрузки данных: ${e.message}</p>`;
+  }
+
+  open();
+}
+
+// ========== RPSE Modal ==========
+async function showRpseModal() {
+  const id = 'rpse-modal-overlay';
+  document.getElementById(id)?.remove();
+
+  const tpl = `
+    <div class="metric-modal-overlay" id="${id}">
+      <div class="metric-modal" style="width: min(96vw, 1000px);">
+        <div class="metric-modal__header">
+          <i data-lucide="user" class="title--blue"></i>
+          <div class="metric-modal__title title--blue">Выручка на одного сотрудника отдела продаж</div>
+          <div class="metric-modal__subtitle">Revenue per Sales Employee</div>
+          <div class="metric-modal__actions">
+            <button class="metric-close" id="rpseClose" aria-label="Закрыть"><i data-lucide="x"></i></button>
+          </div>
+        </div>
+        <div class="metric-modal__body">
+          <div class="rpsc-period">
+            <label>Период:</label>
+            <select id="rpsePeriodSelect">
+              <option value="H1_2025">H1 2025</option>
+            </select>
+          </div>
+          <div class="tabs">
+            <div class="tab-buttons">
+              <button class="tab-button active" data-tab="departments">Подразделения</button>
+              <button class="tab-button" data-tab="processes">Процессы</button>
+            </div>
+            <div class="tab-content">
+              <div class="tab-pane active" id="tab-departments-rpse">
+                <div class="rpsc-modules" id="rpseModules"></div>
+              </div>
+              <div class="tab-pane" id="tab-processes-rpse">
+                <p>Раздел "Процессы" в разработке. Данные будут добавлены позже.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', tpl);
+  refreshIcons();
+
+  const overlay = document.getElementById(id);
+  const btnClose = document.getElementById('rpseClose');
+  const tabButtons = overlay.querySelectorAll('.tab-button');
+  const tabPanes = overlay.querySelectorAll('.tab-pane');
+
+  function open() { setTimeout(() => overlay.classList.add('is-open'), 10); }
+  function close() { overlay.classList.remove('is-open'); setTimeout(() => overlay.remove(), 180); }
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  btnClose.addEventListener('click', close);
+
+  // Tab switching
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      overlay.querySelector(`#tab-${tab}-rpse`).classList.add('active');
+    });
+  });
+
+  // Load data for departments
+  try {
+    const data = await fetchData('BOLT_SPCR_H1_2025', '*');
+    const frontOffice = data.filter(row => (row.sales || '').toLowerCase().includes('front') || (row.segment || '').toLowerCase().includes('front'));
+    const backOffice = data.filter(row => (row.sales || '').toLowerCase().includes('back') || (row.segment || '').toLowerCase().includes('back'));
+
+    const renderChart = (title, rows) => {
+      const container = document.createElement('div');
+      container.className = 'rpsc-module';
+      container.innerHTML = `<h4>${title}</h4><canvas style="max-height: 300px;"></canvas>`;
+      const canvas = container.querySelector('canvas');
+      const labels = rows.map(row => row.segment || '-');
+      const data = rows.map(row => {
+        const emp = Number(row['number of employees'] || 0);
+        const revenue = Number(row.REVENUE_H1_2025 || 0);
+        return emp > 0 ? (revenue / 1000) / emp : 0; // тыс. руб. на сотрудника
+      });
+      if (window.Chart) {
+        new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'RPSE',
+              data,
+              backgroundColor: 'rgba(74, 137, 243, 0.8)',
+              borderColor: cssVar('--blue', '#4A89F3'),
+              borderWidth: 2,
+              borderRadius: 6,
+              borderSkipped: false,
+              hoverBackgroundColor: 'rgba(74, 137, 243, 1)',
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 1200,
+              easing: 'easeOutQuart',
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(0,0,0,0.9)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: {
+                  title: (c) => `Сегмент: ${c[0].label}`,
+                  label: (c) => {
+                    const row = rows[c.dataIndex];
+                    const emp = Number(row['number of employees'] || 0);
+                    const revenue = Number(row.REVENUE_H1_2025 || 0);
+                    const rpse = emp > 0 ? (revenue / 1000) / emp : 0;
+                    return [
+                      `RPSE: ${fmt(rpse, 0)} тыс. руб.`,
+                      `Выручка: ${fmt(revenue / 1000, 0)} тыс. руб.`,
+                      `Сотрудники: ${emp}`
+                    ];
+                  }
+                }
+              },
+              datalabels: {
+                anchor: 'end',
+                align: 'right',
+                color: cssVar('--text', '#333'),
+                font: { size: 12, weight: 'bold' },
+                formatter: (value) => `${fmt(value, 0)} тыс. руб.`
+              }
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Revenue per Sales Employee (тыс. руб.)',
+                  color: cssVar('--text', '#333'),
+                  font: { size: 14, weight: 'bold' },
+                  padding: { top: 10 }
+                },
+                grid: { color: 'rgba(0,0,0,0.1)', lineWidth: 1 },
+                ticks: {
+                  color: cssVar('--text', '#333'),
+                  font: { size: 12 },
+                  padding: 10,
+                  callback: (value) => fmt(value, 0)
+                },
+                border: { color: cssVar('--border', '#ddd'), width: 2 }
+              },
+              y: {
+                grid: { display: false },
+                ticks: {
+                  color: cssVar('--text', '#333'),
+                  font: { size: 12 },
+                  padding: 10
+                },
+                border: { color: cssVar('--border', '#ddd'), width: 2 }
+              }
+            },
+            layout: {
+              padding: { left: 10, right: 10, top: 20, bottom: 10 }
+            }
+          }
+        });
+      }
+      return container;
+    };
+
+    const rpseModules = document.getElementById('rpseModules');
+    rpseModules.innerHTML = '';
+    rpseModules.appendChild(renderChart('Фронт-офис', frontOffice));
+    rpseModules.appendChild(renderChart('Бэк-офис', backOffice));
+  } catch (e) {
+    document.getElementById('rpseModules').innerHTML = `<p style="color:var(--muted)">Ошибка загрузки данных: ${e.message}</p>`;
+  }
+
+  open();
+}
+
 // ========== Универсальный модал для остальных виджетов ==========
 function showMetricModal({ icon = 'info', title = '', subtitle = '', html = '' }) {
   const id = 'metric-modal';
@@ -793,7 +1561,7 @@ function renderStaticCard(el, { icon, title, subtitle, body = '' }, onClick) {
   el.addEventListener('click', onClick);
 }
 
-function initMetricCards() {
+async function initMetricCards() {
   // 1) Стоимость процессов (Total Activity Cost)
   const tac = document.getElementById('card-tac');
   if (tac) {
@@ -814,52 +1582,32 @@ function initMetricCards() {
     );
   }
 
-  // 2) Драйверы затрат ресурсов (Resource Cost Drivers)
-  const rcd = document.getElementById('card-rcd');
-  if (rcd) {
-    renderStaticCard(
-      rcd,
-      { icon: 'sliders', title: 'Драйверы затрат ресурсов', subtitle: 'Resource Cost Drivers' },
-      () => showMetricModal({
-        icon: 'sliders',
-        title: 'Драйверы затрат ресурсов',
-        subtitle: 'Resource Cost Drivers',
-        html: `<p>Покажем ставки драйверов (₽/час, ₽/машино‑час и т.д.), вклад в стоимость и чувствительность.</p>`
-      })
-    );
+  // 2) Выручка на одного сотрудника отдела продаж (Revenue per Sales Employee)
+  const rpse = document.getElementById('card-rcd');
+  if (rpse) {
+    await createRpseWidget(rpse);
   }
 
   // 3) SPCR — доля затрат продаж в выручке
   const spcr = document.getElementById('card-spcr');
   if (spcr) {
-    renderStaticCard(
-      spcr,
-      { icon: 'percent', title: 'Доля затрат процессов продаж в выручке', subtitle: 'Sales Process Cost Ratio (SPCR)' },
-      () => showMetricModal({
-        icon: 'percent',
-        title: 'SPCR',
-        subtitle: 'Sales Process Cost Ratio',
-        html: `<p>SPCR = Затраты процессов продаж / Выручка × 100%. Карточка покажет текущий процент, тренд и бенчмарк.</p>`
-      })
-    );
+    await createSpcrWidget(spcr);
   }
 
   // 4) RPSC — эффективность процессов продаж
   const rpsc = document.getElementById('card-rpsc');
   if (rpsc) {
-    renderStaticCard(
-      rpsc,
-      { icon: 'trending-up', title: 'Эффективность процессов продаж', subtitle: 'Revenue per Sales Cost (RPSC)' },
-      () => showMetricModal({
-        icon: 'trending-up',
-        title: 'RPSC',
-        subtitle: 'Revenue per Sales Cost',
-        html: `<p>RPSC = Выручка / Затраты процессов продаж. Отображаем текущий множитель, динамику и связь с маржинальностью.</p>`
-      })
-    );
+    await createRpscWidget(rpsc);
   }
 
   refreshIcons();
+}
+
+// ========== Обновление виджетов при смене периода ==========
+async function updateWidgets() {
+  await initMetricCards();
+  await createFteWidget(document.getElementById('card-fte'));
+  await createVaWidget(document.getElementById('card-va'));
 }
 
 // ========== Точка входа ==========
@@ -875,6 +1623,7 @@ export async function renderCostsPage(container) {
   };
   await Promise.all([
     ensureScript('chart-js', 'https://cdn.jsdelivr.net/npm/chart.js'),
+    ensureScript('chartjs-datalabels', 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2'),
     ensureScript('jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
     ensureScript('jspdf-autotable', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js'),
   ]);
@@ -890,6 +1639,12 @@ export async function renderCostsPage(container) {
             <h2 class="analytics-header__title">Затраты процессов</h2>
             <p class="analytics-header__subtitle">Activity Based Costing (ABC)</p>
           </div>
+        </div>
+        <div class="costs-period-selector">
+          <label>Период:</label>
+          <select id="costsPeriodSelect">
+            <option value="H1_2025">H1 2025</option>
+          </select>
         </div>
       </div>
 
@@ -924,11 +1679,19 @@ export async function renderCostsPage(container) {
     </div>`;
 
   // Инициализация карточек
-  initMetricCards();
+  await initMetricCards();
 
   // Специализированные виджеты
   await createFteWidget(document.getElementById('card-fte'));
   await createVaWidget(document.getElementById('card-va'));
+
+  // Обработчик периода
+  const periodSelect = document.getElementById('costsPeriodSelect');
+  if (periodSelect) {
+    periodSelect.addEventListener('change', async () => {
+      await updateWidgets();
+    });
+  }
 
   refreshIcons();
 }
