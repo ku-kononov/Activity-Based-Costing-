@@ -116,7 +116,7 @@ body::after{
   background:var(--surface-soft);
   border:1px solid var(--border);
   border-radius:24px;
-  padding:12px var(--sp-6) 18px;
+  padding:40px var(--sp-6) 18px;
   display:flex;
   flex-direction:column;
   gap:4px;
@@ -133,23 +133,23 @@ body::after{
   margin-bottom:2px;
 }
 .sidebar-toggle{
+  position:absolute;
+  top:12px;
+  right:12px;
   width:42px;
   height:42px;
   border-radius:12px;
-  border:1px solid rgba(255,255,255,0.35);
-  background:rgba(255,255,255,0.15);
-  color:#0F172A;
+  border:none;
+  background:transparent;
+  color:#00C6AE;
   display:grid;
   place-items:center;
   cursor:pointer;
-  box-shadow:var(--glass-shadow);
-  backdrop-filter:var(--glass-blur);
-  -webkit-backdrop-filter:var(--glass-blur);
-  transition:background .2s ease, color .2s ease, transform .15s ease, border-color .2s ease;
+  transition:background .2s ease, color .2s ease, transform .15s ease;
 }
 .sidebar-toggle:hover{
-  background:rgba(255,255,255,0.3);
-  color:#0a1220;
+  background: rgba(0, 198, 174, 0.1);
+  color: #00C6AE;
   transform:translateY(-1px);
 }
 .sidebar-toggle i,
@@ -196,28 +196,36 @@ body::after{
   background:rgba(255,255,255,0.12);
   border-radius:10px;
   color:var(--nav-color);
-  cursor:pointer;
+  cursor:default;
   transition:background .2s ease, border-color .2s ease, color .2s ease;
 }
-.nav-chevron i, .nav-chevron svg{ width:18px; height:18px; color:inherit; transition:transform .2s ease; }
+.nav-chevron i, .nav-chevron svg{ width:18px; height:18px; color:inherit; }
 .nav-chevron:hover{
   background:rgba(255,255,255,0.32);
   border-color:rgba(255,255,255,0.4);
 }
-.nav-group.is-open .nav-chevron i{ transform:rotate(180deg); }
+:root[data-theme="dark"] .nav-chevron{
+  background:transparent;
+  border-color:transparent;
+}
+:root[data-theme="dark"] .nav-chevron:hover{
+  background:rgba(255,255,255,0.1);
+  border-color:rgba(255,255,255,0.2);
+}
 
 .nav-submenu{
-  display:flex; flex-direction:column; gap:4px;
+  display:flex !important; flex-direction:column; gap:4px;
   padding-left:20px;
   padding-right:6px;
-  overflow:hidden;
-  max-height:0;
-  opacity:0;
-  transition: max-height .24s ease, opacity .18s ease;
-  will-change: max-height, opacity;
   background:rgba(255,255,255,0.08);
   border-left:1px solid rgba(255,255,255,0.2);
   border-radius:16px;
+  max-height: none !important;
+  opacity: 1 !important;
+}
+:root[data-theme="dark"] .nav-submenu{
+  background:transparent;
+  border-left-color:transparent;
 }
 .nav-subitem{
   padding:8px 12px;
@@ -234,7 +242,7 @@ body::after{
 /* Коллапс сайдбара */
 body.sidebar-collapsed .sidebar{ width:72px }
 body.sidebar-collapsed .sidebar-top{ justify-content:center; padding:0; }
-body.sidebar-collapsed .sidebar-toggle{ width:36px; height:36px; }
+body.sidebar-collapsed .sidebar-toggle{ width:36px; height:36px; top:12px; left:50%; transform:translateX(-50%); background: transparent; color: #00C6AE; }
 body.sidebar-collapsed .nav-item span{ display:none }
 body.sidebar-collapsed .nav-item{ justify-content:center }
 body.sidebar-collapsed .nav-submenu{ padding-left:0; }
@@ -702,13 +710,12 @@ body.sidebar-collapsed .nav-chevron{ display:none; }
 :root[data-theme="dark"] .main-header .page-title .product-name{ color: var(--accent); }
 :root[data-theme="dark"] .company-badge{ color: var(--accent); }
 :root[data-theme="dark"] .sidebar-toggle{
-  border:1px solid rgba(255,255,255,0.18);
-  background:rgba(5,8,14,0.65);
-  color: var(--text);
+  background:transparent;
+  color: #00C6AE;
 }
 :root[data-theme="dark"] .sidebar-toggle:hover{
-  background: rgba(35,240,209,0.2);
-  color:#fff;
+  background: rgba(49, 214, 123, 0.1);
+  color: #00C6AE;
 }
 
 :root[data-theme="dark"] .sidebar {
@@ -719,8 +726,8 @@ body.sidebar-collapsed .nav-chevron{ display:none; }
 :root[data-theme="dark"] .sidebar .nav-item span,
 :root[data-theme="dark"] .sidebar .nav-item i { color:#E6EDF3; }
 :root[data-theme="dark"] .sidebar .nav-item{
-  background:rgba(255,255,255,0.05);
-  border-color:rgba(255,255,255,0.1);
+  background:transparent;
+  border-color:transparent;
 }
 :root[data-theme="dark"] .sidebar .nav-item:hover {
   background: rgba(255,255,255,0.15);

@@ -132,7 +132,6 @@ function initGlobalUI() {
   }
 
   injectAppearanceToggle();
-  initNavAccordion();
 }
 
 /* ================== Header avatar (user-area) ================== */
