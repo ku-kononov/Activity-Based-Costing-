@@ -138,9 +138,9 @@ async function fetchFTEStats() {
 }
 
 const IBP_MODULES = [
-  { key: 'ibp-financial', title: 'Управление финансовыми операциями', icon: 'calculator', color: 'var(--blue)', link: () => navigate('ibp/financial'), text: 'FP&A (Financial Planning & Analysis)' },
-  { key: 'ibp-operational', title: 'Продажи и операционное планирование', icon: 'trending-up-down', color: 'var(--blue)', link: () => navigate('ibp/operational'), text: 'S&OP (Sales & Operations Planning)' },
-  { key: 'ibp-plan-vs-fact', title: 'Анализ плана и факта', icon: 'chart-column-stacked', color: 'var(--blue)', link: () => navigate('ibp/plan-vs-fact'), text: 'Integrated Reconciliation' },
+  { key: 'ibp-financial', title: 'Управление финансовыми операциями', icon: 'calculator', color: 'var(--blue)', link: () => navigate('ibp/financial'), text: 'FP&A (Financial Planning & Analysis) - финансовое планирование, бюджетирование, прогнозирование и анализ для поддержки бизнес-решений' },
+  { key: 'ibp-operational', title: 'Продажи и операционное планирование', icon: 'trending-up-down', color: 'var(--blue)', link: () => navigate('ibp/operational'), text: 'S&OP (Sales & Operations Planning) - интегрированное планирование продаж и операций для баланса спроса/предложения, оптимизации логистики и запасов' },
+  { key: 'ibp-plan-vs-fact', title: 'Анализ плана и факта', icon: 'chart-column-stacked', color: 'var(--blue)', link: () => navigate('ibp/plan-vs-fact'), text: 'Integrated Reconciliation - сопоставление и анализ отклонений финансовых и операционных данных для коррекции консенсус-плана' },
 ];
 
 function metricId(moduleTitle, label) {
@@ -296,8 +296,39 @@ export async function renderHomePage(container) {
 
   container.innerHTML = `
     <div class="home-page">
-      ${createBlockHTML({ title: 'Бизнес-архитектура', subtitle: 'Enterprise architecture framework', icon: 'orbit', modules: BA_MODULES, color: 'var(--blue)', groupKey: 'ba' })}
-      ${createBlockHTML({ title: 'Интегрированное бизнес планирование', subtitle: 'Integrated Business Planning (IBP)', icon: 'database', modules: IBP_MODULES, color: 'var(--blue)', groupKey: 'ibp' })}
+      <!-- Секция 1: Бизнес-архитектура -->
+      <div class="home-section">
+        <div class="section-header">
+          <div class="section-icon">
+            <i data-lucide="orbit"></i>
+          </div>
+          <div>
+            <h2 class="section-title">Бизнес-архитектура</h2>
+            <p class="section-subtitle">Управление процессами и организационной структурой</p>
+          </div>
+        </div>
+
+        <div class="widgets-grid">
+          ${BA_MODULES.map((m, i) => createModuleHTML(m, i, 'ba')).join('')}
+        </div>
+      </div>
+
+      <!-- Секция 2: Интегрированное бизнес-планирование -->
+      <div class="home-section">
+        <div class="section-header">
+          <div class="section-icon">
+            <i data-lucide="database"></i>
+          </div>
+          <div>
+            <h2 class="section-title">Интегрированное бизнес планирование</h2>
+            <p class="section-subtitle">Финансовые и операционные планы, анализ исполнения</p>
+          </div>
+        </div>
+
+        <div class="widgets-grid">
+          ${IBP_MODULES.map((m, i) => createModuleHTML(m, i, 'ibp')).join('')}
+        </div>
+      </div>
     </div>
   `;
 
@@ -323,6 +354,8 @@ export async function renderHomePage(container) {
     const departmentsEl = container.querySelector('#' + metricId('Компания', 'Подразделения'));
     if (employeesEl) employeesEl.textContent = new Intl.NumberFormat('ru-RU').format(employees);
     if (departmentsEl) departmentsEl.textContent = new Intl.NumberFormat('ru-RU').format(departments);
+
+    // Статистика больше не нужна
   } catch (err) { console.error(err); }
 
   refreshIcons();

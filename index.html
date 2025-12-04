@@ -41,92 +41,94 @@
     </div>
   </header>
 
-  <div class="layout">
-    <aside class="sidebar" aria-label="Навигация">
-      <div class="sidebar-top">
-        <button id="sidebarToggle" class="sidebar-toggle" aria-label="Свернуть/развернуть меню">
-          <i data-lucide="panel-left-close" aria-hidden="true"></i>
-        </button>
-      </div>
-      <nav id="main-nav" class="nav" role="navigation">
-        <!-- Главная -->
-        <a class="nav-item nav-link active" href="#!/home" data-route="home" title="Главная" aria-current="page">
-          <i data-lucide="castle" aria-hidden="true"></i>
-          <span>Главная</span>
-        </a>
-
-        <!-- Бизнес-архитектура -->
-        <div class="nav-group is-open" data-group="ba">
-          <div class="nav-group-row">
-            <a class="nav-item nav-link nav-group-link" href="#!/pcf" data-route="pcf" title="Бизнес-архитектура">
-              <i data-lucide="orbit" aria-hidden="true"></i>
-              <span>Бизнес-архитектура</span>
-            </a>
-            <button class="nav-chevron" type="button" aria-label="Свернуть" aria-expanded="true" aria-controls="submenu-ba">
-              <i data-lucide="chevron-down" aria-hidden="true"></i>
-            </button>
-          </div>
-          <div id="submenu-ba" class="nav-submenu">
-            <a class="nav-item nav-subitem nav-link" href="#!/pcf" data-route="pcf" title="Каталог бизнес-процессов">
-              <i data-lucide="waypoints" aria-hidden="true"></i>
-              <span>Бизнес-функции</span>
-            </a>
-            <a class="nav-item nav-subitem nav-link" href="#!/org" data-route="org" title="Организационная структура">
-              <i data-lucide="drama" aria-hidden="true"></i>
-              <span>Оргструктура</span>
-            </a>
-            <a class="nav-item nav-subitem nav-link" href="#!/costs" data-route="costs" title="Затраты процессов">
-              <i data-lucide="chart-pie" aria-hidden="true"></i>
-              <span>Затраты процессов</span>
-            </a>
-          </div>
+  <div class="page-wrapper">
+    <div class="layout">
+      <aside class="sidebar" aria-label="Навигация">
+        <div class="sidebar-top">
+          <button id="sidebarToggle" class="sidebar-toggle" aria-label="Свернуть/развернуть меню">
+            <i data-lucide="panel-left-close" aria-hidden="true"></i>
+          </button>
         </div>
+        <nav id="main-nav" class="nav" role="navigation">
+          <!-- Главная -->
+          <a class="nav-item nav-link active" href="#!/home" data-route="home" title="Главная" aria-current="page">
+            <i data-lucide="castle" aria-hidden="true"></i>
+            <span>Главная</span>
+          </a>
 
-        <!-- Портал данных IBP -->
-        <div class="nav-group is-open" data-group="ibp">
-          <div class="nav-group-row">
-            <a class="nav-item nav-link nav-group-link" href="#!/ibp/financial" data-route="ibp/financial" title="Портал данных IBP">
-              <i data-lucide="database" aria-hidden="true"></i>
-              <span>Портал данных IBP</span>
-            </a>
-            <button class="nav-chevron" type="button" aria-label="Свернуть" aria-expanded="true" aria-controls="submenu-ibp">
-              <i data-lucide="chevron-down" aria-hidden="true"></i>
-            </button>
+          <!-- Бизнес-архитектура -->
+          <div class="nav-group is-open" data-group="ba">
+            <div class="nav-group-row">
+              <a class="nav-item nav-link nav-group-link" href="#!/pcf" data-route="pcf" title="Бизнес-архитектура">
+                <i data-lucide="orbit" aria-hidden="true"></i>
+                <span>Бизнес-архитектура</span>
+              </a>
+              <button class="nav-chevron" type="button" aria-label="Свернуть" aria-expanded="true" aria-controls="submenu-ba">
+                <i data-lucide="chevron-down" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div id="submenu-ba" class="nav-submenu">
+              <a class="nav-item nav-subitem nav-link" href="#!/pcf" data-route="pcf" title="Каталог бизнес-процессов">
+                <i data-lucide="waypoints" aria-hidden="true"></i>
+                <span>Бизнес-функции</span>
+              </a>
+              <a class="nav-item nav-subitem nav-link" href="#!/org" data-route="org" title="Организационная структура">
+                <i data-lucide="drama" aria-hidden="true"></i>
+                <span>Оргструктура</span>
+              </a>
+              <a class="nav-item nav-subitem nav-link" href="#!/costs" data-route="costs" title="Затраты процессов">
+                <i data-lucide="chart-pie" aria-hidden="true"></i>
+                <span>Затраты процессов</span>
+              </a>
+            </div>
           </div>
-          <div id="submenu-ibp" class="nav-submenu">
-            <a class="nav-item nav-subitem nav-link" href="#!/ibp/financial" data-route="ibp/financial" title="Финансовые планы">
-              <i data-lucide="chart-candlestick" aria-hidden="true"></i>
-              <span>Финансовые планы</span>
-            </a>
-            <a class="nav-item nav-subitem nav-link" href="#!/ibp/operational" data-route="ibp/operational" title="Операционные планы">
-              <i data-lucide="clipboard-list" aria-hidden="true"></i>
-              <span>Операционные планы</span>
-            </a>
-            <a class="nav-item nav-subitem nav-link" href="#!/ibp/plan-vs-fact" data-route="ibp/plan-vs-fact" title="Анализ плана и факта">
-              <i data-lucide="trending-up" aria-hidden="true"></i>
-              <span>Анализ плана и факта</span>
-            </a>
-            <a class="nav-item nav-subitem nav-link" href="#!/ibp/management-data" data-route="ibp/management-data" title="Управленческие данные">
-              <i data-lucide="file-cog" aria-hidden="true"></i>
-              <span>Управленческие данные</span>
-            </a>
+
+          <!-- Портал данных IBP -->
+          <div class="nav-group is-open" data-group="ibp">
+            <div class="nav-group-row">
+              <a class="nav-item nav-link nav-group-link" href="#!/ibp/financial" data-route="ibp/financial" title="Портал данных IBP">
+                <i data-lucide="database" aria-hidden="true"></i>
+                <span>Портал данных IBP</span>
+              </a>
+              <button class="nav-chevron" type="button" aria-label="Свернуть" aria-expanded="true" aria-controls="submenu-ibp">
+                <i data-lucide="chevron-down" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div id="submenu-ibp" class="nav-submenu">
+              <a class="nav-item nav-subitem nav-link" href="#!/ibp/financial" data-route="ibp/financial" title="Финансовые планы">
+                <i data-lucide="chart-candlestick" aria-hidden="true"></i>
+                <span>Финансовые планы</span>
+              </a>
+              <a class="nav-item nav-subitem nav-link" href="#!/ibp/operational" data-route="ibp/operational" title="Операционные планы">
+                <i data-lucide="clipboard-list" aria-hidden="true"></i>
+                <span>Операционные планы</span>
+              </a>
+              <a class="nav-item nav-subitem nav-link" href="#!/ibp/plan-vs-fact" data-route="ibp/plan-vs-fact" title="Анализ плана и факта">
+                <i data-lucide="trending-up" aria-hidden="true"></i>
+                <span>Анализ плана и факта</span>
+              </a>
+              <a class="nav-item nav-subitem nav-link" href="#!/ibp/management-data" data-route="ibp/management-data" title="Управленческие данные">
+                <i data-lucide="file-cog" aria-hidden="true"></i>
+                <span>Управленческие данные</span>
+              </a>
+            </div>
           </div>
-        </div>
 
-        <!-- Строка «Аналитика» удалена по требованию -->
-      </nav>
-    </aside>
+          <!-- Строка «Аналитика» удалена по требованию -->
+        </nav>
+      </aside>
 
-    <main id="app-container" class="content" role="main"></main>
-  </div>
-
-  <footer class="main-footer" role="contentinfo">
-    <div class="footer-left">© <span id="year"></span> Лада-Имидж</div>
-    <div class="footer-right">
-      <i data-lucide="workflow" aria-hidden="true"></i>
-      <span>ДКАБП.tech</span>
+      <main id="app-container" class="content" role="main"></main>
     </div>
-  </footer>
+
+    <footer class="main-footer" role="contentinfo">
+      <div class="footer-left">© <span id="year"></span> Лада-Имидж</div>
+      <div class="footer-right">
+        <i data-lucide="workflow" aria-hidden="true"></i>
+        <span>ДКАБП.tech</span>
+      </div>
+    </footer>
+  </div>
 
   <script>
     window.ENV = {
