@@ -92,9 +92,14 @@ export async function fetchOrgDepartments() {
 export async function fetchOrgStats() {
   if (!supa) throw new Error('Supabase не инициализирован.');
 
-  const allRows = await fetchData('BOLT_orgchat', '"Department ID", "number of employees"');
+  const allRows = await fetchData('BOLT_orgchat', '"Department ID", "Parent Department ID", "number of employees"');
   const total_departments = allRows.length;
-  const total_employees = allRows.reduce((sum, r) => sum + Number(r?.['number of employees'] || 0), 0);
+  
+  // Считаем сотрудников: Генеральная дирекция (ORG-001) + все подразделения с Parent = ORG-001
+  const topLevelDepts = allRows.filter(r =>
+    r?.['Department ID'] === 'ORG-001' || r?.['Parent Department ID'] === 'ORG-001'
+  );
+  const total_employees = topLevelDepts.reduce((sum, r) => sum + Number(r?.['number of employees'] || 0), 0);
 
   return { total_employees, total_departments };
 }

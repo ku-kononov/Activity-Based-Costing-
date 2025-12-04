@@ -24,12 +24,12 @@ function ensureHomeStyles() {
      .metric-value.core { color: ${GROUP_COLORS.core} !important; }
      .metric-value.enablement { color: ${GROUP_COLORS.enablement} !important; }
 
-     .company-metrics { display: flex; justify-content: space-between; gap: 16px; }
-     .company-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: transform 0.2s ease; flex: 1; }
-     .company-item:hover { transform: translateY(-2px); }
-     .company-metric-icon { width: 24px; height: 24px; flex-shrink: 0; }
-     .company-metric-label { font-size: 14px; color: var(--muted); font-weight: 600; }
-     .company-metric-value { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 800; color: var(--blue); }
+     .company-metrics { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+     .company-item { display: flex; align-items: center; gap: 14px; padding: 10px 14px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: transform 0.2s ease; }
+     .company-item:hover { transform: translateY(-1px); }
+     .company-metric-icon { width: 22px; height: 22px; flex-shrink: 0; color: var(--blue); }
+     .company-metric-label { font-size: 15px; color: var(--muted); font-weight: 600; flex: 1; }
+     .company-metric-value { font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 800; color: var(--blue); }
 
      .module-chart-container { display: flex; align-items: center; gap: 16px; height: 120px; }
      .donut-wrapper { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
@@ -50,12 +50,6 @@ function ensureHomeStyles() {
      .module-card[data-group="ibp"] .module-body { padding: 14px 18px; }
      .module-body .module-text { margin: 0; color: var(--muted); font-weight: 600; font-size: 13px; }
 
-     .company-metric-row { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: transform 0.2s ease; }
-     .company-metric-row:hover { transform: translateY(-2px); }
-     .company-metric-top { display: flex; align-items: center; gap: 8px; }
-     .company-metric-icon { width: 24px; height: 24px; flex-shrink: 0; }
-     .company-metric-label { font-size: 14px; color: var(--muted); font-weight: 600; }
-     .company-metric-value { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 800; color: var(--blue); }
    `;
    const s = document.createElement('style');
    s.id = 'home-local-styles';
@@ -284,6 +278,7 @@ export async function renderHomePage(container) {
   const BA_MODULES = [
     { key: 'company', title: 'Компания', icon: 'ship', color: 'var(--blue)', link: () => navigate('org'), metrics: [
         { label: 'Сотрудники', value: '...', icon: 'users' },
+        { label: 'АУП', value: '630', icon: 'briefcase' },
         { label: 'Подразделения', value: '...', icon: 'building-2' }
       ] },
     { key: 'processes', title: 'Процессы', icon: 'waypoints', color: 'var(--blue)', link: () => navigate('pcf'), chartId: 'processes-donut-home', chartData: {
