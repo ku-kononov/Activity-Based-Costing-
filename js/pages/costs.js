@@ -1568,17 +1568,7 @@ async function initMetricCards() {
     renderStaticCard(
       tac,
       { icon: 'coins', title: 'Анализ затрат процессов', subtitle: 'Total Activity Cost' },
-      () => showMetricModal({
-        icon: 'coins',
-        title: 'Затраты процессов',
-        subtitle: 'Total Activity Cost',
-        html: `<p>Итоговые затраты процессов за период по ABC. На детальном экране отобразим:</p>
-               <ul>
-                 <li>Топ‑10 самых дорогих процессов</li>
-                 <li>Динамика по месяцам</li>
-                 <li>Разбивка по ресурсным пулам</li>
-               </ul>`
-      })
+      () => showAbcAnalysisModal()
     );
   }
 
@@ -1608,6 +1598,42 @@ async function updateWidgets() {
   await initMetricCards();
   await createFteWidget(document.getElementById('card-fte'));
   await createVaWidget(document.getElementById('card-va'));
+}
+
+// ========== Модал для анализа затрат процессов ==========
+async function showAbcAnalysisModal() {
+  const id = 'abc-analysis-modal-overlay';
+  document.getElementById(id)?.remove();
+
+  const tpl = `
+    <div class="metric-modal-overlay" id="${id}">
+      <div class="metric-modal">
+        <div class="metric-modal__header">
+          <i data-lucide="coins" class="title--blue"></i>
+          <div class="metric-modal__title title--blue">Анализ затрат процессов</div>
+          <div class="metric-modal__subtitle">Activity Based Costing (ABC)</div>
+          <div class="metric-modal__actions">
+            <button class="metric-close" id="abcClose" aria-label="Закрыть"><i data-lucide="x"></i></button>
+          </div>
+        </div>
+        <div class="metric-modal__body">
+          <p>Здесь будут таблицы, диаграммы и показатели Activity Based Costing (ABC)</p>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', tpl);
+  refreshIcons();
+
+  const overlay = document.getElementById(id);
+  const btnClose = document.getElementById('abcClose');
+
+  function open() { setTimeout(() => overlay.classList.add('is-open'), 10); }
+  function close() { overlay.classList.remove('is-open'); setTimeout(() => overlay.remove(), 180); }
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  btnClose.addEventListener('click', close);
+
+  open();
 }
 
 // ========== Точка входа ==========
