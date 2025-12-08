@@ -1,9 +1,95 @@
 -- =============================================================================
 -- SQL VIEWS FOR ABC ANALYSIS DASHBOARD
 -- Создание оптимизированных представлений в Supabase
--- Версия: 2.0 (исправленная)
--- Дата: 2025-01-06
+-- Версия: 3.0 (с периодами и feature flags)
+-- Дата: 2025-12-08
 -- =============================================================================
+
+-- =============================================================================
+-- TABLES FOR ABC SYSTEM CONFIGURATION
+-- =============================================================================
+
+-- Таблица периодов анализа
+CREATE TABLE IF NOT EXISTS abc_periods (
+  period_code VARCHAR PRIMARY KEY,
+  period_name VARCHAR NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Индекс для активных периодов
+CREATE INDEX IF NOT EXISTS idx_abc_periods_active ON abc_periods(is_active) WHERE is_active = true;
+
+-- Вставка тестовых данных периодов
+INSERT INTO abc_periods (period_code, period_name, start_date, end_date, is_active)
+VALUES
+  ('H1_2025', 'Первое полугодие 2025', '2025-01-01', '2025-06-30', true),
+  ('H2_2024', 'Второе полугодие 2024', '2024-07-01', '2024-12-31', false),
+  ('FY_2024', 'Финансовый год 2024', '2024-01-01', '2024-12-31', false)
+ON CONFLICT (period_code) DO NOTHING;
+
+-- Таблица feature flags для поэтапного включения модулей
+CREATE TABLE IF NOT EXISTS abc_feature_flags (
+  feature_name VARCHAR PRIMARY KEY,
+  is_enabled BOOLEAN DEFAULT false,
+  description TEXT,
+  rollout_percentage INTEGER DEFAULT 0 CHECK (rollout_percentage >= 0 AND rollout_percentage <= 100),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Вставка feature flags
+INSERT INTO abc_feature_flags (feature_name, is_enabled, description, rollout_percentage)
+VALUES
+  ('abc_dashboard', true, 'Главная страница ABC анализа', 100),
+  ('abc_processes', true, 'Страница классификации процессов', 100),
+  ('abc_pareto', true, 'Анализ Парето (топ-процессы)', 100),
+  ('abc_matrix', true, 'Матрица распределения', 100),
+  ('abc_validation', true, 'Валидация данных', 100),
+  ('abc_departments', false, 'Анализ по подразделениям', 0),
+  ('abc_cost_structure', false, 'Структура затрат', 0),
+  ('export_excel', true, 'Экспорт в Excel', 100),
+  ('export_pdf', true, 'Экспорт в PDF', 100),
+  ('period_selector', false, 'Выбор периода анализа', 0)
+ON CONFLICT (feature_name) DO NOTHING;
+
+-- Функция проверки feature flag
+CREATE OR REPLACE FUNCTION is_feature_enabled(feature_name_param TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+STABLE
+AS $$
+DECLARE
+  feature_enabled BOOLEAN;
+  rollout_pct INTEGER;
+  random_val INTEGER;
+BEGIN
+  SELECT is_enabled, rollout_percentage INTO feature_enabled, rollout_pct
+  FROM abc_feature_flags
+  WHERE feature_name = feature_name_param;
+
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+
+  IF NOT feature_enabled THEN
+    RETURN false;
+  END IF;
+
+  IF rollout_pct = 100 THEN
+    RETURN true;
+  END IF;
+
+  -- Простая рандомизация для rollout (в продакшене использовать user_id)
+  random_val := (EXTRACT(epoch FROM NOW())::INTEGER % 100) + 1;
+  RETURN random_val <= rollout_pct;
+END;
+$$;
+
+COMMENT ON FUNCTION is_feature_enabled IS 'Проверка включения feature flag с учётом rollout percentage';
 
 -- =============================================================================
 -- ИНДЕКСЫ НА БАЗОВЫХ ТАБЛИЦАХ (выполнить первыми для производительности)
@@ -40,7 +126,8 @@ DROP VIEW IF EXISTS vw_process_costs_summary CASCADE;
 DROP VIEW IF EXISTS vw_process_costs CASCADE;
 
 CREATE VIEW vw_process_costs AS
-SELECT 
+SELECT
+  'H1_2025'::TEXT as period_code,
   cd."KEY" as record_key,
   cd."Process ID" as process_id,
   cd.process_group,
@@ -595,6 +682,16 @@ $$;
 
 COMMENT ON FUNCTION fn_search_processes IS 
   'Поиск процессов по имени, PCF-коду или ID';
+
+-- =============================================================================
+-- ПРОФИЛИРОВАНИЕ ЗАПРОСОВ (Phase 0.3)
+-- Цель: время ответа < 500ms для 127 процессов
+-- =============================================================================
+
+-- Проверка производительности основных views:
+-- EXPLAIN ANALYZE SELECT * FROM vw_abc_classification LIMIT 10;
+-- EXPLAIN ANALYZE SELECT * FROM vw_process_costs_summary;
+-- EXPLAIN ANALYZE SELECT * FROM fn_get_top_processes(20);
 
 -- =============================================================================
 -- ПРОВЕРОЧНЫЙ ЗАПРОС (выполнить после создания всех объектов)

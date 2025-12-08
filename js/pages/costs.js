@@ -179,6 +179,248 @@ function injectCostStyles() {
     .costs-period-selector { margin-bottom: 0; margin-left: auto; }
     .rpsc-period select, .costs-period-selector select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 14px; }
     .mono { font-variant-numeric: tabular-nums; }
+
+    /* === ABC Dashboard Styles === */
+    .abc-dashboard-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .abc-kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    .kpi-value { font-size: 24px; font-weight: 800; color: var(--blue); margin-bottom: 4px; }
+    .kpi-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .kpi-loading { color: var(--muted); font-style: italic; }
+
+    .abc-dashboard-intro { text-align: center; color: var(--text); margin: 16px 0; font-size: 14px; }
+
+    .abc-dashboard-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .abc-module-card { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all .15s; }
+    .abc-module-card:hover { border-color: var(--blue); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .module-icon { width: 48px; height: 48px; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--blue); }
+    .module-icon i[data-lucide] { width: 24px; height: 24px; }
+    .module-content { flex: 1; }
+    .module-content h4 { margin: 0 0 4px; font-size: 16px; font-weight: 700; color: var(--text); }
+    .module-content p { margin: 0; font-size: 13px; color: var(--muted); }
+    .module-metric { font-size: 12px; color: var(--blue); font-weight: 600; margin-top: 2px; }
+    .module-arrow { color: var(--muted); transition: color .15s; }
+    .abc-module-card:hover .module-arrow { color: var(--blue); }
+    .module-loading { color: var(--muted); font-style: italic; }
+
+    /* ABC Pages Styles */
+    .back-button { display: flex; align-items: center; gap: 8px; background: none; border: none; color: var(--blue); cursor: pointer; font-size: 14px; font-weight: 600; padding: 8px 0; }
+    .back-button:hover { color: var(--text); }
+    .back-button i { width: 16px; height: 16px; }
+
+    .abc-summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .abc-summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    .abc-summary-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .abc-summary-count { font-size: 20px; font-weight: 800; color: var(--blue); margin-bottom: 4px; }
+    .abc-summary-cost { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .abc-summary-pct { font-size: 13px; color: var(--muted); }
+
+    .abc-filters { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+    .abc-filters input, .abc-filters select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 14px; }
+
+    .abc-process-table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+    .abc-badge { padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; color: #fff; }
+    .abc-class-a { background: #10b981; }
+    .abc-class-b { background: #f59e0b; }
+    .abc-class-c { background: #ef4444; }
+
+    .pareto-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .pareto-kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+
+    .pareto-controls { margin: 16px 0; }
+    .pareto-controls select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); }
+
+    .validation-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .validation-kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    .validation-kpi-card.success { border-color: #10b981; }
+    .validation-kpi-card.warning { border-color: #f59e0b; }
+    .validation-kpi-card.error { border-color: #ef4444; }
+
+    .validation-actions { margin-top: 16px; text-align: center; }
+    .btn-primary { background: var(--blue); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary:hover { background: var(--blue-hover, #2563eb); }
+    .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+
+    .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; color: #fff; }
+    .status-badge.success { background: #10b981; }
+    .status-badge.warning { background: #f59e0b; }
+    .status-badge.error { background: #ef4444; }
+
+    /* ABC Pages Header */
+    .abc-page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+    .abc-page-title-block { display: flex; align-items: flex-start; gap: 16px; }
+    .abc-page-title-block .main-icon { color: var(--blue); width: 32px; height: 32px; margin-top: 4px; }
+    .abc-page-title-block .title-content { display: flex; flex-direction: column; gap: 4px; }
+    .abc-page-title-block .abc-title { color: var(--blue) !important; font-size: 22px; font-weight: 700; margin: 0; line-height: 1.2; white-space: nowrap; }
+    .abc-page-title-block .abc-subtitle { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.3; white-space: nowrap; }
+
+    /* Кнопка назад к затратам */
+    .abc-header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-back-to-costs {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 38px; padding: 0 16px; border-radius: 10px;
+      border: none; background: var(--blue); color: #fff;
+      font-weight: 700; cursor: pointer; white-space: nowrap;
+      transition: all .2s ease;
+      box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.4);
+    }
+    .btn-back-to-costs:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 8px 16px -4px rgba(59, 130, 246, 0.4); }
+    .btn-back-to-costs i { width: 18px; height: 18px; }
+
+    /* ABC Processes Page Styles */
+    .abc-chart-section { margin-bottom: 24px; }
+    .abc-chart-section h3 { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: var(--text); }
+    .abc-chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+
+    .sortable-table th { cursor: pointer; user-select: none; }
+    .sortable-table th:hover { background: var(--bg); }
+
+    .process-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .process-summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .summary-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .summary-value { font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 2px; }
+    .summary-pct { font-size: 12px; color: var(--muted); }
+
+    /* Pareto Page Styles */
+    .pareto-chart-section { margin-bottom: 24px; }
+    .pareto-chart-section h3 { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: var(--text); }
+    .pareto-chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+
+    .pareto-kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    .kpi-subtext { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .pareto-controls { margin: 16px 0; }
+    .pareto-controls select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); }
+
+    /* Matrix Page Styles */
+    .matrix-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+    .matrix-filters { display: flex; gap: 12px; align-items: center; }
+    .matrix-legend { display: flex; gap: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .legend-color { width: 16px; height: 16px; border-radius: 2px; }
+    .legend-color.low { background: #dbeafe; }
+    .legend-color.medium { background: #fbbf24; }
+    .legend-color.high { background: #ef4444; }
+
+    .matrix-wrapper { overflow-x: auto; max-width: 100%; }
+    .matrix-table { border-collapse: collapse; font-size: 12px; min-width: 600px; }
+    .matrix-table th, .matrix-table td { padding: 6px 8px; border: 1px solid var(--border); text-align: center; }
+    .matrix-corner { background: var(--surface); font-weight: 700; }
+    .matrix-header { background: var(--bg); font-weight: 600; writing-mode: vertical-rl; text-orientation: mixed; max-width: 80px; overflow: hidden; }
+    .matrix-row-header { background: var(--bg); font-weight: 600; text-align: left; max-width: 150px; overflow: hidden; white-space: nowrap; }
+    .matrix-cell { cursor: pointer; transition: background 0.2s; }
+    .matrix-cell:hover { background: var(--bg) !important; }
+    .matrix-cell.low { background: #dbeafe; color: #1e40af; }
+    .matrix-cell.medium { background: #fbbf24; color: #92400e; }
+    .matrix-cell.high { background: #ef4444; color: #fff; font-weight: 600; }
+
+    .matrix-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+    /* Validation Page Styles */
+    .validation-period-selector { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; font-weight: 600; }
+    .validation-period-selector label { color: var(--blue); }
+    .validation-period-selector select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 14px; }
+
+    /* Export Buttons */
+    .btn-export {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      font-weight: 600; cursor: pointer; font-size: 13px;
+      transition: all .2s ease;
+    }
+    .btn-export:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .btn-export i { width: 16px; height: 16px; }
+
+    /* Специфические стили для Excel и PDF кнопок */
+    .btn-excel {
+      background: #217346; color: #fff; border-color: #217346;
+    }
+    .btn-excel:hover {
+      background: #1e6b3d; border-color: #1e6b3d;
+      transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33, 115, 70, 0.3);
+    }
+
+    .btn-pdf {
+      background: #dc2626; color: #fff; border-color: #dc2626;
+    }
+    .btn-pdf:hover {
+      background: #b91c1c; border-color: #b91c1c;
+      transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    /* Селектор периода на ABC страницах */
+    .abc-period-selector {
+      display: flex; align-items: center; gap: 8px;
+      margin-right: 16px;
+    }
+    .abc-period-selector label {
+      font-weight: 600; color: var(--text); font-size: 13px;
+    }
+    .abc-period-selector select {
+      padding: 6px 10px; border: 1px solid var(--border);
+      border-radius: 6px; background: var(--bg); color: var(--text);
+      font-size: 13px; min-width: 120px;
+    }
+
+    .abc-header-controls {
+      display: flex; flex-direction: column; align-items: flex-end;
+      width: 100%; margin-top: 8px; gap: 8px;
+    }
+
+    .abc-header-actions {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .analytics-grid { grid-template-columns: 1fr; gap: 16px; }
+      .analytics-grid--1-1 { grid-template-columns: 1fr; }
+
+      .abc-page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .abc-header-actions { flex-wrap: wrap; gap: 8px; }
+
+      .abc-dashboard-kpis { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .abc-dashboard-modules { grid-template-columns: 1fr; gap: 12px; }
+
+      .matrix-controls { flex-direction: column; align-items: stretch; gap: 12px; }
+      .matrix-legend { justify-content: center; }
+
+      .pareto-kpis { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+      .process-summary-grid { grid-template-columns: 1fr; gap: 8px; }
+
+      .validation-kpis { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+      .matrix-table { font-size: 11px; }
+      .matrix-cell { padding: 4px 6px; }
+
+      .metric-modal { width: 95vw; max-height: 95vh; }
+      .metric-modal__body { padding: 12px 16px; }
+
+      .tab-buttons { flex-wrap: wrap; }
+      .tab-button { flex: 1; min-width: 120px; }
+
+      .fte-summary { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .rpsc-summary, .spcr-summary, .rpse-summary { grid-template-columns: 1fr; gap: 12px; }
+    }
+
+    @media (max-width: 480px) {
+      .analytics-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .costs-period-selector { margin-left: 0; margin-top: 8px; }
+
+      .abc-dashboard-kpis { grid-template-columns: 1fr; }
+      .pareto-kpis { grid-template-columns: 1fr; }
+      .validation-kpis { grid-template-columns: 1fr; }
+
+      .matrix-table th, .matrix-table td { padding: 3px 4px; font-size: 10px; }
+      .matrix-row-header { max-width: 120px; }
+
+      .btn-export { height: 32px; padding: 0 8px; font-size: 12px; }
+      .btn-back-to-costs { height: 32px; padding: 0 12px; font-size: 12px; }
+
+      .metric-modal { width: 98vw; margin: 4px; }
+    }
   `;
   const styleEl = document.createElement('style');
   styleEl.id = 'costs-page-styles';
@@ -1607,7 +1849,7 @@ async function showAbcAnalysisModal() {
 
   const tpl = `
     <div class="metric-modal-overlay" id="${id}">
-      <div class="metric-modal">
+      <div class="metric-modal" style="width: min(96vw, 1200px);">
         <div class="metric-modal__header">
           <i data-lucide="coins" class="title--blue"></i>
           <div class="metric-modal__title title--blue">Анализ затрат процессов</div>
@@ -1617,7 +1859,30 @@ async function showAbcAnalysisModal() {
           </div>
         </div>
         <div class="metric-modal__body">
-          <p>Здесь будут таблицы, диаграммы и показатели Activity Based Costing (ABC)</p>
+          <div class="abc-dashboard-kpis" id="abcDashboardKpis">
+            <div class="abc-kpi-card">
+              <div class="kpi-loading">Загрузка...</div>
+            </div>
+            <div class="abc-kpi-card">
+              <div class="kpi-loading">Загрузка...</div>
+            </div>
+            <div class="abc-kpi-card">
+              <div class="kpi-loading">Загрузка...</div>
+            </div>
+            <div class="abc-kpi-card">
+              <div class="kpi-loading">Загрузка...</div>
+            </div>
+          </div>
+
+          <div class="abc-dashboard-intro">
+            <p>Выберите раздел анализа для детального изучения:</p>
+          </div>
+
+          <div class="abc-dashboard-modules" id="abcDashboardModules">
+            <div class="abc-module-card">
+              <div class="module-loading">Загрузка модулей...</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1633,7 +1898,107 @@ async function showAbcAnalysisModal() {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   btnClose.addEventListener('click', close);
 
+  // Load dashboard data
+  await loadAbcDashboardData();
+
   open();
+}
+
+// Close ABC modal and navigate
+window.closeAbcModalAndNavigate = function(route) {
+  const modal = document.getElementById('abc-analysis-modal-overlay');
+  if (modal) {
+    modal.classList.remove('is-open');
+    setTimeout(() => modal.remove(), 180);
+  }
+  navigate(route);
+};
+
+// Load ABC dashboard data
+async function loadAbcDashboardData() {
+  try {
+    // Import data services dynamically to avoid circular dependencies
+    const { getAbcKpis, getAbcModulesData } = await import('../services/abc-data.js');
+
+    const [kpis, modulesData] = await Promise.all([
+      getAbcKpis(),
+      getAbcModulesData()
+    ]);
+
+    // Render KPIs
+    const kpisHtml = `
+      <div class="abc-kpi-card">
+        <div class="kpi-value">${fmt(kpis.totalCosts / 1000000, 1)}M ₽</div>
+        <div class="kpi-label">Всего затрат</div>
+      </div>
+      <div class="abc-kpi-card">
+        <div class="kpi-value">${kpis.processCount}</div>
+        <div class="kpi-label">Процессов</div>
+      </div>
+      <div class="abc-kpi-card">
+        <div class="kpi-value">${kpis.departmentCount}</div>
+        <div class="kpi-label">Подразделений</div>
+      </div>
+      <div class="abc-kpi-card">
+        <div class="kpi-value">${kpis.allocationCompleteness}%</div>
+        <div class="kpi-label">Полнота распределения</div>
+      </div>
+    `;
+    document.getElementById('abcDashboardKpis').innerHTML = kpisHtml;
+
+    // Render modules
+    const modulesHtml = `
+      <div class="abc-module-card" onclick="closeAbcModalAndNavigate('abc/processes')">
+        <div class="module-icon">
+          <i data-lucide="target"></i>
+        </div>
+        <div class="module-content">
+          <h4>ABC-классификация</h4>
+          <p>Распределение процессов по классам A/B/C</p>
+          ${modulesData.processes?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
+        </div>
+        <div class="module-arrow">
+          <i data-lucide="chevron-right"></i>
+        </div>
+      </div>
+
+      <div class="abc-module-card" onclick="closeAbcModalAndNavigate('abc/pareto')">
+        <div class="module-icon">
+          <i data-lucide="trending-up"></i>
+        </div>
+        <div class="module-content">
+          <h4>Топ-процессы (Парето)</h4>
+          <p>Анализ 80/20 для оптимизации затрат</p>
+          ${modulesData.pareto?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
+        </div>
+        <div class="module-arrow">
+          <i data-lucide="chevron-right"></i>
+        </div>
+      </div>
+
+      <div class="abc-module-card" onclick="closeAbcModalAndNavigate('abc/validation')">
+        <div class="module-icon">
+          <i data-lucide="check-circle"></i>
+        </div>
+        <div class="module-content">
+          <h4>Валидация данных</h4>
+          <p>Проверка качества ABC модели</p>
+          ${modulesData.validation?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
+        </div>
+        <div class="module-arrow">
+          <i data-lucide="chevron-right"></i>
+        </div>
+      </div>
+    `;
+    document.getElementById('abcDashboardModules').innerHTML = modulesHtml;
+
+    refreshIcons();
+
+  } catch (error) {
+    console.error('Error loading ABC dashboard data:', error);
+    document.getElementById('abcDashboardKpis').innerHTML = '<div class="error">Ошибка загрузки KPI</div>';
+    document.getElementById('abcDashboardModules').innerHTML = '<div class="error">Ошибка загрузки модулей</div>';
+  }
 }
 
 // ========== Точка входа ==========
@@ -1669,6 +2034,12 @@ export async function renderCostsPage(container) {
         <div class="costs-period-selector">
           <label>Период:</label>
           <select id="costsPeriodSelect">
+            <option value="H1_2025">H1 2025</option>
+          </select>
+        </div>
+        <div class="abc-period-selector" id="abcPeriodSelector" style="display:none;">
+          <label>ABC Период:</label>
+          <select id="abcPeriodSelect">
             <option value="H1_2025">H1 2025</option>
           </select>
         </div>
@@ -1716,6 +2087,22 @@ export async function renderCostsPage(container) {
   if (periodSelect) {
     periodSelect.addEventListener('change', async () => {
       await updateWidgets();
+    });
+  }
+
+  // Загрузка ABC периодов
+  const abcPeriodSelect = document.getElementById('abcPeriodSelect');
+  if (abcPeriodSelect) {
+    // Загрузка доступных периодов
+    import('./services/abc-data.js').then(async ({ getAvailablePeriods }) => {
+      try {
+        const periods = await getAvailablePeriods();
+        abcPeriodSelect.innerHTML = periods.map(p =>
+          `<option value="${p.code}">${p.name}</option>`
+        ).join('');
+      } catch (error) {
+        console.warn('Failed to load ABC periods:', error);
+      }
     });
   }
 

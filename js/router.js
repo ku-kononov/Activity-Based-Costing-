@@ -107,6 +107,15 @@ async function navigate(routeName) {
       return;
     }
 
+    if (baseRoute === 'abc') {
+      const sub = route.split('/')[1] || 'processes';
+      setActiveNav('costs'); // ABC pages under costs navigation
+      const mod = await import(`./pages/abc/${sub}.js`);
+      await mod.renderAbcPage(appEl, sub);
+      refreshIcons();
+      return;
+    }
+
     if (jsRoutes[baseRoute]) {
       setActiveNav(baseRoute);
       await jsRoutes[baseRoute](appEl);
