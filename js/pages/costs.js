@@ -1940,7 +1940,7 @@ async function loadAbcDashboardData() {
     // Render KPIs
     const kpisHtml = `
       <div class="abc-kpi-card">
-        <div class="kpi-value">${fmt(kpis.totalCosts / 1000000, 1)}M ₽</div>
+        <div class="kpi-value">${fmt(kpis.totalCosts / 1000, 0)} тыс. ₽</div>
         <div class="kpi-label">Всего затрат</div>
       </div>
       <div class="abc-kpi-card">
@@ -1965,8 +1965,8 @@ async function loadAbcDashboardData() {
           <i data-lucide="target"></i>
         </div>
         <div class="module-content">
-          <h4>ABC-классификация</h4>
-          <p>Распределение процессов по классам A/B/C</p>
+          <h4>HML-анализ</h4>
+          <p>Распределение процессов по классам затрат High/Medium/Low</p>
           ${modulesData.processes?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
         </div>
         <div class="module-arrow">
@@ -1979,8 +1979,8 @@ async function loadAbcDashboardData() {
           <i data-lucide="trending-up"></i>
         </div>
         <div class="module-content">
-          <h4>Топ-процессы (Парето)</h4>
-          <p>Анализ 80/20 для оптимизации затрат</p>
+          <h4>Топ-процессы по принципу Парето</h4>
+          <p>Анализ затрат 80/20</p>
           ${modulesData.pareto?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
         </div>
         <div class="module-arrow">
@@ -1988,13 +1988,13 @@ async function loadAbcDashboardData() {
         </div>
       </div>
 
-      <div class="abc-module-card" onclick="closeAbcModalAndNavigate('abc/validation')">
+      <div class="abc-module-card" onclick="closeAbcModalAndNavigate('costs')">
         <div class="module-icon">
-          <i data-lucide="check-circle"></i>
+          <i data-lucide="chart-pie"></i>
         </div>
         <div class="module-content">
-          <h4>Валидация данных</h4>
-          <p>Проверка качества ABC модели</p>
+          <h4>Затраты процессов</h4>
+          <p>Общая информация о затратах процессов</p>
           ${modulesData.validation?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
         </div>
         <div class="module-arrow">

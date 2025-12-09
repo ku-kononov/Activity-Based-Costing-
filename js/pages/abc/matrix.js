@@ -148,7 +148,7 @@ function renderMatrixHeatmap(data) {
                 else if (intensity < 0.66) cellClass += ' medium';
                 else cellClass += ' high';
 
-                return `<td class="${cellClass}" title="${fmt(value / 1000000, 1)}M ₽">${value > 0 ? fmt(value / 1000000, 1) : ''}</td>`;
+                return `<td class="${cellClass}" title="${fmt(value / 1000, 0)} тыс. ₽">${value > 0 ? fmt(value / 1000, 0) : ''}</td>`;
               }).join('')}
             </tr>
           `).join('')}
@@ -176,12 +176,12 @@ function renderMatrixSummary(data) {
         <div class="summary-pct">${fmt((filledCells / totalCells) * 100, 1)}% от общего</div>
       </div>
       <div class="summary-card">
-        <div class="summary-value">${fmt(totalValue / 1000000, 1)}M ₽</div>
+        <div class="summary-value">${fmt(totalValue / 1000, 0)} тыс. ₽</div>
         <div class="summary-label">Общие затраты</div>
         <div class="summary-pct">в матрице</div>
       </div>
       <div class="summary-card">
-        <div class="summary-value">${fmt(avgValue / 1000000, 2)}M ₽</div>
+        <div class="summary-value">${fmt(avgValue / 1000, 0)} тыс. ₽</div>
         <div class="summary-label">Средние затраты</div>
         <div class="summary-pct">на ячейку</div>
       </div>

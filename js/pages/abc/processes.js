@@ -2,7 +2,7 @@
 import { refreshIcons } from '../../utils.js';
 import { getAbcProcesses, getProcessDetails } from '../../services/abc-data.js';
 
-// Utility functions - ОБНОВЛЕНО для отображения в миллионах рублей
+// Utility functions - ОБНОВЛЕНО для отображения в тысячах рублей
 const fmt = (val, digits = 1) =>
   new Intl.NumberFormat('ru-RU', {
     maximumFractionDigits: digits,
@@ -10,13 +10,13 @@ const fmt = (val, digits = 1) =>
   }).format(Number.isFinite(val) ? val : 0);
 
 // Форматирование затрат в миллионах с правильным масштабированием
-const fmtCost = (val, digits = 1) => {
-  // val уже в рублях после исправления SQL, показываем в миллионах
-  const millions = (val || 0) / 1000000;
+const fmtCost = (val, digits = 0) => {
+  // val в рублях, показываем в тысячах
+  const thousands = (val || 0) / 1000;
   return new Intl.NumberFormat('ru-RU', {
     maximumFractionDigits: digits,
     minimumFractionDigits: digits,
-  }).format(millions);
+  }).format(thousands);
 };
 
 // Render ABC classification page
@@ -135,7 +135,7 @@ async function loadAbcData() {
       <div class="abc-summary-card abc-class-${cls.toLowerCase()}">
         <div class="abc-summary-title">Класс ${cls}</div>
         <div class="abc-summary-count">${data.count} процессов</div>
-        <div class="abc-summary-cost">${fmtCost(data.total)}M ₽</div>
+        <div class="abc-summary-cost">${fmtCost(data.total)} тыс. ₽</div>
         <div class="abc-summary-pct">${fmt(data.total / totalCost * 100, 1)}%</div>
       </div>
     `).join('');
@@ -171,7 +171,7 @@ function renderAbcChart(summary, totalCost) {
   }
 
   const labels = Object.keys(summary).sort();
-  const data = labels.map(cls => summary[cls].total / 1000000); // in millions
+  const data = labels.map(cls => summary[cls].total / 1000); // in thousands
   const colors = {
     A: '#10b981',
     B: '#f59e0b',
@@ -183,7 +183,7 @@ function renderAbcChart(summary, totalCost) {
     data: {
       labels: labels.map(cls => `Класс ${cls}`),
       datasets: [{
-        label: 'Затраты (M ₽)',
+        label: 'Затраты (тыс. ₽)',
         data: data,
         backgroundColor: labels.map(cls => colors[cls] || '#6b7280'),
         borderColor: labels.map(cls => colors[cls] || '#6b7280'),
@@ -204,7 +204,7 @@ function renderAbcChart(summary, totalCost) {
               const count = summary[cls].count;
               const pct = fmt(summary[cls].total / totalCost * 100, 1);
               return [
-                `Затраты: ${fmt(context.raw, 1)}M ₽`,
+                `Затраты: ${fmt(context.raw, 0)} тыс. ₽`,
                 `Процессов: ${count}`,
                 `Доля: ${pct}%`
               ];
@@ -215,7 +215,7 @@ function renderAbcChart(summary, totalCost) {
       scales: {
         y: {
           beginAtZero: true,
-          title: { display: true, text: 'Затраты (M ₽)' },
+          title: { display: true, text: 'Затраты (тыс. ₽)' },
           ticks: { callback: (value) => fmt(value, 1) }
         },
         x: {
@@ -268,7 +268,7 @@ window.exportAbcProcessesToPdf = async function() {
       p.cost_rank,
       p.pcf_code || '',
       p.process_name.substring(0, 30),
-      fmtCost(p.total_cost) + 'M',
+      fmtCost(p.total_cost) + ' тыс.',
       fmt(p.pct_of_total, 1) + '%',
       p.abc_class
     ]);
@@ -310,7 +310,7 @@ function renderProcessTable(processes) {
             <td>${p.cost_rank}</td>
             <td>${p.pcf_code || '-'}</td>
             <td>${p.process_name}</td>
-            <td class="mono">${fmtCost(p.total_cost)}M</td>
+            <td class="mono">${fmtCost(p.total_cost)} тыс.</td>
             <td class="mono">${fmt(p.pct_of_total, 1)}%</td>
             <td><span class="abc-badge abc-class-${p.abc_class.toLowerCase()}">${p.abc_class}</span></td>
             <td><button class="btn-sm" onclick="event.stopPropagation(); showProcessDetails('${p.process_id}')">Детали</button></td>
@@ -420,21 +420,21 @@ window.showProcessDetails = async function(processId) {
             <div class="process-summary-grid">
               <div class="process-summary-card">
                 <div class="summary-label">Общие затраты</div>
-                <div class="summary-value">${fmtCost(totalCost)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalCost)} тыс. ₽</div>
               </div>
               <div class="process-summary-card">
                 <div class="summary-label">Зарплаты</div>
-                <div class="summary-value">${fmtCost(totalPayroll)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalPayroll)} тыс. ₽</div>
                 <div class="summary-pct">${fmt(totalPayroll / totalCost * 100, 1)}%</div>
               </div>
               <div class="process-summary-card">
                 <div class="summary-label">Помещения</div>
-                <div class="summary-value">${fmtCost(totalWorkspace)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalWorkspace)} тыс. ₽</div>
                 <div class="summary-pct">${fmt(totalWorkspace / totalCost * 100, 1)}%</div>
               </div>
               <div class="process-summary-card">
                 <div class="summary-label">Прочие</div>
-                <div class="summary-value">${fmtCost(totalOther)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalOther)} тыс. ₽</div>
                 <div class="summary-pct">${fmt(totalOther / totalCost * 100, 1)}%</div>
               </div>
             </div>
@@ -456,7 +456,7 @@ window.showProcessDetails = async function(processId) {
                     <td>${d.out_dept_name}</td>
                     <td class="mono">${d.out_dept_employees || '-'}</td>
                     <td class="mono">${fmt(d.out_allocation_rate * 100, 1)}%</td>
-                    <td class="mono">${fmtCost(d.out_allocated_total)}M</td>
+                    <td class="mono">${fmtCost(d.out_allocated_total)} тыс.</td>
                     <td class="mono">${fmt(d.out_pct_of_process, 1)}%</td>
                   </tr>
                 `).join('')}

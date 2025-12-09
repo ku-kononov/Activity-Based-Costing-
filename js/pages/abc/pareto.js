@@ -8,6 +8,15 @@ const fmt = (val, digits = 1) =>
     minimumFractionDigits: digits,
   }).format(Number.isFinite(val) ? val : 0);
 
+// Форматирование затрат в тысячах
+const fmtCost = (val, digits = 0) => {
+  const thousands = (val || 0) / 1000;
+  return new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  }).format(thousands);
+};
+
 export async function renderAbcPage(container, subpage) {
   if (subpage !== 'pareto') {
     container.innerHTML = '<div class="card"><p>Страница в разработке</p></div>';
@@ -20,8 +29,8 @@ export async function renderAbcPage(container, subpage) {
         <div class="abc-page-title-block">
           <i data-lucide="trending-up" class="main-icon"></i>
           <div class="title-content">
-            <h2 class="abc-title">Топ-процессы (Парето)</h2>
-            <p class="abc-subtitle">80/20 правило для оптимизации затрат</p>
+            <h2 class="abc-title">Топ-процессы по принципу Парето</h2>
+            <p class="abc-subtitle">Анализ затрат 80/20</p>
           </div>
         </div>
         <div class="abc-header-controls">
@@ -120,12 +129,12 @@ async function loadParetoData(count = 20) {
       <div class="pareto-kpi-card">
         <div class="kpi-value">${fmt(top10Pct, 1)}%</div>
         <div class="kpi-label">Top-10 процессов</div>
-        <div class="kpi-subtext">${fmt(top10Pct / 100 * data.reduce((sum, p) => sum + p.out_total_cost, 0) / 1000000, 1)}M ₽</div>
+        <div class="kpi-subtext">${fmtCost(top10Pct / 100 * data.reduce((sum, p) => sum + p.out_total_cost, 0))} тыс. ₽</div>
       </div>
       <div class="pareto-kpi-card">
         <div class="kpi-value">${fmt(top20Pct, 1)}%</div>
         <div class="kpi-label">Top-20 процессов</div>
-        <div class="kpi-subtext">${fmt(top20Pct / 100 * data.reduce((sum, p) => sum + p.out_total_cost, 0) / 1000000, 1)}M ₽</div>
+        <div class="kpi-subtext">${fmtCost(top20Pct / 100 * data.reduce((sum, p) => sum + p.out_total_cost, 0))} тыс. ₽</div>
       </div>
       <div class="pareto-kpi-card">
         <div class="kpi-value">${eightyPoint}</div>
@@ -192,7 +201,7 @@ window.exportParetoToPdf = async function() {
     const tableData = data.map(p => [
       p.out_cost_rank,
       p.out_process_name.substring(0, 25),
-      fmt(p.out_total_cost / 1000000, 1) + 'M',
+      fmtCost(p.out_total_cost) + ' тыс.',
       fmt(p.out_pct_of_total, 1) + '%',
       fmt(p.out_cumulative_pct, 1) + '%',
       p.out_abc_class
@@ -227,7 +236,7 @@ function renderParetoChart(data) {
   }
 
   const labels = data.map((_, i) => `Top ${i + 1}`);
-  const barData = data.map(p => p.out_total_cost / 1000000); // in millions
+  const barData = data.map(p => p.out_total_cost / 1000); // in thousands
   const lineData = data.map(p => p.out_cumulative_pct);
 
   window.paretoChartInstance = new Chart(ctx, {
@@ -236,7 +245,7 @@ function renderParetoChart(data) {
       labels: labels,
       datasets: [{
         type: 'bar',
-        label: 'Затраты (M ₽)',
+        label: 'Затраты (тыс. ₽)',
         data: barData,
         backgroundColor: 'rgba(59, 130, 246, 0.8)',
         borderColor: 'rgba(59, 130, 246, 1)',
@@ -273,7 +282,7 @@ function renderParetoChart(data) {
           callbacks: {
             label: (context) => {
               if (context.datasetIndex === 0) {
-                return `Затраты: ${fmt(context.raw, 1)}M ₽`;
+                return `Затраты: ${fmt(context.raw, 0)} тыс. ₽`;
               } else {
                 return `Накопительный: ${fmt(context.raw, 1)}%`;
               }
@@ -289,7 +298,7 @@ function renderParetoChart(data) {
           type: 'linear',
           display: true,
           position: 'left',
-          title: { display: true, text: 'Затраты (M ₽)' },
+          title: { display: true, text: 'Затраты (тыс. ₽)' },
           ticks: { callback: (value) => fmt(value, 1) }
         },
         y1: {
@@ -324,7 +333,7 @@ function renderParetoTable(data) {
           <tr>
             <td>${p.out_cost_rank}</td>
             <td>${p.out_process_name}</td>
-            <td class="mono">${fmt(p.out_total_cost / 1000000, 1)}M</td>
+            <td class="mono">${fmtCost(p.out_total_cost)} тыс.</td>
             <td class="mono">${fmt(p.out_pct_of_total, 1)}%</td>
             <td class="mono">${fmt(p.out_cumulative_pct, 1)}%</td>
             <td><span class="abc-badge abc-class-${p.out_abc_class.toLowerCase()}">${p.out_abc_class}</span></td>
