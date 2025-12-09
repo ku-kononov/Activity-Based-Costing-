@@ -1,5 +1,6 @@
 // js/services/abc-data.js
-import { fetchData } from '../api.js';
+import { fetchData, fetchAbcData } from '../api.js';
+import { supabase } from '../api.js';
 
 // Caching system
 const dataCache = new Map();
@@ -49,8 +50,9 @@ export async function isFeatureEnabled(featureName) {
 // Get available periods
 export async function getAvailablePeriods() {
   try {
-    const periods = await fetchData('abc_periods', '*', 'is_active', 'eq', 'true');
-    return periods.map(p => ({
+    const periods = await fetchData('abc_periods', '*');
+    const activePeriods = periods.filter(p => p.is_active);
+    return activePeriods.map(p => ({
       code: p.period_code,
       name: p.period_name,
       startDate: p.start_date,
@@ -69,13 +71,14 @@ export async function getAbcKpis() {
   if (cached) return cached;
 
   try {
+    // Получаем данные через RPC функции
     const [summary, validation] = await Promise.all([
-      fetchData('vw_process_costs_summary', 'COUNT(*) as process_count, SUM(total_cost) as total_cost'),
-      fetchData('vw_data_validation', '*')
+      getAbcSummary(),
+      getValidationData()
     ]);
 
-    const processCount = summary[0]?.process_count || 0;
-    const totalCost = summary[0]?.total_cost || 0;
+    const processCount = summary.reduce((sum, cls) => sum + (cls.out_process_count || 0), 0);
+    const totalCost = summary.reduce((sum, cls) => sum + (cls.out_total_cost || 0), 0);
 
     // Расчет полноты распределения
     const deptTotal = validation.find(v => v.check_name === 'Departments Total')?.amount || 0;
@@ -106,9 +109,9 @@ export async function getAbcKpis() {
 export async function getAbcModulesData() {
   try {
     const [abcSummary, topProcesses, validation] = await Promise.all([
-      fetchData('fn_get_abc_summary()', '*'),
-      fetchData('fn_get_top_processes(10)', '*'),
-      fetchData('vw_data_validation', '*')
+      getAbcSummary(),
+      getParetoData(10),
+      getValidationData()
     ]);
 
     return {
@@ -120,7 +123,7 @@ export async function getAbcModulesData() {
       },
       pareto: {
         metrics: [
-          { label: 'Top-10', value: `${topProcesses.slice(0, 10).reduce((sum, p) => sum + p.out_pct_of_total, 0).toFixed(1)}% затрат` }
+          { label: 'Top-10', value: `${topProcesses.slice(0, 10).reduce((sum, p) => sum + (p.out_pct_of_total || 0), 0).toFixed(1)}% затрат` }
         ]
       },
       validation: {
@@ -143,27 +146,49 @@ export async function getAbcModulesData() {
 // Получение данных для ABC-классификации
 export async function getAbcProcesses(filters = {}) {
   try {
-    let query = 'vw_abc_classification';
-    let conditions = [];
+    const options = {
+      noCache: false,
+      limit: 100
+    };
 
+    // Преобразуем фильтры в формат для fetchAbcData
+    const apiFilters = [];
+    
     if (filters.abcClass) {
-      conditions.push(`abc_class = '${filters.abcClass}'`);
+      apiFilters.push({
+        column: 'abc_class',
+        operator: 'eq',
+        value: filters.abcClass
+      });
     }
+    
     if (filters.search) {
-      conditions.push(`(process_name ILIKE '%${filters.search}%' OR pcf_code ILIKE '%${filters.search}%')`);
+      // Для текстового поиска используем RPC функцию
+      return await getProcessSearch(filters.search, 100);
     }
 
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`;
-    }
+    options.filters = apiFilters;
+    options.sortBy = filters.sortBy || 'total_cost DESC';
 
-    // Поддержка сортировки
-    const sortBy = filters.sortBy || 'total_cost DESC';
-    query += ` ORDER BY ${sortBy} LIMIT 100`;
-
-    return await fetchData(query, '*');
+    return await fetchAbcData('vw_abc_classification', options);
   } catch (error) {
     console.error('Error fetching ABC processes:', error);
+    return [];
+  }
+}
+
+// Поиск процессов
+async function getProcessSearch(searchTerm, limit = 50) {
+  try {
+    const { data, error } = await supabase.rpc('fn_search_processes', {
+      p_search_term: searchTerm,
+      p_limit: limit
+    });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error in process search:', error);
     return [];
   }
 }
@@ -171,7 +196,13 @@ export async function getAbcProcesses(filters = {}) {
 // Получение данных для Парето
 export async function getParetoData(topCount = 20) {
   try {
-    return await fetchData(`fn_get_top_processes(${topCount})`, '*');
+    // Прямой вызов функции через RPC
+    const { data, error } = await supabase.rpc('fn_get_top_processes', {
+      top_count: topCount
+    });
+    
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error fetching Pareto data:', error);
     return [];
@@ -181,7 +212,22 @@ export async function getParetoData(topCount = 20) {
 // Получение деталей процесса
 export async function getProcessDetails(processId) {
   try {
-    return await fetchData(`fn_get_process_cost_details('${processId}')`, '*');
+    if (!processId) {
+      console.warn('Process ID is required for getProcessDetails');
+      return [];
+    }
+    
+    // Прямой вызов функции через RPC
+    const { data, error } = await supabase.rpc('fn_get_process_cost_details', {
+      p_process_id: processId
+    });
+    
+    if (error) {
+      console.error('RPC Error:', error);
+      throw error;
+    }
+    
+    return data || [];
   } catch (error) {
     console.error('Error fetching process details:', error);
     return [];
@@ -198,16 +244,32 @@ export async function getValidationData() {
   }
 }
 
+// Получение ABC сводки через RPC
+export async function getAbcSummary() {
+  try {
+    const { data, error } = await supabase.rpc('fn_get_abc_summary');
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching ABC summary:', error);
+    return [];
+  }
+}
+
 // Получение данных для матрицы распределения
 export async function getMatrixData(deptLimit = 20, processLimit = 20) {
   try {
     // Получаем топ подразделений по затратам
-    const deptQuery = `vw_dept_costs ORDER BY total_cost DESC LIMIT ${deptLimit}`;
-    const departments = await fetchData(deptQuery, '*');
+    const departments = await fetchAbcData('vw_department_costs_summary', {
+      limit: deptLimit,
+      sortBy: 'dept_allocated_costs DESC'
+    });
 
     // Получаем топ процессов по затратам
-    const processQuery = `vw_abc_classification ORDER BY total_cost DESC LIMIT ${processLimit}`;
-    const processes = await fetchData(processQuery, '*');
+    const processes = await fetchAbcData('vw_abc_classification', {
+      limit: processLimit,
+      sortBy: 'total_cost DESC'
+    });
 
     // Получаем матрицу затрат
     const deptIds = departments.map(d => `'${d.dept_id}'`).join(',');
@@ -217,32 +279,30 @@ export async function getMatrixData(deptLimit = 20, processLimit = 20) {
       return { departments: [], processes: [], matrix: [], summary: { totalCells: 0, filledCells: 0, totalValue: 0, avgValue: 0 } };
     }
 
-    const matrixQuery = `
-      SELECT dept_id, process_id, total_cost
-      FROM vw_dept_process_costs
-      WHERE dept_id IN (${deptIds}) AND process_id IN (${processIds})
-    `;
-    const matrixData = await fetchData(matrixQuery, '*');
-
-    // Создаем матрицу
-    const matrix = [];
-    let maxValue = 0;
-
-    departments.forEach((dept, deptIndex) => {
-      matrix[deptIndex] = [];
-      processes.forEach((proc, procIndex) => {
-        const cell = matrixData.find(m => m.dept_id === dept.dept_id && m.process_id === proc.process_id);
-        const value = cell ? cell.total_cost : 0;
-        matrix[deptIndex][procIndex] = value;
-        if (value > maxValue) maxValue = value;
-      });
+    // Используем view для матрицы
+    const matrixData = await fetchAbcData('vw_department_process_matrix', {
+      filters: [
+        {
+          column: 'dept_id',
+          operator: 'in',
+          value: `(${deptIds})`
+        }
+      ]
     });
 
-    // Рассчитываем сводку
+    // Создаем матрицу (упрощенная версия)
+    const matrix = departments.map(dept => 
+      processes.map(proc => {
+        const deptProcData = matrixData.find(m => m.dept_id === dept.dept_id && m.process_id === proc.process_id);
+        return deptProcData ? deptProcData.total_cost || 0 : 0;
+      })
+    );
+
     const totalCells = departments.length * processes.length;
     const filledCells = matrixData.length;
-    const totalValue = matrixData.reduce((sum, m) => sum + m.total_cost, 0);
+    const totalValue = matrixData.reduce((sum, m) => sum + (m.total_cost || 0), 0);
     const avgValue = filledCells > 0 ? totalValue / filledCells : 0;
+    const maxValue = Math.max(...matrix.flat());
 
     return {
       departments,

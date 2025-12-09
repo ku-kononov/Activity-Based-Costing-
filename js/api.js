@@ -68,7 +68,55 @@ export async function fetchData(tableName, select = '*', options = {}) {
 }
 
 /** Полные строки из BOLT_orgchat (если требуется) */
+// Полные строки из BOLT_orgchat (если требуется)
 export const fetchOrgRows = () => fetchData('BOLT_orgchat');
+
+// Универсальный метод для ABC данных с поддержкой фильтров
+export async function fetchAbcData(tableName, options = {}) {
+  const { filters, sortBy, limit, noCache } = options;
+  
+  try {
+    // Для функций используем специальную обработку
+    if (tableName.includes('fn_')) {
+      return await fetchData(tableName, '*', { noCache });
+    }
+    
+    // Для views применяем фильтры через API
+    const apiOptions = { noCache, limit };
+    
+    if (filters && filters.length > 0) {
+      apiOptions.filters = filters.map(f => {
+        if (typeof f === 'string' && f.includes('=')) {
+          const [column, ...valueParts] = f.split('=');
+          return {
+            column: column.trim(),
+            operator: 'eq',
+            value: valueParts.join('=').trim()
+          };
+        }
+        return f;
+      });
+    }
+    
+    let data = await fetchData(tableName, '*', apiOptions);
+    
+    // Применяем сортировку на клиенте если нужно
+    if (sortBy && data.length > 0) {
+      const [field, direction] = sortBy.split(' ');
+      data.sort((a, b) => {
+        const aVal = a[field] || 0;
+        const bVal = b[field] || 0;
+        return direction.toUpperCase() === 'DESC' ? bVal - aVal : aVal - bVal;
+      });
+    }
+    
+    return data;
+    
+  } catch (error) {
+    console.error(`Ошибка fetchAbcData для ${tableName}:`, error);
+    return [];
+  }
+}
 
 /** Полные строки из BOLT_Cost Driver_pcf+orgchat для связи процессов и подразделений */
 export const fetchCostDriverPCFOrgRows = () => fetchData('BOLT_Cost Driver_pcf+orgchat');

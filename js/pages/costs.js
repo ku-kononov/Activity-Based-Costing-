@@ -809,14 +809,18 @@ async function createFteWidget(mountEl) {
         <div class="fte-summary-value">${fmt(v, 1)} FTE</div>
         <div class="fte-summary-label">${label}</div>
       </div>`;
-    document.getElementById('fteSummary').innerHTML = `
-      ${box('Основные', totals.core, groupColors.core)}
-      ${box('Управление', totals.management, groupColors.management)}
-      ${box('Обеспечение', totals.enablement, groupColors.enablement)}
-    `;
+    const summaryEl = document.getElementById('fteSummary');
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        ${box('Основные', totals.core, groupColors.core)}
+        ${box('Управление', totals.management, groupColors.management)}
+        ${box('Обеспечение', totals.enablement, groupColors.enablement)}
+      `;
+    }
   } catch (e) {
+    console.error('Error creating FTE widget:', e);
     const box = document.getElementById('fteSummary');
-    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных</span>`;
+    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных: ${e.message}</span>`;
   }
 
   el.addEventListener('click', showFteModal);
@@ -1069,13 +1073,17 @@ async function createRpscWidget(mountEl) {
         <div class="rpsc-summary-label">${label}</div>
       </div>`;
 
-    document.getElementById('rpscSummary').innerHTML = `
-      ${box('Фронт-офис', frontRpsc)}
-      ${box('Бэк-офис', backRpsc)}
-    `;
+    const summaryEl = document.getElementById('rpscSummary');
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        ${box('Фронт-офис', frontRpsc)}
+        ${box('Бэк-офис', backRpsc)}
+      `;
+    }
   } catch (e) {
+    console.error('Error creating RPSC widget:', e);
     const box = document.getElementById('rpscSummary');
-    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных</span>`;
+    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных: ${e.message}</span>`;
   }
 
   el.addEventListener('click', () => showRpscModal());
@@ -1124,13 +1132,17 @@ async function createSpcrWidget(mountEl) {
         <div class="spcr-summary-label">${label}</div>
       </div>`;
 
-    document.getElementById('spcrSummary').innerHTML = `
-      ${box('Фронт-офис', frontSpcr)}
-      ${box('Бэк-офис', backSpcr)}
-    `;
+    const summaryEl = document.getElementById('spcrSummary');
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        ${box('Фронт-офис', frontSpcr)}
+        ${box('Бэк-офис', backSpcr)}
+      `;
+    }
   } catch (e) {
+    console.error('Error creating SPCR widget:', e);
     const box = document.getElementById('spcrSummary');
-    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных</span>`;
+    if (box) box.innerHTML = `<span style="color:var(--muted)">Ошибка загрузки данных: ${e.message}</span>`;
   }
 
   el.addEventListener('click', () => showSpcrModal());

@@ -2,12 +2,22 @@
 import { refreshIcons } from '../../utils.js';
 import { getAbcProcesses, getProcessDetails } from '../../services/abc-data.js';
 
-// Utility functions
+// Utility functions - ОБНОВЛЕНО для отображения в миллионах рублей
 const fmt = (val, digits = 1) =>
   new Intl.NumberFormat('ru-RU', {
     maximumFractionDigits: digits,
     minimumFractionDigits: digits,
   }).format(Number.isFinite(val) ? val : 0);
+
+// Форматирование затрат в миллионах с правильным масштабированием
+const fmtCost = (val, digits = 1) => {
+  // val уже в рублях после исправления SQL, показываем в миллионах
+  const millions = (val || 0) / 1000000;
+  return new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  }).format(millions);
+};
 
 // Render ABC classification page
 export async function renderAbcPage(container, subpage) {
@@ -125,7 +135,7 @@ async function loadAbcData() {
       <div class="abc-summary-card abc-class-${cls.toLowerCase()}">
         <div class="abc-summary-title">Класс ${cls}</div>
         <div class="abc-summary-count">${data.count} процессов</div>
-        <div class="abc-summary-cost">${fmt(data.total / 1000000, 1)}M ₽</div>
+        <div class="abc-summary-cost">${fmtCost(data.total)}M ₽</div>
         <div class="abc-summary-pct">${fmt(data.total / totalCost * 100, 1)}%</div>
       </div>
     `).join('');
@@ -258,7 +268,7 @@ window.exportAbcProcessesToPdf = async function() {
       p.cost_rank,
       p.pcf_code || '',
       p.process_name.substring(0, 30),
-      fmt(p.total_cost / 1000000, 1) + 'M',
+      fmtCost(p.total_cost) + 'M',
       fmt(p.pct_of_total, 1) + '%',
       p.abc_class
     ]);
@@ -300,7 +310,7 @@ function renderProcessTable(processes) {
             <td>${p.cost_rank}</td>
             <td>${p.pcf_code || '-'}</td>
             <td>${p.process_name}</td>
-            <td class="mono">${fmt(p.total_cost / 1000000, 1)}M</td>
+            <td class="mono">${fmtCost(p.total_cost)}M</td>
             <td class="mono">${fmt(p.pct_of_total, 1)}%</td>
             <td><span class="abc-badge abc-class-${p.abc_class.toLowerCase()}">${p.abc_class}</span></td>
             <td><button class="btn-sm" onclick="event.stopPropagation(); showProcessDetails('${p.process_id}')">Детали</button></td>
@@ -410,21 +420,21 @@ window.showProcessDetails = async function(processId) {
             <div class="process-summary-grid">
               <div class="process-summary-card">
                 <div class="summary-label">Общие затраты</div>
-                <div class="summary-value">${fmt(totalCost / 1000000, 1)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalCost)}M ₽</div>
               </div>
               <div class="process-summary-card">
                 <div class="summary-label">Зарплаты</div>
-                <div class="summary-value">${fmt(totalPayroll / 1000000, 1)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalPayroll)}M ₽</div>
                 <div class="summary-pct">${fmt(totalPayroll / totalCost * 100, 1)}%</div>
               </div>
               <div class="process-summary-card">
                 <div class="summary-label">Помещения</div>
-                <div class="summary-value">${fmt(totalWorkspace / 1000000, 1)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalWorkspace)}M ₽</div>
                 <div class="summary-pct">${fmt(totalWorkspace / totalCost * 100, 1)}%</div>
               </div>
               <div class="process-summary-card">
                 <div class="summary-label">Прочие</div>
-                <div class="summary-value">${fmt(totalOther / 1000000, 1)}M ₽</div>
+                <div class="summary-value">${fmtCost(totalOther)}M ₽</div>
                 <div class="summary-pct">${fmt(totalOther / totalCost * 100, 1)}%</div>
               </div>
             </div>
@@ -446,7 +456,7 @@ window.showProcessDetails = async function(processId) {
                     <td>${d.out_dept_name}</td>
                     <td class="mono">${d.out_dept_employees || '-'}</td>
                     <td class="mono">${fmt(d.out_allocation_rate * 100, 1)}%</td>
-                    <td class="mono">${fmt(d.out_allocated_total / 1000000, 1)}M</td>
+                    <td class="mono">${fmtCost(d.out_allocated_total)}M</td>
                     <td class="mono">${fmt(d.out_pct_of_process, 1)}%</td>
                   </tr>
                 `).join('')}

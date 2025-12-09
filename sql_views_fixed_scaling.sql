@@ -1,125 +1,12 @@
 -- =============================================================================
--- SQL VIEWS FOR ABC ANALYSIS DASHBOARD
--- Создание оптимизированных представлений в Supabase
--- Версия: 3.0 (с периодами и feature flags)
--- Дата: 2025-12-08
+-- SQL VIEWS FOR ABC ANALYSIS DASHBOARD - FIXED COST SCALING
+-- ИСПРАВЛЕНО: Масштабирование затрат из тысяч в рубли
+-- Версия: 3.1 (с исправленными единицами измерения)
+-- Дата: 2025-12-09
 -- =============================================================================
 
 -- =============================================================================
--- TABLES FOR ABC SYSTEM CONFIGURATION
--- =============================================================================
-
--- Таблица периодов анализа
-CREATE TABLE IF NOT EXISTS abc_periods (
-  period_code VARCHAR PRIMARY KEY,
-  period_name VARCHAR NOT NULL,
-  start_date DATE NOT NULL,
-  end_date DATE NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Индекс для активных периодов
-CREATE INDEX IF NOT EXISTS idx_abc_periods_active ON abc_periods(is_active) WHERE is_active = true;
-
--- Вставка тестовых данных периодов
-INSERT INTO abc_periods (period_code, period_name, start_date, end_date, is_active)
-VALUES
-  ('H1_2025', 'Первое полугодие 2025', '2025-01-01', '2025-06-30', true),
-  ('H2_2024', 'Второе полугодие 2024', '2024-07-01', '2024-12-31', false),
-  ('FY_2024', 'Финансовый год 2024', '2024-01-01', '2024-12-31', false)
-ON CONFLICT (period_code) DO NOTHING;
-
--- Таблица feature flags для поэтапного включения модулей
-CREATE TABLE IF NOT EXISTS abc_feature_flags (
-  feature_name VARCHAR PRIMARY KEY,
-  is_enabled BOOLEAN DEFAULT false,
-  description TEXT,
-  rollout_percentage INTEGER DEFAULT 0 CHECK (rollout_percentage >= 0 AND rollout_percentage <= 100),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Вставка feature flags
-INSERT INTO abc_feature_flags (feature_name, is_enabled, description, rollout_percentage)
-VALUES
-  ('abc_dashboard', true, 'Главная страница ABC анализа', 100),
-  ('abc_processes', true, 'Страница классификации процессов', 100),
-  ('abc_pareto', true, 'Анализ Парето (топ-процессы)', 100),
-  ('abc_matrix', true, 'Матрица распределения', 100),
-  ('abc_validation', true, 'Валидация данных', 100),
-  ('abc_departments', false, 'Анализ по подразделениям', 0),
-  ('abc_cost_structure', false, 'Структура затрат', 0),
-  ('export_excel', true, 'Экспорт в Excel', 100),
-  ('export_pdf', true, 'Экспорт в PDF', 100),
-  ('period_selector', false, 'Выбор периода анализа', 0)
-ON CONFLICT (feature_name) DO NOTHING;
-
--- Функция проверки feature flag
-CREATE OR REPLACE FUNCTION is_feature_enabled(feature_name_param TEXT, user_id_param TEXT DEFAULT NULL)
-RETURNS BOOLEAN
-LANGUAGE plpgsql
-STABLE
-SET search_path = public, pg_catalog
-AS $$
-DECLARE
-  feature_enabled BOOLEAN;
-  rollout_pct INTEGER;
-  hash_val INTEGER;
-BEGIN
-  SELECT is_enabled, rollout_percentage INTO feature_enabled, rollout_pct
-  FROM abc_feature_flags
-  WHERE feature_name = feature_name_param;
-
-  IF NOT FOUND THEN
-    RETURN false;
-  END IF;
-
-  IF NOT feature_enabled THEN
-    RETURN false;
-  END IF;
-
-  IF rollout_pct = 100 THEN
-    RETURN true;
-  END IF;
-
-  -- Детерминированная выборка на основе хэша user_id
-  IF user_id_param IS NOT NULL THEN
-    hash_val := (hashtext(user_id_param)::INTEGER % 100) + 1;
-  ELSE
-    -- Fallback для случаев без user_id
-    hash_val := (EXTRACT(epoch FROM NOW())::INTEGER % 100) + 1;
-  END IF;
-
-  RETURN hash_val <= rollout_pct;
-END;
-$$;
-
-COMMENT ON FUNCTION is_feature_enabled IS 'Проверка включения feature flag с учётом rollout percentage';
-
--- =============================================================================
--- ИНДЕКСЫ НА БАЗОВЫХ ТАБЛИЦАХ (выполнить первыми для производительности)
--- =============================================================================
-
-CREATE INDEX IF NOT EXISTS idx_costs_driver_process_id 
-  ON "Costs_Driver_by_BI"("Process ID");
-
-CREATE INDEX IF NOT EXISTS idx_costs_driver_dept_id 
-  ON "Costs_Driver_by_BI"("Department ID");
-
-CREATE INDEX IF NOT EXISTS idx_costs_driver_cost_driver 
-  ON "Costs_Driver_by_BI"("Cost_Driver") 
-  WHERE "Cost_Driver" IS NOT NULL AND "Cost_Driver" > 0;
-
-CREATE INDEX IF NOT EXISTS idx_costs_driver_process_group 
-  ON "Costs_Driver_by_BI"(process_group);
-
-CREATE INDEX IF NOT EXISTS idx_dept_costs_dept_id 
-  ON "BOLT_Затраты_подразделений_H12025"("Department_ID");
-
--- =============================================================================
--- VIEW 1: vw_process_costs
+-- VIEW 1: vw_process_costs - ИСПРАВЛЕНО МАСШТАБИРОВАНИЕ
 -- Детальные затраты по каждому процессу-подразделению
 -- =============================================================================
 
@@ -152,18 +39,18 @@ SELECT
   -- Cost_Driver в формате доли (0-1)
   cd."Cost_Driver" as allocation_rate,
   
-  -- Затраты подразделения (с защитой от NULL)
+  -- Затраты подразделения (с защитой от NULL) - МАСШТАБИРОВАНИЕ из тысяч в рубли
   COALESCE(d.number_of_employees, 0) as number_of_employees,
-  COALESCE(d.payroll_costs, 0) as payroll_costs,
-  COALESCE(d.workspace_costs, 0) as workspace_costs,
-  COALESCE(d.other_costs, 0) as other_costs,
-  COALESCE(d.total_costs, 0) as dept_total_costs,
+  COALESCE(d.payroll_costs, 0) * 1000 as payroll_costs,
+  COALESCE(d.workspace_costs, 0) * 1000 as workspace_costs,
+  COALESCE(d.other_costs, 0) * 1000 as other_costs,
+  COALESCE(d.total_costs, 0) * 1000 as dept_total_costs,
   
-  -- Распределённые затраты (ГЛАВНАЯ ФОРМУЛА)
-  ROUND((COALESCE(d.payroll_costs, 0) * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_payroll,
-  ROUND((COALESCE(d.workspace_costs, 0) * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_workspace,
-  ROUND((COALESCE(d.other_costs, 0) * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_other,
-  ROUND((COALESCE(d.total_costs, 0) * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_total
+  -- Распределённые затраты (ГЛАВНАЯ ФОРМУЛА) - МАСШТАБИРОВАНИЕ из тысяч в рубли
+  ROUND((COALESCE(d.payroll_costs, 0) * 1000 * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_payroll,
+  ROUND((COALESCE(d.workspace_costs, 0) * 1000 * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_workspace,
+  ROUND((COALESCE(d.other_costs, 0) * 1000 * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_other,
+  ROUND((COALESCE(d.total_costs, 0) * 1000 * cd."Cost_Driver")::NUMERIC, 0)::BIGINT as allocated_total
 
 FROM "Costs_Driver_by_BI" cd
 LEFT JOIN "BOLT_Затраты_подразделений_H12025" d 
@@ -172,11 +59,10 @@ WHERE cd."Cost_Driver" IS NOT NULL
   AND cd."Cost_Driver" > 0;
 
 COMMENT ON VIEW vw_process_costs IS 
-  'Детальные затраты по каждому процессу-подразделению с расчётом распределения по Cost_Driver';
+  'Детальные затраты по каждому процессу-подразделению с расчётом распределения по Cost_Driver (масштабировано из тысяч в рубли)';
 
 -- =============================================================================
--- VIEW 2: vw_process_costs_summary
--- Сводные данные по процессам с ABC-классификацией
+-- VIEW 2: vw_process_costs_summary - Сводные данные по процессам с ABC-классификацией
 -- =============================================================================
 
 CREATE VIEW vw_process_costs_summary AS
@@ -228,8 +114,7 @@ COMMENT ON VIEW vw_process_costs_summary IS
   'Сводка по процессам с ABC-классификацией и cumulative_pct для анализа 80/20';
 
 -- =============================================================================
--- VIEW 3: vw_process_group_summary
--- Сводка по группам процессов
+-- VIEW 3: vw_process_group_summary - Сводка по группам процессов
 -- =============================================================================
 
 CREATE VIEW vw_process_group_summary AS
@@ -264,8 +149,7 @@ COMMENT ON VIEW vw_process_group_summary IS
   'Сводка по группам процессов с долей от общих затрат';
 
 -- =============================================================================
--- VIEW 4: vw_department_costs_summary
--- Сводка по подразделениям
+-- VIEW 4: vw_department_costs_summary - Сводка по подразделениям
 -- =============================================================================
 
 CREATE VIEW vw_department_costs_summary AS
@@ -288,8 +172,7 @@ COMMENT ON VIEW vw_department_costs_summary IS
   'Сводка по подразделениям с проверкой полноты распределения затрат';
 
 -- =============================================================================
--- VIEW 5: vw_abc_classification
--- ABC классификация по процессам
+-- VIEW 5: vw_abc_classification - ABC классификация по процессам
 -- =============================================================================
 
 CREATE VIEW vw_abc_classification AS
@@ -315,8 +198,7 @@ COMMENT ON VIEW vw_abc_classification IS
   'ABC классификация процессов по правилу Парето: A≤80%, B≤95%, C>95%';
 
 -- =============================================================================
--- VIEW 6: vw_cost_structure_by_type
--- Структура затрат по типам (Payroll/Workspace/Other)
+-- VIEW 6: vw_cost_structure_by_type - Структура затрат по типам (Payroll/Workspace/Other)
 -- =============================================================================
 
 CREATE VIEW vw_cost_structure_by_type AS
@@ -366,8 +248,7 @@ COMMENT ON VIEW vw_cost_structure_by_type IS
   'Структура общих затрат по типам: Зарплаты, Помещения, Прочие';
 
 -- =============================================================================
--- VIEW 7: vw_department_process_matrix
--- Матрица распределения затрат: подразделения × процессы
+-- VIEW 7: vw_department_process_matrix - Матрица распределения затрат: подразделения × процессы
 -- =============================================================================
 
 CREATE VIEW vw_department_process_matrix AS
@@ -408,15 +289,15 @@ COMMENT ON VIEW vw_department_process_matrix IS
   'Матрица распределения затрат подразделений по группам процессов';
 
 -- =============================================================================
--- VIEW 8: vw_data_validation
+-- VIEW 8: vw_data_validation - ИСПРАВЛЕНО МАСШТАБИРОВАНИЕ
 -- Проверка качества данных и консистентности
 -- =============================================================================
 
 CREATE VIEW vw_data_validation AS
--- Общие затраты подразделений (исходные данные)
+-- Общие затраты подразделений (исходные данные) - МАСШТАБИРОВАНИЕ
 SELECT 
   'Departments Total'::TEXT as check_name, 
-  SUM(total_costs)::NUMERIC as amount,
+  SUM(total_costs * 1000)::NUMERIC as amount,
   'BOLT_Затраты_подразделений_H12025'::TEXT as source_table,
   1 as sort_order
 FROM "BOLT_Затраты_подразделений_H12025"
@@ -433,10 +314,10 @@ FROM vw_process_costs
 
 UNION ALL
 
--- Разница (для проверки полноты распределения)
+-- Разница (для проверки полноты распределения) - МАСШТАБИРОВАНИЕ
 SELECT 
   'Allocation Difference'::TEXT as check_name,
-  (SELECT SUM(total_costs) FROM "BOLT_Затраты_подразделений_H12025") - 
+  (SELECT SUM(total_costs * 1000) FROM "BOLT_Затраты_подразделений_H12025") - 
   (SELECT SUM(allocated_total) FROM vw_process_costs) as amount,
   'calculated'::TEXT as source_table,
   3 as sort_order
@@ -507,11 +388,10 @@ SELECT
 ORDER BY sort_order;
 
 COMMENT ON VIEW vw_data_validation IS 
-  'Проверка качества данных: сверка итогов, поиск дубликатов и пропусков';
+  'Проверка качества данных: сверка итогов, поиск дубликатов и пропусков (с исправленным масштабированием)';
 
 -- =============================================================================
--- ФУНКЦИЯ: fn_get_top_processes
--- Получение ТОП-N процессов по затратам
+-- ФУНКЦИЯ: fn_get_top_processes - Получение ТОП-N процессов по затратам
 -- =============================================================================
 
 DROP FUNCTION IF EXISTS fn_get_top_processes(INTEGER);
@@ -553,8 +433,7 @@ COMMENT ON FUNCTION fn_get_top_processes IS
   'Возвращает ТОП-N процессов по затратам с ABC-классификацией';
 
 -- =============================================================================
--- ФУНКЦИЯ: fn_get_process_cost_details
--- Детализация затрат конкретного процесса по подразделениям
+-- ФУНКЦИЯ: fn_get_process_cost_details - Детализация затрат конкретного процесса по подразделениям
 -- =============================================================================
 
 DROP FUNCTION IF EXISTS fn_get_process_cost_details(TEXT);
@@ -604,8 +483,7 @@ COMMENT ON FUNCTION fn_get_process_cost_details IS
   'Возвращает детализацию затрат процесса по подразделениям';
 
 -- =============================================================================
--- ФУНКЦИЯ: fn_get_abc_summary
--- Сводка по ABC-классам
+-- ФУНКЦИЯ: fn_get_abc_summary - Сводка по ABC-классам
 -- =============================================================================
 
 DROP FUNCTION IF EXISTS fn_get_abc_summary();
@@ -648,8 +526,7 @@ COMMENT ON FUNCTION fn_get_abc_summary IS
   'Возвращает сводку по ABC-классам: количество процессов и суммы затрат';
 
 -- =============================================================================
--- ФУНКЦИЯ: fn_search_processes
--- Поиск процессов по имени или коду
+-- ФУНКЦИЯ: fn_search_processes - Поиск процессов по имени или коду
 -- =============================================================================
 
 DROP FUNCTION IF EXISTS fn_search_processes(TEXT, INTEGER);
@@ -693,70 +570,36 @@ COMMENT ON FUNCTION fn_search_processes IS
   'Поиск процессов по имени, PCF-коду или ID';
 
 -- =============================================================================
--- ПРОФИЛИРОВАНИЕ ЗАПРОСОВ (Phase 0.3)
--- Цель: время ответа < 500ms для 127 процессов
--- =============================================================================
-
--- Проверка производительности основных views:
--- EXPLAIN ANALYZE SELECT * FROM vw_abc_classification LIMIT 10;
--- EXPLAIN ANALYZE SELECT * FROM vw_process_costs_summary;
--- EXPLAIN ANALYZE SELECT * FROM fn_get_top_processes(20);
-
--- =============================================================================
 -- ПРОВЕРОЧНЫЙ ЗАПРОС (выполнить после создания всех объектов)
 -- =============================================================================
 
--- Раскомментируйте для проверки:
 /*
--- Проверка VIEW
+-- Проверка VIEW с исправленным масштабированием
 SELECT 'vw_process_costs' as view_name, COUNT(*) as row_count FROM vw_process_costs
 UNION ALL
 SELECT 'vw_process_costs_summary', COUNT(*) FROM vw_process_costs_summary
 UNION ALL
-SELECT 'vw_process_group_summary', COUNT(*) FROM vw_process_group_summary
-UNION ALL
-SELECT 'vw_department_costs_summary', COUNT(*) FROM vw_department_costs_summary
-UNION ALL
-SELECT 'vw_abc_classification', COUNT(*) FROM vw_abc_classification
-UNION ALL
-SELECT 'vw_cost_structure_by_type', COUNT(*) FROM vw_cost_structure_by_type
-UNION ALL
-SELECT 'vw_department_process_matrix', COUNT(*) FROM vw_department_process_matrix
-UNION ALL
-SELECT 'vw_data_validation', COUNT(*) FROM vw_data_validation;
+SELECT 'vw_abc_classification', COUNT(*) FROM vw_abc_classification;
 
 -- Проверка валидации данных
 SELECT * FROM vw_data_validation ORDER BY sort_order;
+
+-- Проверка масштабирования - сравнить суммы
+SELECT 
+  'Original (thousands)' as source,
+  SUM(total_costs) as amount
+FROM "BOLT_Затраты_подразделений_H12025"
+UNION ALL
+SELECT 
+  'Scaled (rubles)' as source,
+  SUM(total_cost) as amount
+FROM vw_process_costs_summary;
 
 -- Проверка ABC распределения
 SELECT * FROM fn_get_abc_summary();
 
 -- Топ-5 процессов
 SELECT * FROM fn_get_top_processes(5);
-*/
-
--- =============================================================================
--- ПРАВА ДОСТУПА (раскомментировать и настроить под вашу схему)
--- =============================================================================
-
-/*
--- Для authenticated пользователей Supabase
-GRANT SELECT ON vw_process_costs TO authenticated;
-GRANT SELECT ON vw_process_costs_summary TO authenticated;
-GRANT SELECT ON vw_process_group_summary TO authenticated;
-GRANT SELECT ON vw_department_costs_summary TO authenticated;
-GRANT SELECT ON vw_abc_classification TO authenticated;
-GRANT SELECT ON vw_cost_structure_by_type TO authenticated;
-GRANT SELECT ON vw_department_process_matrix TO authenticated;
-GRANT SELECT ON vw_data_validation TO authenticated;
-
-GRANT EXECUTE ON FUNCTION fn_get_top_processes TO authenticated;
-GRANT EXECUTE ON FUNCTION fn_get_process_cost_details TO authenticated;
-GRANT EXECUTE ON FUNCTION fn_get_abc_summary TO authenticated;
-GRANT EXECUTE ON FUNCTION fn_search_processes TO authenticated;
-
--- Для анонимных пользователей (если нужен публичный доступ)
--- GRANT SELECT ON vw_abc_classification TO anon;
 */
 
 -- =============================================================================
