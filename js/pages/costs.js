@@ -1185,7 +1185,7 @@ async function createRpseWidget(mountEl) {
         totalRev += Number(row.REVENUE_H1_2025 || 0);
         totalEmp += Number(row['number of employees'] || 0);
       });
-      return totalEmp > 0 ? (totalRev / 1000) / totalEmp : 0; // в тыс. руб. на сотрудника
+      return totalEmp > 0 ? (totalRev / 1000) / totalEmp : 0; // в тыс. ₽ на сотрудника
     };
 
     const frontRpse = calcTotalRpse(frontOffice);
@@ -1193,7 +1193,7 @@ async function createRpseWidget(mountEl) {
 
     const box = (label, v) => `
       <div class="rpse-summary-item">
-        <div class="rpse-summary-value">${fmt(v, 0)} <span style="color: var(--blue)">тыс. руб.</span></div>
+        <div class="rpse-summary-value">${fmt(v, 0)} <span style="color: var(--blue)">тыс. ₽</span></div>
         <div class="rpse-summary-label">${label}</div>
       </div>`;
 
@@ -1665,7 +1665,7 @@ async function showRpseModal() {
       const data = rows.map(row => {
         const emp = Number(row['number of employees'] || 0);
         const revenue = Number(row.REVENUE_H1_2025 || 0);
-        return emp > 0 ? (revenue / 1000) / emp : 0; // тыс. руб. на сотрудника
+        return emp > 0 ? (revenue / 1000) / emp : 0; // тыс. ₽ на сотрудника
       });
       if (window.Chart) {
         new Chart(canvas.getContext('2d'), {
@@ -1709,8 +1709,8 @@ async function showRpseModal() {
                     const revenue = Number(row.REVENUE_H1_2025 || 0);
                     const rpse = emp > 0 ? (revenue / 1000) / emp : 0;
                     return [
-                      `RPSE: ${fmt(rpse, 0)} тыс. руб.`,
-                      `Выручка: ${fmt(revenue / 1000, 0)} тыс. руб.`,
+                      `RPSE: ${fmt(rpse, 0)} тыс. ₽`,
+                      `Выручка: ${fmt(revenue / 1000, 0)} тыс. ₽`,
                       `Сотрудники: ${emp}`
                     ];
                   }
@@ -1721,7 +1721,7 @@ async function showRpseModal() {
                 align: 'right',
                 color: cssVar('--text', '#333'),
                 font: { size: 12, weight: 'bold' },
-                formatter: (value) => `${fmt(value, 0)} тыс. руб.`
+                formatter: (value) => `${fmt(value, 0)} тыс. ₽`
               }
             },
             scales: {
@@ -1729,7 +1729,7 @@ async function showRpseModal() {
                 beginAtZero: true,
                 title: {
                   display: true,
-                  text: 'Revenue per Sales Employee (тыс. руб.)',
+                  text: 'Revenue per Sales Employee (тыс. ₽)',
                   color: cssVar('--text', '#333'),
                   font: { size: 14, weight: 'bold' },
                   padding: { top: 10 }
