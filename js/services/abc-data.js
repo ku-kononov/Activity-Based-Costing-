@@ -153,7 +153,7 @@ export async function getAbcProcesses(filters = {}) {
 
     // Преобразуем фильтры в формат для fetchAbcData
     const apiFilters = [];
-    
+
     if (filters.abcClass) {
       apiFilters.push({
         column: 'abc_class',
@@ -161,20 +161,25 @@ export async function getAbcProcesses(filters = {}) {
         value: filters.abcClass
       });
     }
-    
+
     if (filters.search) {
       // Для текстового поиска используем RPC функцию
       return await getProcessSearch(filters.search, 100);
     }
 
     options.filters = apiFilters;
-    options.sortBy = filters.sortBy || 'total_cost DESC';
+options.sortBy = filters.sortBy || 'total_cost DESC';
 
     return await fetchAbcData('vw_abc_classification', options);
   } catch (error) {
     console.error('Error fetching ABC processes:', error);
     return [];
   }
+}
+
+// Алиас для совместимости с HML-анализом
+export async function getProcessesForHML(filters = {}) {
+  return getAbcProcesses(filters);
 }
 
 // Поиск процессов
