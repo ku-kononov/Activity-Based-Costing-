@@ -39,7 +39,7 @@ function ensureHomeStyles() {
      .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; }
      .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
      .legend-label { font-weight: 600; color: var(--muted); flex: 1; font-size: 14px; }
-     .legend-val { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 17px; }
+     .legend-val { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 14px; }
 
      .module-card .module-header { padding: 16px 18px 4px; border-bottom: none; }
      .module-card .module-title { font-size: 1.1em; margin-bottom: -16px; }
