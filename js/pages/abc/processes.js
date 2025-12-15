@@ -1,4 +1,4 @@
-// js/pages/abc/hml-analysis.js
+// js/pages/abc/process.js
 
 import { refreshIcons } from '../../utils.js';
 import { getProcessesForHML, getProcessDetails } from '../../services/abc-data.js';
@@ -573,7 +573,7 @@ export async function renderHmlAnalysisPage(container) {
           <i data-lucide="bar-chart-2" class="main-icon"></i>
           <div class="title-content">
             <h2 class="abc-title">HML-анализ затрат</h2>
-            <p class="abc-subtitle">Классификация процессов по уровню затратности (CIMA)</p>
+            <p class="abc-subtitle">Сегментация процессов по уровню затрат</p>
           </div>
         </div>
         <div class="abc-header-controls">
