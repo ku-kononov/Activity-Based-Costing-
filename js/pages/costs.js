@@ -195,16 +195,68 @@ function injectCostStyles() {
 
     .abc-dashboard-intro { text-align: center; color: var(--text); margin: 16px 0; font-size: 14px; }
 
-    .abc-dashboard-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-    .abc-module-card { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all .15s; }
-    .abc-module-card:hover { border-color: var(--blue); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .module-icon { width: 48px; height: 48px; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--blue); }
-    .module-icon i[data-lucide] { width: 24px; height: 24px; }
-    .module-content { flex: 1; }
-    .module-content h4 { margin: 0 0 4px; font-size: 16px; font-weight: 700; color: var(--text); }
-    .module-content p { margin: 0; font-size: 13px; color: var(--muted); }
+    .abc-dashboard-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .abc-module-card { 
+      display: flex; 
+      align-items: stretch; 
+      gap: 16px; 
+      background: var(--surface); 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      padding: 20px; 
+      cursor: pointer; 
+      transition: all .15s; 
+      min-height: 100px;
+    }
+    .abc-module-card:hover { 
+      border-color: var(--blue); 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+      transform: translateY(-2px);
+    }
+    .module-icon { 
+      width: 56px; 
+      height: 56px; 
+      background: var(--bg); 
+      border-radius: 12px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: var(--blue); 
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .module-icon i[data-lucide] { 
+      width: 28px; 
+      height: 28px; 
+    }
+    .module-content { 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center;
+      min-width: 0;
+    }
+    .module-content h4 { 
+      margin: 0 0 6px; 
+      font-size: 17px; 
+      font-weight: 700; 
+      color: var(--text); 
+      line-height: 1.3;
+    }
+    .module-content p { 
+      margin: 0; 
+      font-size: 14px; 
+      color: var(--muted); 
+      line-height: 1.4;
+    }
     .module-metric { font-size: 12px; color: var(--blue); font-weight: 600; margin-top: 2px; }
-    .module-arrow { color: var(--muted); transition: color .15s; }
+    .module-arrow { 
+      color: var(--muted); 
+      transition: color .15s; 
+      align-self: center;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
     .abc-module-card:hover .module-arrow { color: var(--blue); }
     .module-loading { color: var(--muted); font-style: italic; }
 
@@ -2006,7 +2058,7 @@ async function loadAbcDashboardData() {
         <div class="module-content">
           <h4>HML-анализ</h4>
           <p>Распределение процессов по классам затрат High/Medium/Low</p>
-          ${modulesData.processes?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
+
         </div>
         <div class="module-arrow">
           <i data-lucide="chevron-right"></i>
@@ -2020,7 +2072,7 @@ async function loadAbcDashboardData() {
         <div class="module-content">
           <h4>Топ-процессы по принципу Парето</h4>
           <p>Анализ затрат 80/20</p>
-          ${modulesData.pareto?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
+
         </div>
         <div class="module-arrow">
           <i data-lucide="chevron-right"></i>
@@ -2034,7 +2086,7 @@ async function loadAbcDashboardData() {
         <div class="module-content">
           <h4>Аналитика затрат процессов</h4>
           <p>Подробный анализ и аналитика затрат</p>
-          ${modulesData.validation?.metrics?.map(m => `<div class="module-metric">${m.label}</div>`).join('') || ''}
+
         </div>
         <div class="module-arrow">
           <i data-lucide="chevron-right"></i>
@@ -2076,9 +2128,9 @@ async function loadAbcDashboardData() {
         <div class="module-content">
           <h4>HML-анализ</h4>
           <p>Распределение процессов по классам затрат High/Medium/Low</p>
-          <div class="module-metric">Класс A: 5 (15%)</div>
-          <div class="module-metric">Класс B: 20 (45%)</div>
-          <div class="module-metric">Класс C: 20 (40%)</div>
+
+
+
         </div>
         <div class="module-arrow">
           <i data-lucide="chevron-right"></i>
@@ -2092,7 +2144,7 @@ async function loadAbcDashboardData() {
         <div class="module-content">
           <h4>Топ-процессы по принципу Парето</h4>
           <p>Анализ затрат 80/20</p>
-          <div class="module-metric">Top-10: 72.3% затрат</div>
+
         </div>
         <div class="module-arrow">
           <i data-lucide="chevron-right"></i>
@@ -2106,8 +2158,8 @@ async function loadAbcDashboardData() {
         <div class="module-content">
           <h4>Аналитика затрат процессов</h4>
           <p>Подробный анализ и аналитика затрат</p>
-          <div class="module-metric">Warnings: 2</div>
-          <div class="module-metric">Errors: 0</div>
+
+
         </div>
         <div class="module-arrow">
           <i data-lucide="chevron-right"></i>
