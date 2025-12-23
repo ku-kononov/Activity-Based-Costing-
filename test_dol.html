@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тест DOL расчета по данным пользователя</title>
+</head>
+<body>
+  <h1>Тест расчета Operating Leverage (DOL) по данным пользователя</h1>
+  <div id="output"></div>
+
+  <script>
+    // Данные из таблицы пользователя
+    const monthlyData = {
+      revenue: [8605138, 9429407, 10777203, 11240361, 11562083, 11191051, 10203568, 10268439, 10802297, 10190844, 10912070, 9296903],
+      varCosts: [7515729, 8058457, 9922653, 9557857, 9586938, 9876693, 8752177, 8927326, 9053182, 8570263, 8721693, 8465213],
+      fixedCosts: [769235, 1059935, 1549021, 1166875, 935731, 1346123, 987115, 1214375, 1112532, 1440168, 1042962, 1472957],
+      opIncome: [320174, 311015, -694471, 515629, 1039414, -31765, 464276, 126738, 636583, 180413, 1147415, -641267]
+    };
+
+    function calculateMonthlyDOL() {
+      const monthlyDOL = [];
+      let output = '<h2>Месячные DOL расчеты:</h2>';
+
+      for (let i = 0; i < 12; i++) {
+        const rev = monthlyData.revenue[i];
+        const varCosts = monthlyData.varCosts[i];
+        const opIncome = monthlyData.opIncome[i];
+
+        // Contribution Margin = Revenue - Variable Costs
+        const cm = rev - varCosts;
+
+        // DOL = Contribution Margin / Operating Income
+        let dol = 0;
+        if (Math.abs(opIncome) > 1e-6) {
+          dol = cm / opIncome;
+        }
+
+        monthlyDOL.push(dol);
+
+        // Safety Margin calculation for month
+        const fixedCosts = monthlyData.fixedCosts[i];
+        const cmRatio = rev > 0 ? cm / rev : 0;
+        const bePoint = cmRatio > 0 ? fixedCosts / cmRatio : 0;
+        const safetyMargin = rev > 0 ? ((rev - bePoint) / rev) * 100 : 0;
+        const safetyDisplay = bePoint > rev ? 0 : safetyMargin;
+
+        const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+        output += `${monthNames[i]}: Revenue=${(rev/1000).toFixed(1)}M, VarCosts=${(varCosts/1000).toFixed(1)}M, FixedCosts=${(fixedCosts/1000).toFixed(1)}M, CM=${(cm/1000).toFixed(1)}M, OpInc=${(opIncome/1000).toFixed(1)}M<br><strong>DOL=${dol.toFixed(2)}x, CM Ratio=${(cmRatio*100).toFixed(2)}%, BE=${(bePoint/1000).toFixed(1)}M, Safety=${safetyDisplay.toFixed(2)}%</strong><br>`;
+      }
+
+      return { monthlyDOL, output };
+    }
+
+    function calculateQuarterlyDOL(monthlyDOL) {
+      const quarterlyDOL = [];
+      let output = '<h2>Квартальные DOL расчеты:</h2>';
+
+      // Маппинг кварталов к месяцам (индексы массива)
+      const quarterMonths = {
+        1: [0, 1, 2],  // Январь, Февраль, Март
+        2: [3, 4, 5],  // Апрель, Май, Июнь
+        3: [6, 7, 8],  // Июль, Август, Сентябрь
+        4: [9, 10, 11] // Октябрь, Ноябрь, Декабрь
+      };
+
+      for (let q = 1; q <= 4; q++) {
+        const indices = quarterMonths[q];
+        const quarterRev = indices.reduce((sum, i) => sum + monthlyData.revenue[i], 0);
+        const quarterVarCosts = indices.reduce((sum, i) => sum + monthlyData.varCosts[i], 0);
+        const quarterOpIncome = indices.reduce((sum, i) => sum + monthlyData.opIncome[i], 0);
+        const quarterCM = quarterRev - quarterVarCosts;
+
+        let quarterDol = 0;
+        if (Math.abs(quarterOpIncome) > 1e-6) {
+          quarterDol = quarterCM / quarterOpIncome;
+        }
+
+        quarterlyDOL.push(quarterDol);
+
+        // Safety Margin calculation for quarter
+        const quarterFixedCosts = indices.reduce((sum, i) => sum + monthlyData.fixedCosts[i], 0);
+        const quarterCMRatio = quarterRev > 0 ? quarterCM / quarterRev : 0;
+        const quarterBE = quarterCMRatio > 0 ? quarterFixedCosts / quarterCMRatio : 0;
+        const quarterSafety = quarterRev > 0 ? ((quarterRev - quarterBE) / quarterRev) * 100 : 0;
+        const quarterSafetyDisplay = quarterBE > quarterRev ? 0 : quarterSafety;
+
+        output += `Q${q}: Revenue=${(quarterRev/1000).toFixed(1)}M, VarCosts=${(quarterVarCosts/1000).toFixed(1)}M, FixedCosts=${(quarterFixedCosts/1000).toFixed(1)}M, CM=${(quarterCM/1000).toFixed(1)}M, OpInc=${(quarterOpIncome/1000).toFixed(1)}M<br><strong>DOL=${quarterDol.toFixed(2)}x, CM Ratio=${(quarterCMRatio*100).toFixed(2)}%, BE=${(quarterBE/1000).toFixed(1)}M, Safety=${quarterSafetyDisplay.toFixed(2)}%</strong><br>`;
+      }
+
+      return { quarterlyDOL, output };
+    }
+
+    function calculateYearlyDOL() {
+      const yearlyRev = monthlyData.revenue.reduce((sum, v) => sum + v, 0);
+      const yearlyVarCosts = monthlyData.varCosts.reduce((sum, v) => sum + v, 0);
+      const yearlyFixedCosts = monthlyData.fixedCosts.reduce((sum, v) => sum + v, 0);
+      const yearlyOpIncome = monthlyData.opIncome.reduce((sum, v) => sum + v, 0);
+      const yearlyCM = yearlyRev - yearlyVarCosts;
+
+      let yearlyDOL = 0;
+      if (Math.abs(yearlyOpIncome) > 1e-6) {
+        yearlyDOL = yearlyCM / yearlyOpIncome;
+      }
+
+      // Safety Margin calculation
+      const yearlyCMRatio = yearlyRev > 0 ? yearlyCM / yearlyRev : 0;
+      const yearlyBE = yearlyCMRatio > 0 ? yearlyFixedCosts / yearlyCMRatio : 0;
+      const yearlySafety = yearlyRev > 0 ? ((yearlyRev - yearlyBE) / yearlyRev) * 100 : 0;
+      const yearlySafetyDisplay = yearlyBE > yearlyRev ? 0 : yearlySafety;
+
+      const output = `<h2>Годовой DOL и Safety Margin расчет:</h2>Year: Revenue=${(yearlyRev/1000).toFixed(1)}M, VarCosts=${(yearlyVarCosts/1000).toFixed(1)}M, FixedCosts=${(yearlyFixedCosts/1000).toFixed(1)}M, CM=${(yearlyCM/1000).toFixed(1)}M, OpInc=${(yearlyOpIncome/1000).toFixed(1)}M<br><strong>DOL=${yearlyDOL.toFixed(2)}x, CM Ratio=${(yearlyCMRatio*100).toFixed(2)}%, BE=${(yearlyBE/1000).toFixed(1)}M, Safety=${yearlySafetyDisplay.toFixed(2)}%</strong><br>`;
+
+      return { yearlyDOL, output };
+    }
+
+    // Выполняем расчеты
+    const { monthlyDOL, output: monthlyOutput } = calculateMonthlyDOL();
+    const { quarterlyDOL, output: quarterlyOutput } = calculateQuarterlyDOL(monthlyDOL);
+    const { yearlyDOL, output: yearlyOutput } = calculateYearlyDOL();
+
+    document.getElementById('output').innerHTML = monthlyOutput + quarterlyOutput + yearlyOutput;
+  </script>
+</body>
+</html>
+
+
+
+

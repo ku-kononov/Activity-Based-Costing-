@@ -168,7 +168,7 @@ export async function getAbcProcesses(filters = {}) {
     }
 
     options.filters = apiFilters;
-options.sortBy = filters.sortBy || 'total_cost DESC';
+    options.sortBy = filters.sortBy || 'total_cost DESC';
 
     return await fetchAbcData('vw_abc_classification', options);
   } catch (error) {
@@ -325,4 +325,92 @@ export async function getMatrixData(deptLimit = 20, processLimit = 20) {
     console.error('Error fetching matrix data:', error);
     return { departments: [], processes: [], matrix: [], summary: { totalCells: 0, filledCells: 0, totalValue: 0, avgValue: 0 } };
   }
+}
+
+// Получение данных для аналитики затрат процессов
+export async function getProcessCostsAnalytics(departmentFilter = null) {
+  try {
+    const cacheKey = `process_costs_analytics_${departmentFilter || 'all'}`;
+    const cached = getCachedData(cacheKey);
+    if (cached) return cached;
+
+    // Получаем данные из таблиц Costs_Driver_by_BI и BOLT_Затраты_подразделений_H12025
+    const [costsDriver, deptCosts] = await Promise.all([
+      fetchData('Costs_Driver_by_BI', '*'),
+      fetchData('BOLT_Затраты_подразделений_H12025', '*')
+    ]);
+
+    // Создаем map для быстрого поиска затрат по подразделениям
+    const deptMap = new Map(deptCosts.map(d => [d['Department_ID'], d]));
+
+    // Объединяем данные
+    let analyticsData = costsDriver.map(item => {
+      const dept = deptMap.get(item['Department ID']);
+      if (!dept) return null;
+
+      return {
+        code: item['PCF Code'] || item['Process ID'] || '',
+        process: item['Process Name'] || '',
+        distributionRate: item['Cost_Driver'] || 0,
+        totalCosts: (dept.total_costs || 0) * (item['Cost_Driver'] || 0),
+        fte: dept.number_of_employees || 0,
+        department: item['Department Name'] || dept['Department_Name'] || ''
+      };
+    }).filter(Boolean);
+
+    // Применяем фильтр по подразделению если указан
+    if (departmentFilter && departmentFilter !== 'all') {
+      analyticsData = analyticsData.filter(item =>
+        item.department === departmentFilter
+      );
+    }
+
+    // Сортируем по коду процесса
+    analyticsData.sort((a, b) => (a.code || '').localeCompare(b.code || '', 'ru'));
+
+    setCachedData(cacheKey, analyticsData);
+    return analyticsData;
+
+  } catch (error) {
+    console.error('Error fetching process costs analytics:', error);
+    return [];
+  }
+}
+
+// Получение списка подразделений для фильтра
+export async function getDepartmentsForFilter() {
+  try {
+    const departments = await fetchData('vw_department_list', 'department_name');
+    return departments.map(d => d.department_name).sort((a, b) => a.localeCompare(b, 'ru'));
+  } catch (error) {
+    console.error('Error fetching departments for filter:', error);
+    // Fallback - получаем из BOLT_orgchat
+    try {
+      const orgData = await fetchData('BOLT_orgchat', '"Department Name"');
+      const uniqueDepts = [...new Set(orgData.map(d => d['Department Name']).filter(Boolean))];
+      return uniqueDepts.sort((a, b) => a.localeCompare(b, 'ru'));
+    } catch (fallbackError) {
+      console.error('Fallback departments fetch failed:', fallbackError);
+      return [];
+    }
+  }
+}
+
+// Дополнительные утилиты для форматирования
+export function formatCurrency(amount) {
+  if (typeof amount !== 'number' || isNaN(amount)) return '0 ₽';
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+}
+
+export function formatNumber(number) {
+  if (typeof number !== 'number' || isNaN(number)) return '0';
+  return new Intl.NumberFormat('ru-RU', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(number);
 }

@@ -181,9 +181,9 @@
       <section class="metric card" data-accent="safety">
         <div class="metric-head"><i data-lucide="shield-check"></i><h2 class="metric-title">Запас финансовой прочности (Safety Margin)</h2></div>
         <div class="metric-body">
-          <div class="block"><div class="block-title">Что это</div><p class="block-text">«Подушка безопасности»: на сколько % может упасть выручка до нуля по операционной прибыли.</p></div>
-          <div class="block"><div class="block-title">Как считаем</div><div class="formula">CMR = (Revenue − (COGS + Var OPEX)) / Revenue<br/>BEP (Revenue) = (Fixed − Other Op) / CMR<br/>Safety (%) = (Revenue − BEP) / Revenue × 100%</div></div>
-          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">20%+ — комфортно; 10–20% — зона внимания; &lt;10% — риск.</p></div>
+          <div class="block"><div class="block-title">Что это</div><p class="block-text">«Подушка безопасности»: на сколько процентов можно снизить продажи, прежде чем компания выйдет на точку безубыточности.</p></div>
+          <div class="block"><div class="block-title">Как считаем</div><div class="formula">Contribution Margin = Revenue - Variable Costs<br/>Contribution Margin Ratio = Contribution Margin / Revenue<br/>Break-even Point = Fixed Costs / Contribution Margin Ratio<br/>Safety Margin = (Revenue - Break-even Point) / Revenue × 100%</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">20%+ — комфортно; 10–20% — зона внимания; &lt;10% — риск; 0% — на грани безубыточности.</p></div>
         </div>
       </section>
 
@@ -191,9 +191,9 @@
       <section class="metric card" data-accent="dol">
         <div class="metric-head"><i data-lucide="activity-square"></i><h2 class="metric-title">Операционный рычаг (DOL)</h2></div>
         <div class="metric-body">
-          <div class="block"><div class="block-title">Что это</div><p class="block-text">Чувствительность операционной прибыли к изменению выручки. Большой DOL усиливает и рост, и падение.</p></div>
-          <div class="block"><div class="block-title">Как считаем</div><div class="formula">DOL ≈ ΔOperating Profit % / ΔRevenue %</div></div>
-          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">DOL &gt; 1 — есть операционный эффект; 2–3 — умеренно-агрессивно; ≫3 — высокая волатильность.</p></div>
+          <div class="block"><div class="block-title">Что это</div><p class="block-text">Чувствительность операционной прибыли к изменению выручки. Большой DOL усиливает и рост, и падение. Рассчитывается на основе contribution margin (выручка минус переменные затраты).</p></div>
+          <div class="block"><div class="block-title">Как считаем</div><div class="formula">DOL = Contribution Margin / Operating Profit</div><div class="formula">где: Contribution Margin = Revenue - Variable Costs</div></div>
+          <div class="callout ok"><div class="c-title"><i data-lucide="check-circle-2"></i>Ориентиры</div><p class="block-text">DOL &gt; 1 — есть операционный эффект; 2–3 — умеренно-агрессивно; ≫3 — высокая волатильность. При отсутствии периода сравнения используется точечный расчёт.</p></div>
         </div>
       </section>
 
